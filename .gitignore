@@ -1,0 +1,22 @@
+# Overleaf thesis is its own git repo (remote: Overleaf)
+thesis/
+
+# Data, weights, experiment outputs
+data/
+checkpoints/
+outputs/
+lightning_logs/
+wandb/
+*.ckpt
+*.pt
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Secrets
+.env
+
+.DS_Store
