@@ -20,3 +20,9 @@ __pycache__/
 .env
 
 .DS_Store
+
+# Source PDFs (copyrighted, large): see docs/SOURCES.md
+sources/
+
+# University course guides (PDFs, large)
+thesis-guidelines/

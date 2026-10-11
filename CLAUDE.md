@@ -40,4 +40,4 @@ Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson A
 
 ## Shell
 
-zsh aliases replace classic tools (`grep`→`rg`, `find`→`fd`, `cat`→`bat`, `ls`→`eza`). Use `command grep` etc. when you need GNU flags.
+zsh aliases replace classic tools (`grep`→`rg`, `find`→`fd`, `cat`→`bat`). Use `command grep` etc. when you need GNU flags.
