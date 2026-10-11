@@ -16,7 +16,7 @@
 
 ## 3. Training pipeline
 
-- [ ] 3.1 TerraTorch config for U-Net (ResNet encoder); one end-to-end run on seed 0
+- [x] 3.1 TerraTorch config for U-Net (ResNet encoder); one end-to-end run on seed 0
 - [ ] 3.2 TerraTorch config for TerraMind v1-B (UNetDecoder, official normalization); one run on seed 0
 - [ ] 3.3 TerraTorch config for Prithvi-EO-2.0 300M (batch 4 + grad accumulation); one run on seed 0
 - [ ] 3.4 Learning-rate sweep (3 values) per model on `valid`, seed 0; fix hyperparameters

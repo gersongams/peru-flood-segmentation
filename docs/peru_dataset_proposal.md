@@ -36,15 +36,33 @@ Cifras de las versiones MONIT01 (la más reciente) cuando existen. Áreas calcul
 
 1. **Las etiquetas EMS se hicieron sobre radar** (Cosmo-SkyMed, Radarsat, TerraSAR-X, Sentinel-1), no sobre Sentinel-2. Hay que emparejarlas con una escena S2 cercana en fecha.
 2. **Nubes.** Escenas Sentinel-2 L2A entre el 10/03 y el 15/04/2017 (Planetary Computer STAC; nubosidad por tile completo, no por AOI):
-   - Piura: 11, 18 y 31 mar con 52–99 % de nubes. **Primera fecha despejada: 7 abr 2017** (0–5 %).
+   - Piura: 11, 18 y 31 mar con 52–99 % de nubes. **Primera fecha despejada: 7 abr 2017** (la cifra de 0–5 % era del tile completo en L2A; por AOI ver §3b).
    - Trujillo: despejado el 7 y 14 abr (1–28 %).
    - Lima / Huaura: despejado el 25 mar, 4 abr, 14 abr.
    - Iquitos: 83–100 % en todas las escenas. **No sirve.**
 3. **Desfase de fecha.** Entre las etiquetas (26–30 mar) y la escena S2 despejada (7 abr) hay ~1 semana; parte del agua pudo retirarse. Los polígonos no se pueden copiar sin revisión.
 
+## 3b. Encuesta de nubes y agua por AOI (CDSE, L1C)
+
+Todas las pasadas Sentinel-2 L1C del 15 mar al 30 abr 2017 sobre las cinco AOI, con la máscara de nubes s2cloudless (CLM) de CDSE. Scripts: `scripts/peru_cloud_survey.py`, `scripts/peru_water_persistence.py`. Resultados: `data/peru/cloud_survey.csv`, `data/peru/water_persistence_2017-04-07.csv`. **El 7 abr 2017 es la mejor fecha en todas las AOI**; el 18 mar está ~100 % nublado, el 31 mar y el 20 abr son malos, el 27 abr es la segunda opción.
+
+| AOI | Cobertura de la escena | AOI despejada | Polígonos EMS despejados | EMS que aún parece agua (MNDWI > 0, píxeles despejados) |
+|---|---|---|---|---|
+| Salinas | 100 % | 95 % | 99.6 % | 90 % |
+| Parachique | 99.5 % | 84 % | 97 % | 71 % |
+| Piura | 83 % | 81 % | 87 % | 70 % |
+| Piura Norte | 68 % | 64 % | 59 % | 21 % |
+| Trujillo | 100 % | 79 % | 100 % | 1 % |
+
+Notas:
+- MNDWI es un indicador grueso, no una etiqueta.
+- Los productos L1C de CDSE son reprocesados (baseline `N0500`, 2023), no el procesamiento original que usó Sen1Floods11.
+- Las áreas EMS rasterizadas aquí (recortadas a la AOI, 20 m) difieren de la tabla del §2 (p. ej. Parachique 470 vs 790 km²); se reconciliarán al generar los chips.
+- **Trujillo**: casi nada de la zona EMS muestra agua el 7 abr; o el agua se retiró, o los polígonos marcan huaicos/lodo, no lámina de agua. No sirve como etiqueta de agua sin revisión visual.
+
 ## 4. Propuesta
 
-1. **Base**: Piura (Salinas, Parachique, Piura, Piura Norte) y Trujillo con Sentinel-2 del **7 abr 2017**.
+1. **Base**: Salinas, Parachique y Piura con Sentinel-2 L1C del **7 abr 2017**. Piura Norte es débil (21 % de agua, 68 % de cobertura); Trujillo queda fuera salvo que la revisión visual lo justifique.
 2. **Etiqueta inicial** = polígonos EMS rasterizados a 10 m en chips de 512×512 (mismo formato que Sen1Floods11: 1 agua, 0 no agua, −1 nube / sin dato).
 3. **Corrección manual** de cada chip sobre la imagen S2 del 7 abr. Objetivo: ~30–60 chips con agua.
 4. **Acuerdo entre anotadores**: ambos autores etiquetan un subconjunto común; reportar IoU / kappa entre ellos.
@@ -57,7 +75,7 @@ Sin Bolivia, Sen1Floods11 queda para entrenamiento, validación y test **en dist
 
 ## 6. Siguiente paso
 
-Descargar las escenas S2 del 7 abr 2017 de Piura y Trujillo, superponer los polígonos EMS y estimar visualmente cuánta agua sigue presente → cuánta corrección hace falta.
+Partición geográfica propuesta: `peru-test` = Salinas (~800 km² inundados en EMS); `peru-dev` = Parachique + Piura (+ Piura Norte). Decisión final cuando existan los chips, balanceando píxeles de agua. Siguiente: descargar las escenas L1C del 7 abr, rasterizar los polígonos EMS a 10 m y generar los chips (tareas 4.1–4.3).
 
 ## Fuentes
 

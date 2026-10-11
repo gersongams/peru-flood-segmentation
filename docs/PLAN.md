@@ -40,7 +40,7 @@ B runs in parallel with A. Chapters I–II are written during A–B, not at the 
 | Set | Role |
 |---|---|
 | Sen1Floods11 hand-labelled, official splits (train 252 / valid 89 / test 90) | Training, model selection (`valid`), in-distribution test (`test`). Never re-split. `bolivia` is not used. |
-| Peru EMSR199 (Piura, Parachique, Salinas, Piura Norte, Trujillo) + Sentinel-2 of 7 Apr 2017 | `peru-dev` for analysis/method design; `peru-test` evaluated once, at the end. Split by area, no area in both. |
+| Peru EMSR199 (Salinas, Parachique, Piura; Piura Norte weak; Trujillo likely dropped) + Sentinel-2 L1C of 7 Apr 2017 | `peru-dev` for analysis/method design; `peru-test` evaluated once, at the end. Split by area, no area in both. |
 | ESA WorldCover, Copernicus DEM, cloud masks | Strata for failure analysis. |
 
 ## 6. Models and compute
