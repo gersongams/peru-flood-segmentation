@@ -1,0 +1,5 @@
+# Local Apple Silicon. Combine: terratorch fit -c configs/<model>.yaml -c configs/trainer/mps.yaml
+trainer:
+  accelerator: mps
+  devices: 1
+  precision: 32-true

@@ -1,18 +1,18 @@
 ## 1. Plan and repo setup
 
-- [ ] 1.1 Rewrite `docs/PLAN.md` to the A–E strategy (detection core, Peru benchmark, failure analysis, method, optional susceptibility)
-- [ ] 1.2 Create `configs/`, `src/floodseg/` (package in `pyproject.toml`), `outputs/runs/` layout
-- [ ] 1.3 Add a run-provenance helper writing `run.json` (config, seed, commit, dirty flag, versions, hardware, timing)
-- [ ] 1.4 Add the MPS memory guard (abort above `recommended_max_memory`) as a Lightning callback
-- [ ] 1.5 Make device and precision config-only (`mps` / `cuda`, fp32 / 16-mixed); add a `--demo` mode (few epochs, data subset)
-- [ ] 1.6 Pick a GPU provider; script setup, data sync and teardown; write a cost estimate template
+- [x] 1.1 Rewrite `docs/PLAN.md` to the A–E strategy (detection core, Peru benchmark, failure analysis, method, optional susceptibility)
+- [x] 1.2 Create `configs/`, `src/floodseg/` (package in `pyproject.toml`), `outputs/runs/` layout
+- [x] 1.3 Add a run-provenance helper writing `run.json` (config, seed, commit, dirty flag, versions, hardware, timing)
+- [x] 1.4 Add the MPS memory guard (abort above `recommended_max_memory`) as a Lightning callback
+- [x] 1.5 Make device and precision config-only (`mps` / `cuda`, fp32 / 16-mixed); add a `--demo` mode (few epochs, data subset)
+- [ ] 1.6 Pick a GPU provider; script setup, data sync and teardown; write a cost estimate template (deferred until the Mac is the bottleneck; RunPod RTX 4090 preferred, AWS only with research credits)
 
 ## 2. Sen1Floods11 data
 
-- [ ] 2.1 Download all official-split S2Hand + LabelHand chips; verify counts 252/89/90 and that every file opens
-- [ ] 2.2 Write official split lists (replace the 48/8 feasibility subset lists)
-- [ ] 2.3 Implement per-model normalization (TerraMind, Prithvi HLS 6-band, U-Net train stats) and log it per run
-- [ ] 2.4 Test: ignore pixels (−1) excluded from loss and metrics; split sizes enforced; `bolivia` rejected
+- [x] 2.1 Download all official-split S2Hand + LabelHand chips; verify counts 252/89/90 and that every file opens
+- [x] 2.2 Write official split lists (replace the 48/8 feasibility subset lists)
+- [x] 2.3 Implement per-model normalization (TerraMind, Prithvi HLS 6-band, U-Net train stats) and log it per run
+- [x] 2.4 Test: ignore pixels (−1) excluded from loss and metrics; split sizes enforced; `bolivia` rejected
 
 ## 3. Training pipeline
 
@@ -22,7 +22,7 @@
 - [ ] 3.4 Learning-rate sweep (3 values) per model on `valid`, seed 0; fix hyperparameters
 - [ ] 3.5 Check seed reproducibility on MPS (repeat one run) and record tolerance in the experiment log
 - [ ] 3.6 Train all models × ≥3 seeds; decide 3 vs 5 seeds from measured timing
-- [ ] 3.7 Verify the SOTA reference number(s) in the source PDFs (table + page) and record them in `docs/REFERENCES.md`
+- [x] 3.7 Verify the SOTA reference number(s) in the source PDFs (table + page) and record them in `docs/REFERENCES.md`; note which inputs each used (the official TerraMind Sen1Floods11 config uses S2L1C + S1GRD, not S2 only)
 - [ ] 3.8 Compare our `valid` results with published numbers; investigate any gap > 2 IoU before phase C
 
 ## 4. Peru test set (in parallel with 3)
@@ -30,7 +30,7 @@
 - [ ] 4.1 Download Sentinel-2 L1C for Piura and Trujillo, 7 Apr 2017 (search for any closer clear date)
 - [ ] 4.2 Rasterize EMSR199 delineation polygons to the S2 grid at 10 m; overlay and estimate receded water
 - [ ] 4.3 Tile into 512×512 chips in Sen1Floods11 format; build the chip manifest with provenance fields
-- [ ] 4.4 Write the labelling guideline (water, flooded vegetation, cloud/no-data → −1)
+- [x] 4.4 Write the labelling guideline (water, flooded vegetation, cloud/no-data → −1)
 - [ ] 4.5 Both authors label ≥10 shared chips independently; compute IoU and Cohen's kappa
 - [ ] 4.6 Correct all remaining chips; mark reviewed; compute cloud fraction per chip
 - [ ] 4.7 Geographic split into `peru-dev` / `peru-test` by AOI, balancing water pixels

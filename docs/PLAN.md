@@ -1,119 +1,83 @@
-# Research plan: flood extent segmentation with geospatial foundation models
+# Research plan: flood detection in Peru with geospatial foundation models
 
-Status: draft, 2026-09-29. **Open inputs: defense deadline, paper venue, advisor sign-off** (see the end of this file).
+Status: 2026-10-11. Supersedes the 2026-09-29 draft. The specification lives in `openspec/changes/plan-flood-research/` (proposal, specs, design, tasks); this file is the short human-readable version.
+**Open inputs: defense deadline, paper venues, advisor OK on Sentinel-1 for phase D.**
 
 ## 1. One-line pitch
 
-Fine-tune Transformer-based geospatial foundation models (TerraMind, Prithvi-EO-2.0) to segment flood water in Sentinel-2 imagery. Test whether they beat a CNN baseline **on regions they never saw** (Bolivia holdout, Peru), and ship **calibrated uncertainty maps** with every prediction.
+Flood detection models score well on the standard benchmark but are untested on Peru. We **reproduce SOTA**, **build the first labelled Peru flood benchmark**, **measure where SOTA fails there and why**, and **design a method that fixes that failure**.
 
 ## 2. Why this framing
 
-Checked against the literature in September 2026:
+- **Detect, not forecast.** Forecasting needs hydrological models, rainfall forecasts and river gauges: a different field. Detection from satellite imagery has labelled data, pretrained models and expert maps for Peru.
+- **The standard benchmark is saturated.** In Prithvi-CAFE's Table 1 (arXiv 2601.02315, p. 6), water IoU on Sen1Floods11 `test` is 82.2–83.4 for the foundation models and **84.03 for a U-Net**, the best in the table. +0.3 IoU there is not a contribution. Verified numbers and caveats: `docs/REFERENCES.md`, "SOTA reference numbers".
+- **Generalization is where the gap is.** The same paper reports a 10.8 IoU gap over U-Net on the Bolivia holdout. Peru has no public labelled flood benchmark we know of (`docs/peru_dataset_proposal.md`).
+- **Advisor:** drop Bolivia; evaluate generalization on Peru.
 
-- In-distribution Sen1Floods11 scores have plateaued. In Prithvi-CAFE's Table 1 (arXiv 2601.02315, Jan 2026), water IoU is 82.50 for Prithvi 2.0 600M and 82.90 for TerraMind v1-B. The same paper reports that a U-Net ties or slightly beats foundation models in-distribution. Chasing +0.5 IoU on the standard test split is not a contribution.
-- The gap opens **out of distribution**. On the Bolivia holdout, Prithvi-CAFE beats the U-Net baseline by 10.8 IoU (same paper). Generalization to a new region is where Transformers are claimed to matter, and **Peru has no public labelled flood benchmark we know of**.
-- The approved thesis plan commits to Sentinel-2, Transformer vs CNN, and uncertainty quantification. This framing keeps all three.
-
-## 3. Research questions → hypotheses
+## 3. Research questions
 
 | # | Question | Hypothesis |
 |---|---|---|
-| RQ1 | Do Transformer foundation models beat a CNN baseline for S2 flood segmentation? | No meaningful gap in-distribution. The FMs are better on held-out regions (Bolivia, Peru). |
-| RQ2 | Does adding Sentinel-1 SAR help? (ablation) | It helps most where S2 is cloudy or water is under vegetation. Needs advisor OK, since the approved plan says S2 only. |
-| RQ3 | Are the models' uncertainties calibrated, and do they flag errors? | Raw softmax is over-confident. Ensembles or MC-dropout plus temperature scaling lower the ECE, and high-uncertainty pixels concentrate the errors. |
-| RQ4 | Do the models transfer to real Peruvian flood events? | Performance drops versus Sen1Floods11. The uncertainty maps localize where the models fail. |
+| RQ1 | Do Transformer foundation models (TerraMind, Prithvi) beat a CNN (U-Net) on Sen1Floods11 and on Peru? | No meaningful gap in-distribution; the foundation models lose less on Peru. |
+| RQ2 | Where and why do SOTA models fail on Peru? | Most errors concentrate in a few strata: clouds, flooded vegetation, desert/coastal terrain. |
+| RQ3 | Are the models' uncertainties calibrated, and do they flag the failures? | Raw softmax is over-confident; ensembles + temperature scaling lower ECE; high uncertainty concentrates errors. |
+| RQ4 | Can a method targeted at the dominant failure beat SOTA on Peru? | Defined after RQ2 (phase D). |
 
-## 4. Data
+## 4. Phases
 
-| Set | Role | Notes |
-|---|---|---|
-| **Sen1Floods11, hand-labelled** | train / val / test / OOD | Official splits: train 252, valid 89, test 90, bolivia 15 (counted from the split CSVs, see `docs/feasibility.md`). S2 chips are **L1C**, 13 bands. Use the official splits, never re-split, so numbers are comparable with published tables. |
-| WorldFloods v2 (ml4floods) | optional extra training / second OOD test | Check the licence before use. |
-| **Peru test set (new)** | OOD case study, the paper's contribution | Candidate events: Piura / Niño Costero 2017 and Tumbes / Cyclone Yaku 2023. First check the Copernicus EMS activation list for Peru rapid-mapping products (EMSR codes). If none are usable, hand-label about 30–60 chips at 512×512 with S1 as the reference. That is real labelling work: budget for it and have both authors label a shared subset to measure agreement. |
-
-Imagery for Peru comes from free sources (Copernicus Data Space, Planetary Computer, or Earth Engine). CDSE free tier: 40,000 processing units per month.
-
-## 5. Models
-
-All models go through TerraTorch so they share the same data pipeline, loss and trainer.
-
-1. **Baseline CNN: U-Net** with a ResNet encoder. Required by the plan (comparison with conventional CNNs) and by reviewers. One config file.
-2. **TerraMind v1-B** (103M params). The main model. It runs on MPS at batch size 8, about 38 s per epoch (`docs/feasibility.md`).
-3. **Prithvi-EO-2.0 300M.** Second foundation model. Batch size 4 on MPS, about 96 s per epoch.
-4. Optional, if time allows: a Transformer trained from scratch (e.g. SegFormer). It separates "Transformer architecture" from "pretraining", which strengthens RQ1.
-
-**Fix before accuracy runs:** match each model's official input normalization. The feasibility run did not (see `docs/feasibility.md`).
-
-## 6. Uncertainty (RQ3)
-
-- **Deep ensemble:** the 3–5 seeds we train anyway double as ensemble members, so it costs no extra training.
-- **MC-dropout** at inference on the best single model.
-- **Temperature scaling** fitted on the validation split.
-- **Metrics:** ECE plus reliability diagrams, and AUROC of uncertainty for predicting per-pixel error.
-
-## 7. Evaluation protocol
-
-- **Metrics:** water IoU (the main metric), mIoU, F1, and ECE.
-- Report **mean ± std over at least 3 seeds.** In-distribution gaps between models are below 1 IoU, so single-seed tables are not evidence.
-- Choose checkpoints on `valid` only. `test`, `bolivia` and Peru are touched once, at the end.
-- Report **in-distribution (test)** and **OOD (bolivia, Peru)** side by side. That contrast is the paper.
-- Log every run's config, seed and git commit (for example with Lightning's CSV logger or MLflow).
-
-## 8. Repository layout (target)
-
-```
-peru-flood-segmentation/
-├── configs/        # TerraTorch YAML, one per model/experiment
-├── src/floodseg/   # data modules, uncertainty, metrics, Peru inference
-├── scripts/        # download, train, evaluate, figures
-├── notebooks/      # exploration only, no logic that results depend on
-├── docs/           # PLAN.md, feasibility.md, REFERENCES.md, experiment log
-├── data/           # git-ignored
-├── outputs/        # git-ignored (runs, checkpoints, figures)
-└── thesis/         # Overleaf repo (separate git, git-ignored here)
-```
-
-## 9. Phases
-
-Durations are estimates. Map them onto dates once the deadline is known.
-
-| Phase | Work | Output | Est. |
+| Phase | Work | Output | Paper |
 |---|---|---|---|
-| 0 | Full Sen1Floods11 download, correct normalization, reproducible train/eval scripts | 1 run end-to-end | 1 wk |
-| 1 | U-Net + TerraMind + Prithvi, 3 seeds each, S2 only | RQ1 in-distribution + Bolivia table | 2 wk |
-| 2 | Uncertainty: ensembles, MC-dropout, temperature scaling, ECE | RQ3 results + figures | 1–2 wk |
-| 3 | Peru test set: EMS search, then labelling if needed | Labelled Peru chips + data card | 2–3 wk (runs in parallel with 1–2) |
-| 4 | Peru evaluation + S1 ablation (if approved) | RQ2, RQ4 results | 1–2 wk |
-| 5 | Thesis chapters III–VI + paper draft | Full draft | 3–4 wk |
-| 6 | Revisions, defense slides | — | 2 wk |
+| **A. Reproduce SOTA** | U-Net, TerraMind v1-B, Prithvi-EO-2.0 300M on Sen1Floods11 official splits, ≥3 seeds | Results within ~2 IoU of published | — |
+| **B. Peru benchmark** | EMSR199 (Niño Costero 2017) → hand-corrected Sentinel-2 chips; geographic split `peru-dev` / `peru-test` | Dataset + data card + annotator agreement | 1 |
+| **C. Failure analysis** | Stratified errors and calibration on `peru-dev` | Decision record: dominant failure, 3–4 candidate methods | 1 |
+| **D. Method** (own change) | Candidates: S1+S2 fusion robust to clouds, domain adaptation to Peru, uncertainty-guided correction | Beat best baseline on `peru-test` | 2 |
+| **E. Susceptibility** (optional) | Detected Peru floods + terrain (DEM, HAND) → flood-prone zones | Extra chapter | — |
 
-Write Chapter I (problem) and II (theory / state of the art) during phases 0–2, not at the end.
+B runs in parallel with A. Chapters I–II are written during A–B, not at the end.
 
-## 10. Thesis ↔ work mapping
+## 5. Data
+
+| Set | Role |
+|---|---|
+| Sen1Floods11 hand-labelled, official splits (train 252 / valid 89 / test 90) | Training, model selection (`valid`), in-distribution test (`test`). Never re-split. `bolivia` is not used. |
+| Peru EMSR199 (Piura, Parachique, Salinas, Piura Norte, Trujillo) + Sentinel-2 of 7 Apr 2017 | `peru-dev` for analysis/method design; `peru-test` evaluated once, at the end. Split by area, no area in both. |
+| ESA WorldCover, Copernicus DEM, cloud masks | Strata for failure analysis. |
+
+## 6. Models and compute
+
+- U-Net (ResNet encoder), TerraMind v1-B, Prithvi-EO-2.0 300M via TerraTorch, shared loss and trainer, each with its official input normalization.
+- **Local demo first, then rent GPUs.** Every experiment runs as a small demo on the M4 Max. It goes to a rented GPU only if the demo works and the cost estimate is accepted. Measured local speeds: `docs/feasibility.md`.
+
+## 7. Protocol
+
+- Metrics: water IoU (primary), mIoU, F1, ECE, error-detection AUROC; split-level and per-chip.
+- Mean ± std over ≥3 seeds. A method "beats" a baseline only if its mean − std exceeds the baseline mean.
+- Select on `valid` / `peru-dev` only. `test` and `peru-test` are evaluated once per frozen configuration.
+- Every run logs config, seed, git commit, device and versions. Every number in the thesis traces to a results file or a cited table.
+
+## 8. Thesis ↔ work
 
 | Chapter | Content |
 |---|---|
-| I Planteamiento | Problem, RQ1–4, hypotheses, objectives (keep the approved plan's objectives), scope |
-| II Fundamento teórico | Remote sensing, S1/S2, CNNs vs Transformers, foundation models, uncertainty; state-of-the-art review (see `docs/REFERENCES.md`) |
-| III Método | Data, splits, protocol, metrics, Peru dataset construction |
-| IV Desarrollo | Architectures, fine-tuning setup, uncertainty methods, implementation |
-| V Resultados | RQ1–4 tables and figures |
-| VI Discusión | Hypotheses tested against the results; comparison with published numbers |
+| I Planteamiento | Problem, RQ1–4, objectives, scope (detection, Peru) |
+| II Fundamento teórico | Remote sensing, S1/S2, CNNs vs Transformers, foundation models, uncertainty, domain shift; state of the art (`docs/REFERENCES.md`) |
+| III Método | Sen1Floods11, Peru dataset construction, protocol, metrics |
+| IV Desarrollo | Models, training, uncertainty, phase-D method |
+| V Resultados | Phases A–D |
+| VI Discusión | Hypotheses vs results; comparison with published numbers |
 
-**Paper:** the same RQ1 + RQ3 + Peru contribution in a compact form. Choose the venue once the deadline is known, and check the venue's own call for papers for dates.
-
-## 11. Risks
+## 9. Risks
 
 | Risk | Mitigation |
 |---|---|
-| No usable EMS product for Peru | Hand-label a smaller set; report inter-annotator agreement |
-| Clouds over Peru during flood peaks (S2) | S1 ablation; report the cloud fraction per chip; uncertainty maps |
-| Flooded vegetation invisible to optical imagery (`shastry_mapping_2023`: 74% of misses) | State it as a limitation; S1 ablation |
-| Prithvi batch-size limits on MPS | Close the VM/Docker that holds about 16 GB; gradient accumulation; Kaggle/Colab only if needed |
-| Deviating from the approved plan (S1, title) | Get advisor sign-off before phase 4 |
+| EMS labels are from radar (26–30 Mar); clear S2 is 7 Apr, water may have receded | Manual correction on S2; report the date gap |
+| Peru set small | Bootstrap CIs; leave-one-area-out if too small to split |
+| SOTA not reproduced | Fix normalization/budget before phase C; report residual gap |
+| No dominant failure in C | Paper 1 is benchmark + analysis; D targets the largest stratum |
+| Phase D needs Sentinel-1, outside the approved plan | Ask the advisor before C ends |
 
-## 12. Decisions needed from the authors
+## 10. Decisions needed
 
-1. Defense deadline and paper venue, which set the dates in §9.
-2. Advisor approval for the S1 ablation (RQ2) and any change to the title.
-3. How labelling (phase 3) and chapters are split between the two authors.
+1. Defense deadline and paper venues (to date the phases).
+2. Advisor OK for Sentinel-1 in phase D.
+3. Who labels which Peru areas; both authors label the shared agreement subset.

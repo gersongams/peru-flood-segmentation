@@ -1,0 +1,7 @@
+# Small local demo: same code and model config, few epochs, a fraction of the data.
+# A run goes to a rented GPU only after its demo works (design.md, decision 12).
+# Demo runs may start from a dirty working tree; full runs may not (RunProvenance).
+trainer:
+  max_epochs: 3
+  limit_train_batches: 0.25
+  limit_val_batches: 0.5
