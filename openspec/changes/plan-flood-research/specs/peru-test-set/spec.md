@@ -1,57 +1,50 @@
 ## Purpose
 
-Create a labelled, documented Sentinel-2 flood dataset for Peru (EMSR199, Niño Costero 2017), used both to fine-tune models on Peruvian data (advisor request) and as the only out-of-distribution evaluation.
+Build a Peru flood dataset without manual labelling, from expert flood maps already drawn by UNOSAT and Copernicus EMS, used to train models on Peruvian data (advisor request) and to test them. Sources and checks: `docs/peru_label_sources.md`.
 
 ## ADDED Requirements
 
-### Requirement: Source and scene selection
-The Peru test set SHALL derive initial labels from Copernicus EMS EMSR199 flood delineation products for Salinas, Parachique and Piura (Piura Norte optional; Trujillo only if visual review shows standing water), paired with Sentinel-2 imagery of the nearest clear date (7 Apr 2017 unless a closer clear scene is found).
+### Requirement: Label sources
+Training, development and in-event test labels SHALL come from the UNOSAT Cyclone Yaku 2023 products (Lambayeque + Piura, Sentinel-2 of 2023-03-21 and 2023-04-01), paired with the Sentinel-2 L1C acquisition the labels were drawn on. A cross-event test SHALL come from Copernicus EMS EMSR199 (2017) paired with the nearest clear Sentinel-2 L1C scene (2017-04-07).
 
 #### Scenario: Scene provenance recorded
 - **WHEN** a chip is created
-- **THEN** its metadata records the S2 product ID, acquisition date, EMS product code and version, and the date gap between label and image
+- **THEN** its manifest row records the label product and version, the S2 product ID, the acquisition date, and the date gap between label and image (0 for UNOSAT)
+
+### Requirement: Automatic label rules
+Each chip label SHALL be derived by fixed rules: 1 = inside the product's water/flood extent; 0 = inside the analysed extent and outside water; −1 = outside the analysed extent, inside the product's cloud layer, or S2 no-data. For EMSR199 (radar labels a week before the S2 image), pixels where the EMS polygon and the S2 water index disagree SHALL be set to −1, and this SHALL be reported as a limitation.
+
+#### Scenario: Rule change
+- **WHEN** a label rule changes
+- **THEN** all chips are regenerated and the dataset version increases
 
 ### Requirement: Sen1Floods11-compatible format
-Chips SHALL be 512×512 at 10 m with the same band set as Sen1Floods11 S2Hand and the same label convention (1 / 0 / −1).
+Chips SHALL be 512×512 at 10 m with the same 13-band L1C band set as Sen1Floods11 S2Hand and the same label convention (1 / 0 / −1).
 
 #### Scenario: Format check
 - **WHEN** the Peru set is loaded through the same pipeline as Sen1Floods11
 - **THEN** every chip loads without code changes and passes shape, band and label-value checks
 
-### Requirement: Manual correction of labels
-Every chip's rasterized EMS label SHALL be reviewed and corrected by hand against its Sentinel-2 image, and clouds and no-data SHALL be marked −1.
+### Requirement: Label quality check
+The dataset build SHALL produce an overlay image per chip (true colour, SWIR false colour, label) and an automatic agreement score between the label and a water index. Chips whose agreement is below a fixed threshold SHALL be listed for an optional human look; no chip is edited by hand.
 
-#### Scenario: Unreviewed chip
-- **WHEN** a chip has not been marked as reviewed
-- **THEN** it is excluded from the evaluation set
-
-### Requirement: Inter-annotator agreement
-Both authors SHALL independently label a shared subset of at least 10 chips, and the set's documentation SHALL report IoU and Cohen's kappa between them.
-
-#### Scenario: Agreement reported
-- **WHEN** the Peru set is frozen
-- **THEN** the data card contains the agreement metrics and the subset chip IDs
+#### Scenario: Doubtful chips
+- **WHEN** the build finishes
+- **THEN** a list of the lowest-agreement chips and their overlays is written next to the manifest
 
 ### Requirement: Geographic train/dev/test split
-The Peru set SHALL be split geographically into `peru-train` (fine-tuning), `peru-dev` (model selection, failure analysis and method design) and `peru-test` (final evaluation only). `peru-test` SHALL be a whole AOI that no other part touches. `peru-train` and `peru-dev` SHALL be separate AOIs, or, if there are too few chips, separate spatial blocks with a buffer of at least one chip width between them.
+The UNOSAT 2023 set SHALL be split by space into `peru-train`, `peru-dev` and `peru-test` (spatial blocks with at least one chip width of buffer between parts). The two 2023 dates cover the same ground, so a location SHALL fall in one part for both dates. EMSR199 2017 SHALL be a separate test set, `peru-2017-test`, never trained on.
 
-#### Scenario: Spatial leakage into test
+#### Scenario: Spatial leakage
 - **WHEN** the split is created
-- **THEN** no chip in `peru-test` overlaps spatially with or shares an AOI with any chip in `peru-train` or `peru-dev`
+- **THEN** no chip in `peru-dev`, `peru-test` or `peru-2017-test` overlaps spatially with a `peru-train` chip of any date
 
 #### Scenario: Training on held-out parts
-- **WHEN** a training config lists `peru-dev` or `peru-test` chips as training data
+- **WHEN** a training config lists `peru-dev`, `peru-test` or `peru-2017-test` chips as training data
 - **THEN** the run refuses to start
 
-### Requirement: Enough chips to train on
-The set SHALL target at least 150 reviewed chips with water in `peru-train` and at least 30 in each of `peru-dev` and `peru-test`.
-
-#### Scenario: Too few training chips
-- **WHEN** fewer than 150 reviewed water chips are available for `peru-train`
-- **THEN** the data card reports the actual count and the Peru fine-tuning results are labelled as low-data
-
-### Requirement: Frozen and documented test set
-The Peru set SHALL be frozen (versioned chip list with checksums) before any model is evaluated on it, and SHALL have a data card describing sources, licence, scene dates, cloud fraction per chip, labelling procedure and known limitations.
+### Requirement: Frozen and documented dataset
+The Peru set SHALL be frozen (versioned chip list with checksums) before any model is evaluated on it, and SHALL have a data card describing sources, licences (UNOSAT CC BY-SA), scene dates, label rules, cloud fraction per chip and known limitations (UNOSAT labels are preliminary and not field-validated).
 
 #### Scenario: Change after evaluation
 - **WHEN** a chip or label changes after the first evaluation

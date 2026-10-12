@@ -25,22 +25,21 @@
 - [x] 3.7 Verify the SOTA reference number(s) in the source PDFs (table + page) and record them in `docs/REFERENCES.md`; note which inputs each used (the official TerraMind Sen1Floods11 config uses S2L1C + S1GRD, not S2 only)
 - [ ] 3.8 Compare our `valid` results with published numbers; investigate any gap > 2 IoU before phase C
 
-## 4. Peru test set (in parallel with 3)
+## 4. Peru dataset (no manual labelling)
 
-- [ ] 4.1 Download Sentinel-2 L1C for Piura and Trujillo, 7 Apr 2017 (search for any closer clear date)
-- [ ] 4.2 Rasterize EMSR199 delineation polygons to the S2 grid at 10 m; overlay and estimate receded water
-- [ ] 4.3 Tile into 512×512 chips in Sen1Floods11 format (target a few hundred, ≥150 with water for training); build the chip manifest with provenance fields
-- [x] 4.4 Write the labelling guideline (water, flooded vegetation, cloud/no-data → −1)
-- [ ] 4.5 Both authors label ≥10 shared chips independently; compute IoU and Cohen's kappa
-- [ ] 4.6 Correct all remaining chips; mark reviewed; compute cloud fraction per chip
-- [ ] 4.7 Geographic split into `peru-train` / `peru-dev` / `peru-test` (test = whole AOI); add a guard that refuses training on `peru-dev` / `peru-test`
-- [ ] 4.8 Freeze v1 (checksums) and write the data card (`docs/peru_data_card.md`)
+- [x] 4.1 Find label sources that need no manual labelling; record them (`docs/peru_label_sources.md`); download UNOSAT 2023 vectors
+- [ ] 4.2 Download S2 L1C (13 bands, 10 m, UTM 17S) chips for the UNOSAT 2023 analysed area on 2023-03-21 and 2023-04-01; local demo on a few chips first
+- [ ] 4.3 Rasterize UNOSAT layers to labels with the automatic rules; write the chip manifest with provenance fields
+- [ ] 4.4 Overlays and label-vs-water-index agreement per chip; list the doubtful chips
+- [ ] 4.5 Build `peru-2017-test` from EMSR199 + S2 2017-04-07 with disagreement pixels set to −1
+- [ ] 4.6 Spatial-block split into `peru-train` / `peru-dev` / `peru-test`; guard that refuses training on held-out parts
+- [ ] 4.7 Freeze v1 (checksums) and write the data card (`docs/peru_data_card.md`)
 
-## 4b. Fine-tuning on Peru
+## 4b. Training on Peru
 
-- [ ] 4b.1 Fine-tune config per model starting from its best Sen1Floods11 checkpoint, trained on `peru-train`, early stopping on `peru-dev`; local demo first
-- [ ] 4b.2 Run ≥3 seeds per model; compare Sen1Floods11-only vs Peru-fine-tuned on `peru-dev`
-- [ ] 4b.3 Ablation: joint Sen1Floods11 + `peru-train` training, and Peru-only training from the pretrained backbone
+- [ ] 4b.1 Peru-only training config per model (pretrained backbone → `peru-train`, early stopping on `peru-dev`); local demo first
+- [ ] 4b.2 Run ≥3 seeds per model
+- [ ] 4b.3 Comparison rows: Sen1Floods11-only models and Sen1Floods11 → `peru-train` fine-tuning, evaluated on `peru-dev`
 
 ## 5. Uncertainty
 
@@ -63,7 +62,7 @@
 
 - [ ] 7.1 Implement the evaluate script with split-level + per-chip metrics and the `frozen.yaml` gate
 - [ ] 7.2 Freeze configurations and checkpoints in `configs/frozen.yaml`
-- [ ] 7.3 Evaluate once on `test` and `peru-test` v1 for all models, both training regimes (Sen1Floods11-only, Peru-fine-tuned) and uncertainty variants
+- [ ] 7.3 Evaluate once on `test`, `peru-test` and `peru-2017-test` v1 for all models, all training regimes (Peru-only, Sen1Floods11-only, Sen1Floods11 → Peru) and uncertainty variants
 - [ ] 7.4 Generate tables (mean ± std, test vs Peru, drop) and bootstrap CIs for `peru-test`
 - [ ] 7.5 Generate figures: reliability diagrams, Peru prediction + uncertainty maps, failure cases
 
