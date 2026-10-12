@@ -29,12 +29,18 @@
 
 - [ ] 4.1 Download Sentinel-2 L1C for Piura and Trujillo, 7 Apr 2017 (search for any closer clear date)
 - [ ] 4.2 Rasterize EMSR199 delineation polygons to the S2 grid at 10 m; overlay and estimate receded water
-- [ ] 4.3 Tile into 512×512 chips in Sen1Floods11 format; build the chip manifest with provenance fields
+- [ ] 4.3 Tile into 512×512 chips in Sen1Floods11 format (target a few hundred, ≥150 with water for training); build the chip manifest with provenance fields
 - [x] 4.4 Write the labelling guideline (water, flooded vegetation, cloud/no-data → −1)
 - [ ] 4.5 Both authors label ≥10 shared chips independently; compute IoU and Cohen's kappa
 - [ ] 4.6 Correct all remaining chips; mark reviewed; compute cloud fraction per chip
-- [ ] 4.7 Geographic split into `peru-dev` / `peru-test` by AOI, balancing water pixels
+- [ ] 4.7 Geographic split into `peru-train` / `peru-dev` / `peru-test` (test = whole AOI); add a guard that refuses training on `peru-dev` / `peru-test`
 - [ ] 4.8 Freeze v1 (checksums) and write the data card (`docs/peru_data_card.md`)
+
+## 4b. Fine-tuning on Peru
+
+- [ ] 4b.1 Fine-tune config per model starting from its best Sen1Floods11 checkpoint, trained on `peru-train`, early stopping on `peru-dev`; local demo first
+- [ ] 4b.2 Run ≥3 seeds per model; compare Sen1Floods11-only vs Peru-fine-tuned on `peru-dev`
+- [ ] 4b.3 Ablation: joint Sen1Floods11 + `peru-train` training, and Peru-only training from the pretrained backbone
 
 ## 5. Uncertainty
 
@@ -57,7 +63,7 @@
 
 - [ ] 7.1 Implement the evaluate script with split-level + per-chip metrics and the `frozen.yaml` gate
 - [ ] 7.2 Freeze configurations and checkpoints in `configs/frozen.yaml`
-- [ ] 7.3 Evaluate once on `test` and `peru-test` v1 for all models and uncertainty variants
+- [ ] 7.3 Evaluate once on `test` and `peru-test` v1 for all models, both training regimes (Sen1Floods11-only, Peru-fine-tuned) and uncertainty variants
 - [ ] 7.4 Generate tables (mean ± std, test vs Peru, drop) and bootstrap CIs for `peru-test`
 - [ ] 7.5 Generate figures: reliability diagrams, Peru prediction + uncertainty maps, failure cases
 

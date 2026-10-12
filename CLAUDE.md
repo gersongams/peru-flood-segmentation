@@ -2,7 +2,7 @@
 
 Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson Andre Garrido Mansilla and Renzo Elvis Cerron Tome). The thesis also targets a paper.
 
-**Research:** flood extent segmentation in Sentinel-2 imagery with Transformer geospatial foundation models (TerraMind v1-B, Prithvi-EO-2.0 300M) against a U-Net baseline. Focus areas: out-of-distribution generalization (Sen1Floods11 Bolivia holdout + a new Peru test set) and calibrated uncertainty.
+**Research:** flood extent segmentation in Sentinel-2 imagery with Transformer geospatial foundation models (TerraMind v1-B, Prithvi-EO-2.0 300M) against a U-Net baseline. Focus areas: generalization to Peru (a new Peru dataset used both to fine-tune and to test; Bolivia dropped per the advisor) and calibrated uncertainty.
 
 ## Read first
 
@@ -20,7 +20,7 @@ Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson A
 ## Experiment rules
 
 - Use the **official Sen1Floods11 splits** (train 252 / valid 89 / test 90 / bolivia 15). Never re-split.
-- Select models on `valid` only. `test`, `bolivia` and Peru are evaluated once, at the end.
+- Select models on `valid` / `peru-dev` only. Train on Peru only with `peru-train`. `test` and `peru-test` are evaluated once, at the end. `bolivia` is not used.
 - Run ≥3 seeds per model and report mean ± std. Log config, seed and git commit for every run.
 - Match each model's official input normalization.
 

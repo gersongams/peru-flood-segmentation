@@ -9,7 +9,8 @@ See proposal.md for motivation and the specs for requirements. Current state: `s
 - Peru set built in parallel with training, frozen before any Peru evaluation.
 - Everything that feeds a table is a script, not a notebook.
 - Reproduce published SOTA on Sen1Floods11 (within ~2 IoU) so the Peru failure analysis is credible.
-- Keep `peru-test` untouched until phase D's method is frozen; all analysis uses `peru-dev`.
+- Keep `peru-test` untouched until phase D's method is frozen; all analysis uses `peru-dev`; only `peru-train` is ever trained on.
+- Train on Peruvian data (advisor request): every model is reported both Sen1Floods11-only and fine-tuned on `peru-train`.
 
 **Non-Goals:**
 - Claiming SOTA from a single seed or a `test`-tuned configuration: the SOTA claim uses mean ± std over seeds (and the ensemble reported separately).
@@ -28,7 +29,7 @@ See proposal.md for motivation and the specs for requirements. Current state: `s
 8. **Freeze gate:** a `configs/frozen.yaml` lists checkpoints approved for final evaluation; the evaluate script refuses `test`/Peru for anything else.
 9. **Where we try to beat SOTA: Peru, not Sen1Floods11.** Sen1Floods11 is used to *reproduce* SOTA. Improvement claims are made on `peru-test` against the best reproduced baseline (see the evaluation-protocol spec). Ensembles and test-time augmentation are baselines-plus, reported separately from single models.
 
-10. **Geographic Peru split.** Split by AOI so no area is in both parts: e.g. `peru-test` = Salinas, `peru-dev` = Parachique + Piura (+ Piura Norte); Trujillo excluded unless visual review shows standing water (the 7 Apr 2017 survey found almost none, `docs/peru_dataset_proposal.md` §3b). Final assignment after chips exist, balancing water pixels. *Alternative:* random chip split — leaks spatial context and inflates scores.
+10. **Geographic Peru split (train/dev/test).** Split by AOI so no area is in two parts: e.g. `peru-test` = Salinas, `peru-train` = Parachique, `peru-dev` = Piura (+ Piura Norte). If `peru-train` is too small, split Parachique + Piura into spatial blocks with a one-chip buffer instead, keeping Salinas whole for test; Trujillo excluded unless visual review shows standing water (the 7 Apr 2017 survey found almost none, `docs/peru_dataset_proposal.md` §3b). Final assignment after chips exist, balancing water pixels. *Alternative:* random chip split — leaks spatial context and inflates scores.
 
 11. **Failure strata from external layers.** Cloud/shadow from the S2 scene classification (or s2cloudless on L1C), land cover from ESA WorldCover (flooded vegetation, urban, bare), terrain from Copernicus DEM. Strata are computed per pixel, so one chip can contribute to several.
 12. **Local demo first, then rent compute.** Every experiment first runs locally on MPS as a small demo: the same code and config, a few epochs, on a subset or at reduced batch. It goes to a rented GPU only if the demo (a) runs end-to-end without errors, (b) shows the loss falling and `valid` IoU rising, and (c) has a cost estimate (GPU-hours × price) that we accept. The same code must run on `mps` and `cuda` with only the device/precision changed in config. Data and checkpoints sync through one storage location (e.g. an S3/R2 bucket or the provider's volume); instances are shut down after each batch of runs. *Alternative:* everything on MPS — free, but Prithvi at batch 4 deviates from the official batch 16 and larger models do not fit.
@@ -41,7 +42,8 @@ See proposal.md for motivation and the specs for requirements. Current state: `s
 - [Phase C shows no clear dominant failure] → the paper becomes benchmark + analysis; phase D targets the largest stratum anyway.
 
 - [EMS labels are from SAR on 26–30 Mar; clear S2 is 7 Apr, water may have receded] → manual correction on S2 is mandatory; report the date gap; check S1 of late March as a visual aid.
-- [Small Peru set (~30–60 chips) gives noisy metrics] → report per-chip distribution and bootstrap confidence intervals, not just the mean.
+- [Labelling a few hundred chips takes time] → the EMS polygons give the initial label, so most chips need correction, not drawing; split the AOIs between the two authors.
+- [Small Peru test/dev sets give noisy metrics] → report per-chip distribution and bootstrap confidence intervals, not just the mean.
 - [L1C vs L2A mismatch if only L2A is available] → prefer L1C from CDSE; if forced to L2A, state it as a limitation and test the effect on `valid`.
 - [Prithvi at batch 4 differs from the official batch 16] → gradient accumulation; document effective batch.
 - [Compute cost on rented GPUs grows with seeds × models × sweeps] → the local demo gate plus a written cost estimate before each rental; U-Net and TerraMind-B can stay on MPS, so only Prithvi and large backbones need GPUs.
@@ -51,6 +53,8 @@ See proposal.md for motivation and the specs for requirements. Current state: `s
 ## Migration Plan
 
 Update `docs/PLAN.md` (§3 RQ1/RQ4, §4, §7, §9) to replace Bolivia with Peru once this change is accepted. `scripts/feasibility_mps.py` is kept unchanged as a historical reference.
+
+14. **Peru fine-tuning.** Start from each model's best Sen1Floods11 checkpoint, fine-tune on `peru-train` with the same loss, lower lr and early stopping on `peru-dev`, ≥3 seeds. Alternative (ablation): train on Sen1Floods11 + `peru-train` jointly. Peru-only training from the pretrained backbone is reported as a secondary row.
 
 ## Open Questions
 

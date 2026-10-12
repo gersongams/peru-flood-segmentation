@@ -1,6 +1,6 @@
 # Propuesta: conjunto de prueba de Perú a partir de Copernicus EMS EMSR199
 
-Estado: borrador, 2026-10-11. Contexto: el asesor pidió **no usar Bolivia** como prueba fuera de distribución y construir una evaluación con datos de **Perú**.
+Estado: borrador, 2026-10-11. Contexto: el asesor pidió **no usar Bolivia** y **entrenar y evaluar con datos de Perú**.
 
 ## 1. ¿Existe un dataset etiquetado de inundaciones en Perú?
 
@@ -64,18 +64,18 @@ Notas:
 
 1. **Base**: Salinas, Parachique y Piura con Sentinel-2 L1C del **7 abr 2017**. Piura Norte es débil (21 % de agua, 68 % de cobertura); Trujillo queda fuera salvo que la revisión visual lo justifique.
 2. **Etiqueta inicial** = polígonos EMS rasterizados a 10 m en chips de 512×512 (mismo formato que Sen1Floods11: 1 agua, 0 no agua, −1 nube / sin dato).
-3. **Corrección manual** de cada chip sobre la imagen S2 del 7 abr. Objetivo: ~30–60 chips con agua.
+3. **Corrección manual** de cada chip sobre la imagen S2 del 7 abr. Objetivo: unos cientos de chips revisados, ≥150 con agua para entrenamiento y ≥30 en cada uno de dev y test.
 4. **Acuerdo entre anotadores**: ambos autores etiquetan un subconjunto común; reportar IoU / kappa entre ellos.
 5. **Documentar** en la tesis: "etiquetas derivadas de Copernicus EMS EMSR199 y revisadas manualmente sobre Sentinel-2".
 6. **Opcional**: Sentinel-1 del 23–30 mar (coincide en fecha con EMS) como apoyo para la revisión o para la ablación S1 (RQ2).
 
 ## 5. Consecuencia para el protocolo
 
-Sin Bolivia, Sen1Floods11 queda para entrenamiento, validación y test **en distribución**; **Perú pasa a ser la única prueba de generalización**. Actualizar `docs/PLAN.md` (§3 RQ1, §4, §7) cuando el asesor lo confirme.
+Sin Bolivia, Sen1Floods11 queda para entrenamiento, validación y test **en distribución**. Perú se usa para **ajuste fino** (`peru-train`) y es **la única prueba de generalización** (`peru-test`). Cada modelo se reporta entrenado solo con Sen1Floods11 y ajustado con Perú. Actualizar `docs/PLAN.md` (§3 RQ1, §4, §7) cuando el asesor lo confirme.
 
 ## 6. Siguiente paso
 
-Partición geográfica propuesta: `peru-test` = Salinas (~800 km² inundados en EMS); `peru-dev` = Parachique + Piura (+ Piura Norte). Decisión final cuando existan los chips, balanceando píxeles de agua. Siguiente: descargar las escenas L1C del 7 abr, rasterizar los polígonos EMS a 10 m y generar los chips (tareas 4.1–4.3).
+Partición geográfica propuesta: `peru-test` = Salinas (~800 km² inundados en EMS, nunca se entrena con ella); `peru-train` = Parachique; `peru-dev` = Piura (+ Piura Norte). Si `peru-train` queda corto, se divide Parachique + Piura en bloques espaciales con un chip de separación. Decisión final cuando existan los chips, balanceando píxeles de agua. Siguiente: descargar las escenas L1C del 7 abr, rasterizar los polígonos EMS a 10 m y generar los chips (tareas 4.1–4.3).
 
 ## Fuentes
 

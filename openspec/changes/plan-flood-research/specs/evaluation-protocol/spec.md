@@ -26,7 +26,7 @@ Results tables SHALL report mean ± std over at least 3 seeds per model.
 - **THEN** it is flagged and excluded from the main comparison
 
 ### Requirement: In-distribution vs OOD reporting
-The main results table SHALL show Sen1Floods11 `test` and `peru-test` side by side for every model, and the drop from `test` to Peru.
+The main results table SHALL show Sen1Floods11 `test` and `peru-test` side by side for every model, and the drop from `test` to Peru, for two training regimes: Sen1Floods11 only, and Sen1Floods11 then fine-tuned on `peru-train`.
 
 #### Scenario: Results table
 - **WHEN** the final tables are generated

@@ -1,11 +1,11 @@
 ## Purpose
 
-Create a labelled, documented Sentinel-2 flood test set for Peru (EMSR199, Niño Costero 2017), used as the only out-of-distribution evaluation.
+Create a labelled, documented Sentinel-2 flood dataset for Peru (EMSR199, Niño Costero 2017), used both to fine-tune models on Peruvian data (advisor request) and as the only out-of-distribution evaluation.
 
 ## ADDED Requirements
 
 ### Requirement: Source and scene selection
-The Peru test set SHALL derive initial labels from Copernicus EMS EMSR199 flood delineation products for Piura (Salinas, Parachique, Piura, Piura Norte) and Trujillo, paired with Sentinel-2 imagery of the nearest clear date (7 Apr 2017 unless a closer clear scene is found).
+The Peru test set SHALL derive initial labels from Copernicus EMS EMSR199 flood delineation products for Salinas, Parachique and Piura (Piura Norte optional; Trujillo only if visual review shows standing water), paired with Sentinel-2 imagery of the nearest clear date (7 Apr 2017 unless a closer clear scene is found).
 
 #### Scenario: Scene provenance recorded
 - **WHEN** a chip is created
@@ -32,12 +32,23 @@ Both authors SHALL independently label a shared subset of at least 10 chips, and
 - **WHEN** the Peru set is frozen
 - **THEN** the data card contains the agreement metrics and the subset chip IDs
 
-### Requirement: Geographic dev/test split
-The Peru set SHALL be split by area of interest (no AOI in both parts) into `peru-dev` (analysis and method design) and `peru-test` (final evaluation only), with each part containing water chips from at least two AOIs where possible.
+### Requirement: Geographic train/dev/test split
+The Peru set SHALL be split geographically into `peru-train` (fine-tuning), `peru-dev` (model selection, failure analysis and method design) and `peru-test` (final evaluation only). `peru-test` SHALL be a whole AOI that no other part touches. `peru-train` and `peru-dev` SHALL be separate AOIs, or, if there are too few chips, separate spatial blocks with a buffer of at least one chip width between them.
 
-#### Scenario: Spatial leakage
+#### Scenario: Spatial leakage into test
 - **WHEN** the split is created
-- **THEN** no chip in `peru-test` overlaps spatially with or shares an AOI with any chip in `peru-dev`
+- **THEN** no chip in `peru-test` overlaps spatially with or shares an AOI with any chip in `peru-train` or `peru-dev`
+
+#### Scenario: Training on held-out parts
+- **WHEN** a training config lists `peru-dev` or `peru-test` chips as training data
+- **THEN** the run refuses to start
+
+### Requirement: Enough chips to train on
+The set SHALL target at least 150 reviewed chips with water in `peru-train` and at least 30 in each of `peru-dev` and `peru-test`.
+
+#### Scenario: Too few training chips
+- **WHEN** fewer than 150 reviewed water chips are available for `peru-train`
+- **THEN** the data card reports the actual count and the Peru fine-tuning results are labelled as low-data
 
 ### Requirement: Frozen and documented test set
 The Peru set SHALL be frozen (versioned chip list with checksums) before any model is evaluated on it, and SHALL have a data card describing sources, licence, scene dates, cloud fraction per chip, labelling procedure and known limitations.
