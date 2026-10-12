@@ -9,10 +9,10 @@ Training, development and in-event test labels SHALL come from the UNOSAT Cyclon
 
 #### Scenario: Scene provenance recorded
 - **WHEN** a chip is created
-- **THEN** its manifest row records the label product and version, the S2 product ID, the acquisition date, and the date gap between label and image (0 for UNOSAT)
+- **THEN** its manifest row records the label product and version, the S2 product ID, the acquisition date, and the label's sensor date as given by the product
 
 ### Requirement: Automatic label rules
-Each chip label SHALL be derived by fixed rules: 1 = inside the product's water/flood extent; 0 = inside the analysed extent and outside water; −1 = outside the analysed extent, inside the product's cloud layer, or S2 no-data. For EMSR199 (radar labels a week before the S2 image), pixels where the EMS polygon and the S2 water index disagree SHALL be set to −1, and this SHALL be reported as a limitation.
+Each chip label SHALL be derived by fixed rules: 1 = inside the product's water/flood extent; 0 = inside the analysed extent and outside water; −1 = outside the analysed extent, inside the product's cloud layer, thick cloud detected on the image, or S2 no-data. For EMSR199 (radar labels a week before the S2 image), pixels where the EMS polygon and the S2 water index disagree SHALL be set to −1, and this SHALL be reported as a limitation.
 
 #### Scenario: Rule change
 - **WHEN** a label rule changes
