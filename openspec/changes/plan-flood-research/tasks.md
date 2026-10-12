@@ -18,7 +18,7 @@
 
 - [x] 3.1 TerraTorch config for U-Net (ResNet encoder); one end-to-end run on seed 0
 - [x] 3.2 TerraTorch config for TerraMind v1-B (UNetDecoder, official normalization); one run on seed 0
-- [ ] 3.3 TerraTorch config for Prithvi-EO-2.0 300M (batch 4 + grad accumulation); one run on seed 0
+- [x] 3.3 TerraTorch config for Prithvi-EO-2.0 300M (batch 4 + grad accumulation); one run on seed 0
 - [ ] 3.4 Learning-rate sweep (3 values) per model on `valid`, seed 0; fix hyperparameters
 - [ ] 3.5 Check seed reproducibility on MPS (repeat one run) and record tolerance in the experiment log
 - [ ] 3.6 Train all models × ≥3 seeds; decide 3 vs 5 seeds from measured timing
