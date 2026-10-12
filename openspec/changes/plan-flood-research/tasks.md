@@ -31,7 +31,7 @@
 - [x] 4.2 Download S2 L1C (13 bands, 10 m, UTM 17S) chips for the UNOSAT 2023 analysed area on 2023-03-21 and 2023-04-01; local demo on a few chips first
 - [x] 4.3 Rasterize UNOSAT layers to labels with the automatic rules; write the chip manifest with provenance fields
 - [ ] 4.4 Overlays and label-vs-water-index agreement per chip; list the doubtful chips
-- [ ] 4.5 Build `peru-2017-test` from EMSR199 + S2 2017-04-07 with disagreement pixels set to −1
+- [x] 4.5 Build `peru-2017-test` from EMSR199 + S2 2017-04-07 with disagreement pixels set to −1
 - [x] 4.6 Spatial-block split into `peru-train` / `peru-dev` / `peru-test`; guard that refuses training on held-out parts
 - [ ] 4.7 Freeze v1 (checksums) and write the data card (`docs/peru_data_card.md`)
 
