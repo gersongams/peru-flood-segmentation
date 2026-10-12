@@ -1,0 +1,20 @@
+# Train on Peru only (advisor): UNOSAT 2023 chips, spatial-block split
+# (scripts/split_peru_unosat.py). Overlay on a model config, e.g.
+#   terratorch fit -c configs/unet.yaml -c configs/datasets/peru_unosat.yaml -c configs/trainer/mps.yaml
+# Means/stds stay those of the model config (each model's official normalization).
+# The test split here is peru-test; peru-2017-test is evaluated separately.
+trainer:
+  default_root_dir: outputs/runs_peru
+data:
+  init_args:
+    train_data_root: data/peru/unosat2023/s2
+    train_label_data_root: data/peru/unosat2023/label
+    val_data_root: data/peru/unosat2023/s2
+    val_label_data_root: data/peru/unosat2023/label
+    test_data_root: data/peru/unosat2023/s2
+    test_label_data_root: data/peru/unosat2023/label
+    train_split: data/peru/unosat2023/splits/train.txt
+    val_split: data/peru/unosat2023/splits/dev.txt
+    test_split: data/peru/unosat2023/splits/test.txt
+    img_grep: "*.tif"
+    label_grep: "*.tif"

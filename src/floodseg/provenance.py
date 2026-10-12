@@ -16,6 +16,8 @@ from pathlib import Path
 import lightning.pytorch as pl
 import torch
 
+from floodseg.peru import check_train_split
+
 PACKAGES = ["torch", "lightning", "terratorch", "torchgeo", "timm", "numpy"]
 REPO = Path(__file__).resolve().parents[2]
 
@@ -75,6 +77,7 @@ class RunProvenance(pl.Callback):
     def setup(self, trainer: pl.Trainer, pl_module: pl.LightningModule, stage: str) -> None:
         if stage != "fit" or not trainer.is_global_zero:
             return
+        check_train_split(getattr(trainer.datamodule, "train_split", None))
         git = git_state()
         demo = trainer.limit_train_batches != 1.0
         if git["dirty"] and self.require_clean and not demo:
@@ -97,6 +100,7 @@ class RunProvenance(pl.Callback):
             "hardware": hardware(),
             "hparams": _jsonable(dict(pl_module.hparams)),
             "normalization": _normalization(trainer.datamodule),
+            "train_split": str(getattr(trainer.datamodule, "train_split", None)),
         }
         self._path = run_dir / "run.json"
         self._write()
