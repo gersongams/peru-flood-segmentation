@@ -10,8 +10,8 @@ SSH="ssh -p $PORT -i $HOME/.ssh/id_ed25519_runpod -o StrictHostKeyChecking=accep
 cd "$REPO"
 B=$(mktemp -d)/repo.bundle
 git bundle create "$B" main
-rsync -az -e "$SSH" "$B" scripts/cloud/setup_pod.sh "root@$HOST:/workspace/"
+rsync -rltz -e "$SSH" "$B" scripts/cloud/setup_pod.sh "root@$HOST:/workspace/"
 # Only what the Peru runs read; data/ keeps the repo layout so the configs work unchanged.
 $SSH "root@$HOST" mkdir -p /workspace/peru-flood-segmentation/data/peru
-rsync -az --stats -e "$SSH" data/peru/unosat2023 data/peru/emsr2017 \
+rsync -rltz --stats -e "$SSH" data/peru/unosat2023 data/peru/emsr2017 \
   "root@$HOST:/workspace/peru-flood-segmentation/data/peru/"
