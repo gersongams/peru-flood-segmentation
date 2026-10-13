@@ -20,6 +20,7 @@ trainer:
         monitor: val/IoU_Flood
         mode: max
         filename: best-{epoch}
+        save_last: true
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
         monitor: val/IoU_Flood
