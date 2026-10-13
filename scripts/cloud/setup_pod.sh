@@ -8,8 +8,9 @@ ROOT=/workspace/peru-flood-segmentation
 
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
-# Keep the uv and Hugging Face caches on the volume so a new pod reuses them.
-export UV_CACHE_DIR=/workspace/.cache/uv HF_HOME=/workspace/.cache/huggingface
+# The venv and uv cache go on the container disk (they overfill the volume quota);
+# the Hugging Face cache stays on the volume so a new pod reuses the weights.
+export UV_CACHE_DIR=/root/.cache/uv UV_PROJECT_ENVIRONMENT=/root/venv HF_HOME=/workspace/.cache/huggingface
 
 [ -d "$ROOT/.git" ] || git init -q "$ROOT"  # data/ may already be there
 cd "$ROOT"

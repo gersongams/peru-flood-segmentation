@@ -2,14 +2,14 @@
 # Run ON the pod with setsid/nohup. Trains the Peru-only runs one after another.
 #   bash scripts/cloud/run_queue.sh "unet terramind_v1_base prithvi_eo_v2_300" "0 1 2"
 #   bash scripts/cloud/run_queue.sh unet 0 --trainer.max_epochs=2      # speed test
-# Runs write to the container disk ($LOCAL): writing checkpoints straight to the
-# /workspace network volume hangs after the first save. Each finished run, and
+# Runs write to the container disk ($LOCAL): checkpoint writes to the /workspace
+# volume hung once its quota filled. Each finished run, and
 # the queue log, is copied to $KEEP on the volume. A run with a last.ckpt in
 # $LOCAL resumes from it; a run marked done in $KEEP is skipped.
 set -uo pipefail
 MODELS=${1:?models}; SEEDS=${2:?seeds}; shift 2
 cd /workspace/peru-flood-segmentation
-export PATH="$HOME/.local/bin:$PATH" UV_CACHE_DIR=/workspace/.cache/uv HF_HOME=/workspace/.cache/huggingface
+export PATH="$HOME/.local/bin:$PATH" UV_CACHE_DIR=/root/.cache/uv UV_PROJECT_ENVIRONMENT=/root/venv HF_HOME=/workspace/.cache/huggingface
 name=runs_cloud; [ $# -gt 0 ] && name=runs_cloud_test  # overrides = test run, kept apart
 LOCAL=/root/outputs/$name KEEP=/workspace/outputs/$name
 mkdir -p "$LOCAL/logs" "$KEEP"
