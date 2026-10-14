@@ -438,3 +438,28 @@ not published, so "MNDWI-based" stays an inference.
 
 **Thesis use.** Chapter III (dataset: label provenance and resolution), Chapter V (metric
 interpretation), Chapter VI (limitations).
+
+## 2026-10-14 — Phase-D plan (task 6.6): OpenSpec change `phase-d-peru-adaptation`
+
+**What.** The plan for phase D, as specs and a design (`openspec/changes/phase-d-peru-adaptation/`).
+
+**Key design decisions and why** (full list in its `design.md`):
+- **Target pool = `peru-train` images, labels never read.** Using dev/test images, even
+  unlabelled, would make the main result transductive. Buffer chips touch held-out blocks.
+- **New 3-seed Sen1Floods11 source models** (U-Net, TerraMind first; Prithvi last). Per-seed
+  adaptation needs per-seed sources.
+- **Self-training:** EMA teacher; per-class top-q % pseudo-labels (CBST-style) against
+  collapse to "all dry" with rare water; CE on pseudo-labels, the source Dice loss in every
+  step; binary DACS mixing that pastes source water onto desert chips (the failure mode);
+  LR warm-up.
+- **Masked consistency at image level** (32 px patches, ratio 0.7) for all backbones: uniform
+  for the CNN and the ViTs, and 32 px is a multiple of the 16 px ViT patch.
+- **Baselines on the same backbones:** MNDWI > 0, Otsu-MNDWI on the pool, histogram matching,
+  FDA, AdaBN (U-Net only, because the ViT encoders use LayerNorm).
+- **Protocol:** selection on `peru-dev` with a grid of ≤ 6 configurations per backbone;
+  gap-closed reporting; plain and tolerant IoU, precision, recall; final `peru-test` (with the
+  pre-registered sensitivity row) and `peru-2017-test` once.
+- **Rejected:** adversarial alignment (superseded), per-event test-time adaptation on test
+  images (transductive; possible later row), Sentinel-1.
+
+**Thesis use.** Chapter IV (method), Chapter V (protocol).

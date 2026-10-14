@@ -12,9 +12,11 @@ Recorded in `docs/failure_analysis_dev.md` (decision record) and `docs/METHODS_N
 phase D = flood mapping in Peru **without Peru labels** (adapt Sen1Floods11 models with
 unlabelled Peru imagery); no Sentinel-1; v1 labels frozen plus a pre-registered
 sensitivity row; timeline unknown (plan 3–6 months).
-**Next: task 6.6**, open the phase-D OpenSpec change: literature check of self-training /
-unsupervised domain adaptation for segmentation (from the literature base), pick 2–3 methods,
-download unlabelled Peru imagery plan, protocol.
+**6.6 done:** OpenSpec change `phase-d-peru-adaptation` (proposal, 3 specs, design, tasks;
+`openspec validate --strict` passes). Literature: `docs/literature_phaseD.md`.
+**Next:** its section 1 (Sen1Floods11 source models on RunPod: LR sweep + 3 seeds for U-Net
+and TerraMind; needs the authors' go on cost) and, locally in parallel, section 2 (target pool
++ guards) and 3.1 (index baselines with tolerant IoU).
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)
 - ~~**6.4** per-stratum calibration, **5.4** reliability diagrams~~: done 2026-10-14

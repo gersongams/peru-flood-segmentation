@@ -56,7 +56,7 @@
 - [x] 6.3 Stratified IoU / FN / FP tables (mean ± std over seeds)
 - [x] 6.4 Calibration and error-detection AUROC per stratum
 - [x] 6.5 Write the decision record: dominant failure mode(s) and 3–4 candidate methods for phase D
-- [ ] 6.6 Open the phase-D OpenSpec change (authors decide on Sentinel-1 in 6.5)
+- [x] 6.6 Open the phase-D OpenSpec change (authors decide on Sentinel-1 in 6.5)
 
 ## 7. Final evaluation of baselines
 

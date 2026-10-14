@@ -1,0 +1,46 @@
+## 1. Source models (Sen1Floods11, RunPod)
+
+- [ ] 1.1 Cost estimate for sections 1 and 4 (RunPod catalog read); get the authors' go
+- [ ] 1.2 LR sweep (3 values) on Sen1Floods11 `valid`, seed 0, for U-Net and TerraMind (= plan-flood-research 3.4)
+- [ ] 1.3 Repeat one run to record seed reproducibility on the 4090 (= 3.5)
+- [ ] 1.4 Train U-Net and TerraMind × 3 seeds on Sen1Floods11 with the chosen LR (= 3.6); copy back, verify, delete the pod
+- [ ] 1.5 Compare `valid` IoU with published numbers (= 3.8); log runs in EXPERIMENT_LOG
+
+## 2. Target pool and guards
+
+- [ ] 2.1 Target-pool datamodule: `peru-train` images only, no label paths, per-model normalization
+- [ ] 2.2 Guard: refuse dev/test/buffer/2017 chips and any Peru label read during adaptation; unit tests
+- [ ] 2.3 Pool manifest with checksums (default pool = `peru-train` images)
+- [ ] 2.4 Optional, decided after 4.x: extra unlabelled 2023 imagery outside held-out blocks (spatial check)
+
+## 3. Label-free baselines and input alignment
+
+- [ ] 3.1 MNDWI > 0 and Otsu-on-pool baselines on `peru-dev` (extend `scripts/index_baseline.py` with tolerant IoU, precision, recall)
+- [ ] 3.2 Source-only rows: the 3-seed source models of 1.4 evaluated on `peru-dev` (plain and tolerant IoU, precision, recall)
+- [ ] 3.3 AdaBN for the U-Net (BN statistics re-estimated on the pool); `peru-dev` scores
+- [ ] 3.4 Per-band histogram matching and FDA transforms; source training with each, U-Net + TerraMind, seed 0 on dev; 3 seeds for the better one
+
+## 4. Self-training
+
+- [ ] 4.1 Adaptation LightningModule: EMA teacher, source + target batches, per-class top-q % pseudo-labels, CE on pseudo-labels, Dice on source, warm-up
+- [ ] 4.2 Binary DACS mixing (paste source water onto target chips) and student-only colour jitter / blur
+- [ ] 4.3 Water-fraction collapse warning; run record with source checkpoint, budget, wall clock, peak memory
+- [ ] 4.4 Local MPS demo (U-Net, few iterations) to check that losses, mixing and EMA work; unit test for the pseudo-label thresholds
+- [ ] 4.5 Cloud demo: memory and speed for TerraMind (student + teacher + masked view) at batch 8
+- [ ] 4.6 Tuning on `peru-dev` (≤ 6 configs per backbone: q ∈ {20, 50, 80} × EMA α ∈ {0.99, 0.999}), seed 0
+- [ ] 4.7 Masked-consistency variant (32 px patches, ratio 0.7) on the best config
+- [ ] 4.8 3 seeds of the chosen self-training and masked variants, U-Net + TerraMind
+- [ ] 4.9 Optional: index-aware pseudo-labels (teacher confidence AND MNDWI vs pool-Otsu)
+
+## 5. Analysis on peru-dev
+
+- [ ] 5.1 Gap-closed table: source-only → each method → Peru-trained upper bound, mean ± std, plain + tolerant IoU, precision, recall
+- [ ] 5.2 Stratified analysis of the best method (edge, NDWI band, water-body size) with the phase-C scripts
+- [ ] 5.3 Calibration of adapted models (ECE near water, reliability) with `scripts/calibration_dev.py`
+- [ ] 5.4 Decision on Prithvi (time and cost), then run its source models + best method if yes
+
+## 6. Final evaluation (once)
+
+- [ ] 6.1 Freeze phase-D configs in `configs/frozen.yaml`
+- [ ] 6.2 Evaluate all frozen phase-D models once on `peru-test` (full + both doubtful-excluded variants) and `peru-2017-test`
+- [ ] 6.3 Tables and figures for the thesis (Chapters IV–V) and paper 2; METHODS_NOTES and EXPERIMENT_LOG entries
