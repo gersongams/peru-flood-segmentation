@@ -11,6 +11,7 @@ Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson A
 - `docs/feasibility.md`: measured MPS training speed and memory; known MPS pitfalls.
 - `docs/NEXT_STEPS.md`: handoff — what to do next, in order.
 - `docs/EXPERIMENT_LOG.md`: every run and evaluation with commit, run dir and source file. Add an entry for each new run.
+- `docs/METHODS_NOTES.md`: what was done and why (methods, decisions, checks, corrections), dated, for writing the thesis and paper.
 
 ## Environment
 
@@ -25,6 +26,7 @@ Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson A
 - Select models on `valid` / `peru-dev` only. Train on Peru only with `peru-train`. `test`, `peru-test` and `peru-2017-test` are evaluated once, at the end. `bolivia` is not used.
 - Run ≥3 seeds per model and report mean ± std. Log config, seed and git commit for every run.
 - Match each model's official input normalization.
+- **Document work for the thesis/paper as it happens, not at the end.** Besides the run entry in `docs/EXPERIMENT_LOG.md`, every analysis, method choice, check or correction gets a dated entry in `docs/METHODS_NOTES.md`. Each entry covers: what was done and why; the method in enough detail to write a Methods section (definitions, parameters, splits, pixels used); the alternatives considered and why they were rejected; checks that passed or failed; results with their source file; caveats and corrections, including the reason; and the thesis chapter / paper section it feeds. Write the entry before reporting results to the user. A finished analysis also gets its own write-up in `docs/` (e.g. `docs/uncertainty_dev.md`).
 
 ## Thesis (Overleaf)
 

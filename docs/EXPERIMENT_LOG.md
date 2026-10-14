@@ -199,3 +199,37 @@ Result (`outputs/runs_cloud_tm200/terramind_v1_base/lightning_logs/seed0`, `dirt
 0.9582) at epoch 77, against 0.9275 at epoch 92 with the 100-epoch cap (seed 0). The cap
 was not limiting TerraMind. Copy verified (10 files); pod created 11:42 UTC and deleted
 right after the copy, about 45 min ≈ $0.7; `list-pods` returns none.
+
+## 2026-10-14 — Sen1Floods11 `valid` predictions; second AUROC correction (float16 saturation); logits re-inference
+
+- Sen1Floods11 `valid` predictions of the three seed-0 Sen1Floods11 checkpoints
+  (`terratorch validate -c configs/<m>.yaml -c configs/trainer/mps.yaml --ckpt_path <best ckpt>`
+  with `SaveValPredictions`), commit `b48fb97` (clean), Mac MPS fp32 →
+  `outputs/preds_valid/` (float16 probabilities; superseded below). Water IoU 0.8188 /
+  0.8168 / 0.8327 = training log.
+- **Correction.** `SaveValPredictions` stored float16 probabilities. float16 has only two
+  values in [0.99951, 1] (0.99951 and 1.0) but resolves down to ~1e-7 near 0, and 99 % of
+  dev pixels lie in that saturated range, so the confidence ranking of confident pixels
+  depended on the predicted class. This biased every error-detection AUROC and the
+  temperature fits (e.g. Prithvi Peru-only seed 0 AUROC 0.607 as stored vs 0.687 with
+  symmetric clipping; ensemble 0.862 vs 0.771). IoU, recall/FPR strata and raw ECE are not
+  affected (they depend only on the 0.5 threshold and the top confidence bin). The
+  "|logit| ≈ 7.6" caveat in the first `docs/uncertainty_dev.md` was also wrong (1.0 mapped to
+  +13.8 with the 1e-6 clip).
+- Fix: `SaveValPredictions` now saves the float32 water logit z = logit_water − logit_other
+  (commit `583c018`); analysis scripts work on logits in float64, ensemble logit from both
+  tails in log space. All 24 predictions recomputed from the same checkpoints, Mac MPS fp32,
+  commit `583c018` (clean): 9 Peru-only + 9 Sen1Floods11 → Peru + 3 Sen1Floods11-only on
+  `peru-dev` → `outputs/logits_dev/`, 3 Sen1Floods11-only on `valid` → `outputs/logits_valid/`
+  (logs next to them). Every run's water IoU matches its training log to 4 decimals.
+  `outputs/preds_dev/` and `outputs/preds_valid/` are kept only as a record of the old numbers.
+
+## 2026-10-14 — Calibration analysis on the logits (tasks 5.3, 5.4, 6.4)
+
+`scripts/analyze_dev.py`, `scripts/uncertainty_dev.py`, `scripts/calibration_dev.py`,
+`scripts/report_dev.py`, `scripts/report_calibration.py` on `outputs/logits_dev/` and
+`outputs/logits_valid/` → `outputs/analysis_dev/` (log `run_logits.log`). Temperatures fitted
+on Sen1Floods11 `valid` (seed-0 Sen1Floods11 models, `temperatures_valid.json`): U-Net 1.73,
+TerraMind 1.01, Prithvi 2.80. Results: `docs/calibration_dev.md`, `docs/uncertainty_dev.md`
+(rewritten), AUROC rows of `docs/failure_analysis_dev.md` corrected. Mac CPU, about 1 h 20 min
+in total. Method and decisions: `docs/METHODS_NOTES.md`.

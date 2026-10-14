@@ -11,7 +11,11 @@ Bring `docs/failure_analysis_dev.md` and the Spanish summary. Decisions needed:
 - Defense deadline and target venues.
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)
-- **6.4** per-stratum calibration, plus **5.4** reliability diagrams (validate on `valid` first).
+- ~~**6.4** per-stratum calibration, **5.4** reliability diagrams~~: done 2026-10-14
+  (`docs/calibration_dev.md`). Predictions are now float32 logits in `outputs/logits_*`;
+  AUROCs and temperatures before that date are superseded (`docs/METHODS_NOTES.md`).
+  Bring the corrected `docs/failure_analysis_dev.md` and `docs/calibration_dev.md` to the
+  advisor: the uncertainty does not flag low-contrast/small-water misses.
 - **4.4** list of doubtful-label chips; **6.2** IoU drop vs `valid` and Sen1Floods11-vs-Peru band statistics.
 - **6.5** decision record (content drafted in the failure doc); **6.6** open the phase-D OpenSpec change — waits on the advisor.
 - **5.2** MC-dropout (optional).

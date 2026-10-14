@@ -46,7 +46,7 @@
 - [x] 5.1 Ensemble inference over seed checkpoints (mean probability, entropy, mutual information)
 - [ ] 5.2 MC-dropout inference on the best single model
 - [x] 5.3 Temperature scaling fitted on `valid`; store temperature per model
-- [ ] 5.4 ECE, reliability diagrams and error-detection AUROC; validate on `valid` first
+- [x] 5.4 ECE, reliability diagrams and error-detection AUROC; validate on `valid` first
 - [ ] 5.5 Export georeferenced probability and uncertainty rasters per chip
 
 ## 6. Failure analysis (phase C, on `peru-dev`)
@@ -54,7 +54,7 @@
 - [x] 6.1 Build stratum layers: cloud/shadow, WorldCover land cover, Copernicus DEM, permanent water, water-body size
 - [ ] 6.2 Evaluate all models on `peru-dev`; IoU drop vs `valid`; band-distribution comparison
 - [x] 6.3 Stratified IoU / FN / FP tables (mean ± std over seeds)
-- [ ] 6.4 Calibration and error-detection AUROC per stratum
+- [x] 6.4 Calibration and error-detection AUROC per stratum
 - [ ] 6.5 Write the decision record: dominant failure mode(s) and 3–4 candidate methods for phase D
 - [ ] 6.6 Open the phase-D OpenSpec change (and ask the advisor about Sentinel-1 if needed)
 

@@ -21,7 +21,7 @@ import rasterio  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 DATA = REPO / "data" / "peru" / "unosat2023"
-PRED = REPO / "outputs" / "preds_dev"
+PRED = REPO / "outputs" / "logits_dev"
 A = REPO / "outputs" / "analysis_dev"
 PANELS = [("peru", "unet"), ("peru", "terramind_v1_base"), ("peru", "prithvi_eo_v2_300"), ("s1f11", "prithvi_eo_v2_300")]
 NAMES = {"unet": "U-Net", "terramind_v1_base": "TerraMind", "prithvi_eo_v2_300": "Prithvi"}
@@ -52,7 +52,7 @@ def plot(stem: str) -> Path:
     ax[0].imshow(false_colour(s2)); ax[0].set_title("S2 B12/B8A/B04")
     ax[1].imshow(lab, cmap="gray", vmin=0, vmax=1); ax[1].set_title("UNOSAT label")
     for a, (regime, model) in zip(ax[2:], PANELS):
-        p = np.load(PRED / regime / model / "seed0" / f"{stem}.npy").astype(np.float32) > 0.5
+        p = np.load(PRED / regime / model / "seed0" / f"{stem}.npy") > 0  # water logit
         a.imshow(error_map(p, y)); a.set_title(f"{'S1F11-only' if regime == 's1f11' else 'Peru'} {NAMES[model]}")
     for a in ax:
         a.axis("off")

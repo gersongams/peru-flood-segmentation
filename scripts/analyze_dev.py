@@ -1,15 +1,15 @@
 """Failure analysis on peru-dev (tasks 6.2-6.4): stratified errors and calibration.
 
-Reads per-chip water probabilities saved by floodseg.callbacks.SaveValPredictions
-(outputs/preds_dev/<regime>/<model>/seed<s>/<stem>.npy), the labels, and the
-strata of scripts/build_strata.py. Prediction = probability > 0.5 (= argmax).
+Reads per-chip water logits saved by floodseg.callbacks.SaveValPredictions
+(outputs/logits_dev/<regime>/<model>/seed<s>/<stem>.npy), the labels, and the
+strata of scripts/build_strata.py. Prediction = logit > 0 (= argmax).
 Only labelled pixels (label != -1) count.
 
 Per stratum it sums TP / FP / FN / TN over all dev pixels and reports
 IoU, recall (share of true water found) and false-positive rate (share of dry
 pixels called water). Metrics are computed per seed, then mean ± std over seeds.
 Calibration: ECE (15 equal-width bins) and error-detection AUROC of the
-uncertainty 1 - max(p, 1 - p), on every 7th labelled pixel and, separately, on all
+uncertainty −|logit| (= 1 − max(p, 1 − p) in rank), on every 7th labelled pixel and, separately, on all
 pixels within 10 px of a water edge (most dev pixels are easy desert, which
 dilutes the overall ECE).
 
@@ -26,9 +26,11 @@ import rasterio
 import sys
 from scipy.ndimage import binary_erosion, distance_transform_edt, label as cc_label
 
-REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-PRED = REPO / "outputs" / "preds_dev"
+from uncertainty_dev import auroc, ece  # noqa: E402
+
+REPO = Path(__file__).resolve().parents[1]
+PRED = REPO / "outputs" / "logits_dev"
 LABEL = REPO / "data" / "peru" / "unosat2023" / "label"
 STRATA = REPO / "data" / "peru" / "strata" / "unosat2023"
 OUT = REPO / "outputs" / "analysis_dev"
@@ -64,20 +66,11 @@ def strata_for(stem: str, y: np.ndarray) -> dict[str, np.ndarray]:
     }
 
 
-def ece_auroc(p: np.ndarray, y: np.ndarray) -> tuple[float, float]:
-    conf = np.maximum(p, 1 - p)
-    correct = (p > 0.5) == (y == 1)
-    b = np.minimum((conf - 0.5) / 0.5 * 15, 14).astype(int)
-    n = np.bincount(b, minlength=15)
-    acc = np.bincount(b, weights=correct, minlength=15)
-    cf = np.bincount(b, weights=conf, minlength=15)
-    ece = float(np.sum(np.abs(acc - cf)) / len(p))
+def ece_auroc(z: np.ndarray, y: np.ndarray) -> tuple[float, float]:
     # exact AUROC of the uncertainty for detecting errors (ties counted half);
     # an earlier 1000-bin histogram version merged the most confident pixels and
-    # overstated it
-    from uncertainty_dev import auroc as exact_auroc
-    auroc = exact_auroc(1 - conf, ~correct)
-    return ece, float(auroc)
+    # overstated it, and a later float16-probability version tied them by class
+    return ece(z, y), auroc(-np.abs(z), (z > 0) != (y == 1))
 
 
 def main() -> None:
@@ -101,9 +94,9 @@ def main() -> None:
         ps, ys, pn, yn = [], [], [], []
         for st in stems:
             y = labels[st]
-            p = np.load(run / f"{st}.npy").astype(np.float32)
+            p = np.load(run / f"{st}.npy").astype(np.float64)  # water logit
             ok = y != -1
-            pred, true = (p > 0.5)[ok], (y == 1)[ok]
+            pred, true = (p > 0)[ok], (y == 1)[ok]
             ps.append(p[ok][::7]), ys.append(y[ok][::7])  # every 7th pixel for calibration
             near = ok & (strata[st]["distance to water edge"] != ">10 px")  # within 10 px of a water edge
             pn.append(p[near]), yn.append(y[near])

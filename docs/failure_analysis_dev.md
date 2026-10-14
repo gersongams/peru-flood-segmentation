@@ -22,18 +22,25 @@ Check: water IoU recomputed from the saved probabilities equals the logged
 |---|---|---|---|---|---|---|
 | water IoU | 0.941 ± 0.002 | 0.927 ± 0.002 | 0.922 ± 0.001 | 0.835 | 0.795 | 0.876 |
 | ECE (%) | 0.66 ± 0.02 | 0.65 ± 0.15 | 0.90 ± 0.02 | 1.36 | 0.52 | 1.56 |
-| error-detection AUROC | 0.662 ± 0.013 | 0.692 ± 0.036 | 0.655 ± 0.045 | 0.651 | 0.678 | 0.654 |
+| error-detection AUROC | 0.735 ± 0.036 | 0.696 ± 0.034 | 0.725 ± 0.045 | 0.662 | 0.679 | 0.850 |
 
 | ECE (%), ≤ 10 px from a water edge | 3.14 ± 0.10 | 3.51 ± 0.24 | 4.38 ± 0.11 | 5.84 | 5.67 | 7.56 |
-| error AUROC, ≤ 10 px from a water edge | 0.749 ± 0.005 | 0.757 ± 0.022 | 0.750 ± 0.023 | 0.655 | 0.699 | 0.704 |
+| error AUROC, ≤ 10 px from a water edge | 0.783 ± 0.004 | 0.765 ± 0.017 | 0.793 ± 0.016 | 0.682 | 0.700 | 0.847 |
 
 Correction (2026-10-14): the AUROC values in the first version of this file came from a
 1000-bin histogram that merged the most confident pixels and overstated them (e.g.
 U-Net 0.710 instead of 0.662); all AUROC values here are now exact (rank-based, ties
 counted half), checked against `scipy.stats.rankdata`.
 
+Second correction (2026-10-14): the predictions were stored as float16 probabilities,
+which saturate asymmetrically near 0 and 1 and biased the confidence ranking of ~99 % of
+pixels by predicted class. All predictions were recomputed and stored as float32 logits
+(`docs/EXPERIMENT_LOG.md`, `docs/METHODS_NOTES.md`); the AUROC rows above now come from
+them (e.g. Peru-only U-Net 0.662 → 0.735, Sen1Floods11-only Prithvi 0.654 → 0.850). IoU,
+recall/FPR and ECE were not affected.
+
 ECE: 15 equal-width confidence bins; AUROC: how well the uncertainty
-1 − max(p, 1 − p) ranks wrong pixels above right ones. First two rows: every 7th
+1 − max(p, 1 − p) (ranked as −|logit|) ranks wrong pixels above right ones. First two rows: every 7th
 labelled pixel. Last two: all labelled pixels within 10 px of a water edge, because
 85 % of dev pixels are WorldCover "bare/sparse" land, mostly easy, confidently dry
 desert that dilutes the overall ECE.
@@ -164,9 +171,12 @@ vs 0.937 on 1 April).
 Over all dev pixels the Peru-only models look well calibrated (ECE 0.65–0.90 %), but
 this is diluted by easy desert pixels: within 10 px of a water edge ECE is 3.1–4.4 %
 (Sen1Floods11-only 5.7–7.6 %), with U-Net best and Prithvi worst. The uncertainty flags
-errors only moderately (AUROC 0.66–0.69 overall, 0.75–0.76 near water), as expected when most errors are
-thin edge bands and label errors. Temperature scaling and ensembles (section 5) are
-still to do; they should be judged on the near-water numbers.
+errors only moderately (Peru-only AUROC 0.70–0.74 overall, 0.77–0.79 near water). Temperature
+scaling, seed ensembles, reliability diagrams and calibration per stratum are in
+`docs/uncertainty_dev.md` and `docs/calibration_dev.md`. The key per-stratum result: the
+uncertainty does not flag the dominant failure modes. Low-contrast water (NDWI −0.1 to 0.1) and
+water bodies under 1 ha are missed confidently (single-seed AUROC 0.41–0.56 for U-Net and Prithvi, 0.56–0.71
+for TerraMind), so the uncertainty map cannot be used to find them.
 
 ## Decision record (task 6.5): candidate methods for phase D
 
