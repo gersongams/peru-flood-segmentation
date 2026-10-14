@@ -12,6 +12,7 @@ MODELS = {"unet": "U-Net", "terramind_v1_base": "TerraMind", "prithvi_eo_v2_300"
 REGIMES = {"peru": "Peru-only", "s1f11_ft": "S1F11→Peru", "s1f11": "S1F11-only"}
 ORDER = {
     "water type": ["existing water", "new flood water"],
+    "NDWI (all pixels)": ["< -0.1", "-0.1-0", "0-0.1", "0.1-0.3", "> 0.3"],
     "water NDWI": ["< -0.1", "-0.1-0", "0-0.1", "0.1-0.3", "> 0.3"],
     "water body size": ["<1 ha", "1-10 ha", "10-100 ha", ">100 ha"],
     "distance to water edge": ["edge (≤1 px)", "2-3 px", "4-10 px", ">10 px"],
@@ -23,7 +24,7 @@ ORDER = {
 # false-positive rate where it splits dry land, IoU where it splits all pixels.
 METRIC = {"water type": "recall", "water NDWI": "recall", "water body size": "recall", "landcover": "fpr",
           "elevation": "fpr", "slope": "fpr", "date": "iou",
-          "distance to water edge": "iou", "distance to thick cloud": "iou"}
+          "distance to water edge": "iou", "NDWI (all pixels)": "fpr", "distance to thick cloud": "iou"}
 
 
 def fmt(s: pd.Series, pct: bool) -> str:
@@ -77,7 +78,9 @@ def main() -> None:
     print("## Calibration (ECE %, error-detection AUROC)\n")
     print(head); print(sep)
     print("| ECE (%) | " + " | ".join(fmt(c[(c.regime == r) & (c.model == m)].ece, True) for r, m in cs) + " |")
-    print("| error AUROC | " + " | ".join(fmt(c[(c.regime == r) & (c.model == m)].error_auroc, False) for r, m in cs) + " |\n")
+    print("| error AUROC | " + " | ".join(fmt(c[(c.regime == r) & (c.model == m)].error_auroc, False) for r, m in cs) + " |")
+    print("| ECE (%), ≤ 10 px from water edge | " + " | ".join(fmt(c[(c.regime == r) & (c.model == m)].ece_near_water, True) for r, m in cs) + " |")
+    print("| error AUROC, ≤ 10 px from water edge | " + " | ".join(fmt(c[(c.regime == r) & (c.model == m)].error_auroc_near_water, False) for r, m in cs) + " |\n")
 
     print("## Errors concentrated in few chips (Peru-only, summed over models and seeds)\n")
     p = ch[ch.regime == "peru"].groupby("chip")[["fp", "fn", "water_px"]].sum()

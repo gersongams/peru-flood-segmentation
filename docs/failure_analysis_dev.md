@@ -1,4 +1,4 @@
-# Failure analysis on `peru-dev` (phase C, tasks 6.1–6.5)
+# Failure analysis on `peru-dev` (phase C, tasks 6.1, 6.3; parts of 6.4–6.5)
 
 Date: 2026-10-14. Split: `peru-dev` only (174 chips, 112 with water). No test split was
 used. All numbers come from `outputs/analysis_dev/{strata,calibration,chips}.csv`,
@@ -23,8 +23,14 @@ Check: water IoU recomputed from the saved probabilities equals the logged
 | ECE (%) | 0.66 ± 0.02 | 0.65 ± 0.15 | 0.90 ± 0.02 | 1.36 | 0.52 | 1.56 |
 | error-detection AUROC | 0.710 ± 0.010 | 0.712 ± 0.056 | 0.706 ± 0.017 | 0.643 | 0.676 | 0.746 |
 
+| ECE (%), ≤ 10 px from a water edge | 3.14 ± 0.10 | 3.51 ± 0.24 | 4.38 ± 0.11 | 5.84 | 5.67 | 7.56 |
+| error AUROC, ≤ 10 px from a water edge | 0.713 ± 0.009 | 0.755 ± 0.024 | 0.706 ± 0.016 | 0.649 | 0.696 | 0.729 |
+
 ECE: 15 equal-width confidence bins; AUROC: how well the uncertainty
-1 − max(p, 1 − p) ranks wrong pixels above right ones (every 7th labelled pixel).
+1 − max(p, 1 − p) ranks wrong pixels above right ones. First two rows: every 7th
+labelled pixel. Last two: all labelled pixels within 10 px of a water edge, because
+85 % of dev pixels are WorldCover "bare/sparse" land, mostly easy, confidently dry
+desert that dilutes the overall ECE.
 
 ## Finding 1: most errors are at water edges, and the foundation models are worse there
 
@@ -38,7 +44,9 @@ ECE: 15 equal-width confidence bins; AUROC: how well the uncertainty
 Share of all errors (FP + FN) on the ≤ 1 px edge band: U-Net 59.4 ± 0.5 %, TerraMind
 63.3 ± 0.5 %, Prithvi 66.9 ± 0.8 %; within 3 px: 69.9 %, 71.5 %, 75.2 %.
 Away from edges the three models are within 0.6 IoU points; the U-Net's overall lead
-comes mostly from the edge band. Small water bodies point the same way:
+comes mostly from the edge band. The "edge" band is computed from the label and also
+contains water pixels next to ignore (−1) areas and at the chip border, not only true
+water/land edges. Small water bodies point the same way:
 
 | Water-body size (recall %) | Peru U-Net | Peru TerraMind | Peru Prithvi |
 |---|---|---|---|
@@ -48,11 +56,14 @@ comes mostly from the edge band. Small water bodies point the same way:
 | > 100 ha | 98.17 ± 0.14 | 97.52 ± 0.13 | 97.50 ± 0.20 |
 
 Likely cause (hypothesis, not tested): both foundation models see the image as 16 × 16
-pixel patches, so fine detail must be recovered by the decoder, while the U-Net keeps
-full-resolution skip connections. Part of the edge error is also label imprecision:
-the labels are rasterized UNOSAT polygons.
+pixel patches (checked: Prithvi's `patch_embed.proj.weight` has a 16 × 16 kernel;
+TerraMind turns a 512 × 512 input into 1,024 tokens = 32 × 32 patches of 16 px), so fine
+detail must be recovered by the decoder, while the U-Net keeps full-resolution skip
+connections. Alternatives not yet ruled out: TerraMind hit the 100-epoch cap in all runs
+(best epochs 88–97), so it may be under-trained; and part of the edge error is label
+imprecision (the labels are rasterized UNOSAT polygons).
 
-## Finding 2: training on Peru makes models miss low-contrast water
+## Finding 2: low-contrast water is hard for every model; Sen1Floods11 models only trade precision for recall
 
 Recall on true water, split by the pixel's NDWI (B03 − B08)/(B03 + B08):
 
@@ -64,15 +75,31 @@ Recall on true water, split by the pixel's NDWI (B03 − B08)/(B03 + B08):
 | 0.1 to 0.3 (893,962 px) | 95.01 ± 0.16 | 91.93 ± 0.68 | 92.27 ± 0.84 | 96.57 | 96.33 | 96.57 |
 | > 0.3 (3,700,291 px) | 99.88 ± 0.02 | 99.82 ± 0.03 | 99.65 ± 0.08 | 99.76 | 99.91 | 99.94 |
 
-On water with NDWI between −0.1 and 0.1 (257,351 px, 5 % of dev water) the Peru-only
-models find 54–61 %, the Sen1Floods11-only models 71–82 %. Missed water with NDWI < 0.1
-is 32–40 % of all Peru-only errors (this overlaps with the edge band). In the images
-these are cyan, turbid or shallow channels in the SWIR false colour (chips
-`2023-03-22_E522240_N9354240`, `2023-03-22_E527360_N9354240`,
-`2023-03-22_E532480_N9318400`). Sen1Floods11-only models, in turn, call far more desert
-water (false-positive rate on WorldCover "bare/sparse": 1.7–3.2 % vs 0.3–0.5 %).
-Possible causes: similar surfaces labelled dry in `peru-train` (label inconsistency), or
-the low water share in `peru-train` (4.6 % of labelled pixels vs 12.4 % in dev).
+False-positive rate on dry pixels of the same NDWI band (all labelled pixels binned):
+
+| NDWI band (FPR %) | Peru U-Net | Peru TerraMind | Peru Prithvi | S1F11-only U-Net | S1F11-only TerraMind | S1F11-only Prithvi |
+|---|---|---|---|---|---|---|
+| −0.1 to 0 (21,767,786 dry px) | 0.05 ± 0.01 | 0.07 ± 0.01 | 0.08 ± 0.01 | 1.21 | 2.36 | 0.54 |
+| 0 to 0.1 (4,677,434 dry px) | 0.46 ± 0.11 | 0.86 ± 0.08 | 1.07 ± 0.05 | 7.48 | 6.02 | 4.86 |
+
+Inside the band −0.1 ≤ NDWI < 0.1 (all labelled pixels):
+
+| | Peru U-Net | Peru TerraMind | Peru Prithvi | S1F11-only U-Net | S1F11-only TerraMind | S1F11-only Prithvi |
+|---|---|---|---|---|---|---|
+| water IoU | 0.531 ± 0.007 | 0.474 ± 0.016 | 0.452 ± 0.006 | 0.232 | 0.195 | 0.346 |
+| precision | 0.827 ± 0.030 | 0.731 ± 0.025 | 0.687 ± 0.005 | 0.248 | 0.205 | 0.376 |
+| recall | 0.597 ± 0.016 | 0.574 ± 0.014 | 0.570 ± 0.012 | 0.785 | 0.799 | 0.809 |
+
+So the Sen1Floods11-only models find more low-contrast water (78–81 % vs 57–60 %) only
+because they call much more of everything with that spectrum water (precision 0.21–0.38
+vs 0.69–0.83); their IoU in the band is lower. Peru training did not remove a skill: it
+set a stricter boundary that fits the Peru labels better overall. Low-contrast water
+(NDWI −0.1 to 0.1: 257,351 px, 5 % of dev water) stays the weakest stratum for all models
+(band IoU 0.45–0.53 for Peru-only). Missed water with NDWI < 0.1 is 32–40 % of all
+Peru-only errors (overlapping with the edge band). In the images these are cyan,
+turbid or shallow channels in the SWIR false colour (chips `2023-03-22_E522240_N9354240`,
+`2023-03-22_E527360_N9354240`, `2023-03-22_E532480_N9318400`), where the label itself
+is uncertain.
 
 ## Finding 3: a share of the "errors" are label errors
 
@@ -103,9 +130,12 @@ vs 0.937 on 1 April).
 
 ## Calibration
 
-All Peru-only models are well calibrated on dev (ECE < 1 %); the uncertainty flags
-errors only moderately (AUROC 0.71), as expected when most errors are thin edge bands
-and label errors. Temperature scaling and ensembles (section 5) are still to do.
+Over all dev pixels the Peru-only models look well calibrated (ECE 0.65–0.90 %), but
+this is diluted by easy desert pixels: within 10 px of a water edge ECE is 3.1–4.4 %
+(Sen1Floods11-only 5.7–7.6 %), with U-Net best and Prithvi worst. The uncertainty flags
+errors only moderately (AUROC 0.71–0.76 near water), as expected when most errors are
+thin edge bands and label errors. Temperature scaling and ensembles (section 5) are
+still to do; they should be judged on the near-water numbers.
 
 ## Decision record (task 6.5): candidate methods for phase D
 
@@ -116,9 +146,10 @@ Peru-only training; (3) label noise in UNOSAT.
 1. **Full-resolution detail for the foundation models**: add a light convolutional
    branch / skip connections from the input image to the decoder (hybrid FM + CNN),
    or a boundary-aware loss. Target: edge-band IoU and < 1 ha recall.
-2. **Keep the low-contrast-water skill from broader training**: Sen1Floods11 → Peru
-   fine-tuning (running now) or mixed training; check whether it keeps Peru-only edges
-   while recovering NDWI < 0.1 recall.
+2. **Better use of broader training data**: Sen1Floods11 → Peru fine-tuning (running
+   now) or mixed training; judge it on band IoU (not recall) for NDWI −0.1 to 0.1 and on
+   the edge band, since Sen1Floods11-only models gain recall there only by losing
+   precision.
 3. **Noise-robust training on UNOSAT labels**: ignore a 1-px band at label edges in the
    loss, or a noise-robust loss; report a boundary-tolerant metric next to IoU.
 4. **Sentinel-1 for TerraMind** (needs the advisor's OK): radar sees through cloud and
