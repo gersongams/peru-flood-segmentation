@@ -10,11 +10,11 @@ See proposal.md for motivation and the specs for requirements. Current state: `s
 - Everything that feeds a table is a script, not a notebook.
 - Reproduce published SOTA on Sen1Floods11 (within ~2 IoU) so the Peru failure analysis is credible.
 - Keep `peru-test` untouched until phase D's method is frozen; all analysis uses `peru-dev`; only `peru-train` is ever trained on.
-- Train on Peruvian data (advisor request): the main regime trains only on `peru-train`; Sen1Floods11-trained models are a comparison row.
+- Train on Peruvian data (teacher's suggestion; supported by the Sen1Floods11 → Peru comparison): the main regime trains only on `peru-train`; Sen1Floods11-trained models are a comparison row.
 
 **Non-Goals:**
 - Claiming SOTA from a single seed or a `test`-tuned configuration: the SOTA claim uses mean ± std over seeds (and the ensemble reported separately).
-- S1 / multimodal ablation (RQ2) and SegFormer-from-scratch: optional follow-up changes after advisor approval.
+- S1 / multimodal ablation (RQ2) and SegFormer-from-scratch: optional follow-up changes, decided by the authors.
 - Owning or maintaining GPU infrastructure: cloud GPUs are rented per run and released after.
 
 ## Decisions
@@ -33,7 +33,7 @@ See proposal.md for motivation and the specs for requirements. Current state: `s
 
 11. **Failure strata from external layers.** Cloud/shadow from the S2 scene classification (or s2cloudless on L1C), land cover from ESA WorldCover (flooded vegetation, urban, bare), terrain from Copernicus DEM. Strata are computed per pixel, so one chip can contribute to several.
 12. **Local demo first, then rent compute.** Every experiment first runs locally on MPS as a small demo: the same code and config, a few epochs, on a subset or at reduced batch. It goes to a rented GPU only if the demo (a) runs end-to-end without errors, (b) shows the loss falling and `valid` IoU rising, and (c) has a cost estimate (GPU-hours × price) that we accept. The same code must run on `mps` and `cuda` with only the device/precision changed in config. Data and checkpoints sync through one storage location (e.g. an S3/R2 bucket or the provider's volume); instances are shut down after each batch of runs. *Alternative:* everything on MPS — free, but Prithvi at batch 4 deviates from the official batch 16 and larger models do not fit.
-13. **Bolivia:** not evaluated, per advisor. If a reviewer later asks, it can be added as an appendix without changing the protocol.
+13. **Bolivia:** not evaluated (teacher's suggestion; the thesis focuses on Peru). If a reviewer later asks, it can be added as an appendix without changing the protocol.
 
 ## Risks / Trade-offs
 
@@ -53,7 +53,7 @@ See proposal.md for motivation and the specs for requirements. Current state: `s
 
 Update `docs/PLAN.md` (§3 RQ1/RQ4, §4, §7, §9) to replace Bolivia with Peru once this change is accepted. `scripts/feasibility_mps.py` is kept unchanged as a historical reference.
 
-14. **Training on Peru.** Main regime (advisor): each model starts from its pretrained backbone (TerraMind / Prithvi foundation weights, U-Net ImageNet) and is trained only on `peru-train`, early stopping on `peru-dev`, ≥3 seeds. Comparison rows: Sen1Floods11-only models (already trained) and Sen1Floods11 → `peru-train` fine-tuning, to show whether other countries' data helps.
+14. **Training on Peru.** Main regime: each model starts from its pretrained backbone (TerraMind / Prithvi foundation weights, U-Net ImageNet) and is trained only on `peru-train`, early stopping on `peru-dev`, ≥3 seeds. Comparison rows: Sen1Floods11-only models (already trained) and Sen1Floods11 → `peru-train` fine-tuning, to show whether other countries' data helps.
 
 ## Open Questions
 

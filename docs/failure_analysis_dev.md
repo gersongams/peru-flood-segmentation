@@ -178,25 +178,51 @@ uncertainty does not flag the dominant failure modes. Low-contrast water (NDWI �
 water bodies under 1 ha are missed confidently (single-seed AUROC 0.41–0.56 for U-Net and Prithvi, 0.56–0.71
 for TerraMind), so the uncertainty map cannot be used to find them.
 
-## Decision record (task 6.5): candidate methods for phase D
+## Decision record (task 6.5): phase D
 
-Dominant failure modes: (1) water edges and small water bodies, worst for the
-patch-based foundation models; (2) low-contrast (turbid/shallow) water missed after
-Peru-only training; (3) label noise in UNOSAT.
+Decided 2026-10-14 by the authors (no thesis advisor is assigned; see `docs/PLAN.md`).
+Evidence and reasoning: `docs/METHODS_NOTES.md` (entries of 2026-10-14).
 
-1. **Full-resolution detail for the foundation models**: add a light convolutional
-   branch / skip connections from the input image to the decoder (hybrid FM + CNN),
-   or a boundary-aware loss. Target: edge-band IoU and < 1 ha recall.
-2. ~~Broader training data~~: Sen1Floods11 → Peru fine-tuning was tried and changes
-   neither overall IoU (≤ 0.4 points) nor the low-contrast-water or edge strata; mixed
-   training is unlikely to be worth a phase-D slot.
-3. **Noise-robust training on UNOSAT labels**: ignore a 1-px band at label edges in the
-   loss, or a noise-robust loss; report a boundary-tolerant metric next to IoU.
-4. **Sentinel-1 for TerraMind** (needs the advisor's OK): radar sees through cloud and
-   separates water from wet soil; useful for the cloud-adjacent and turbid cases.
+**Dominant failure modes on `peru-dev`:** (1) the 1-px label-edge band, where most errors
+sit; (2) low-contrast (turbid/shallow) water and water bodies under 1 ha, missed confidently;
+(3) label noise in UNOSAT. Also measured: Sen1Floods11-only models lose 5–13 IoU points in
+Peru (`docs/domain_shift_dev.md`), driven by the bright desert background.
 
-Recommendation for phase D: start with (1) full-resolution detail for the foundation
-models, since the edge band is where most errors are and where they lose to the
-U-Net; pair it with (3), because part of the edge error is label imprecision and a
-boundary-tolerant metric is needed to tell the two apart. (4) depends on the advisor.
-TerraMind under-training was checked and ruled out (200-epoch run, same IoU).
+**Candidates considered.**
+1. *Full-resolution detail for the foundation models* (hybrid FM + CNN branch, boundary
+   loss). **Rejected as the main method**: excluding just the 1-px label-edge band shrinks
+   the U-Net's lead from 1.5–2.0 to 0.3–0.4 IoU points (0 for fine-tuned TerraMind), so at
+   most ~0.5 points are available outside label noise (`outputs/analysis_dev/edge_tolerance.md`).
+   Small-water recall (< 1 ha: 45–46 % vs 58 %) is a real but small target.
+2. *Broader training data* (Sen1Floods11 + Peru): rejected earlier; Sen1Floods11 → Peru
+   fine-tuning changes dev IoU by ≤ 0.4 points.
+3. *Noise-robust training on UNOSAT labels*: not chosen as the main method, because gains
+   are hard to show when the evaluation labels carry the same noise. Kept as a tool
+   (boundary-tolerant metric, edge-band handling).
+4. *Sentinel-1*: **not used** in Peru. Clouds matter little here (Finding 4); it needs a new
+   download and co-registration pipeline; UNOSAT labels were drawn on Sentinel-2, so S1
+   passes days apart would see moved water. Future work.
+5. *Uncertainty as the method*: no. The calibration results (`docs/calibration_dev.md`) are
+   a secondary result for paper 1; MC-dropout (task 5.2) stays optional.
+
+**Decision: phase D = flood mapping in Peru without Peru labels.** Start from models
+trained on Sen1Floods11 (labelled) and adapt them to Peru using only unlabelled Peru
+Sentinel-2 images (self-training / unsupervised domain adaptation). UNOSAT labels are used
+only to select (`peru-dev`) and evaluate (`peru-test`, `peru-2017-test`), never to train
+the adapted models. Reference points: Sen1Floods11-only (lower bound, 0.80–0.88 dev IoU) and
+Peru-trained models (upper bound, 0.92–0.94). This keeps the focus on Peru: the question
+is how to map floods in a Peruvian event when no one has labelled it. Methods to compare
+are chosen from the literature in the phase-D OpenSpec change (task 6.6). Scope: develop on
+one foundation model plus the U-Net reference, confirm on the other foundation model at
+the end.
+
+**Pre-registered label-sensitivity row.** The frozen v1 data stay unchanged. In the final
+evaluation (section 7), every model is scored on full `peru-test` and, as a second row, on
+`peru-test` without the chips flagged "doubtful" by `scripts/label_qa.py`, in both variants
+(all blobs: 6 chips; without near-cloud blobs: 3 chips; `docs/peru_doubtful_chips.md`).
+Fixed now, before any test result is seen. Plain IoU is reported next to a boundary-tolerant
+IoU (label-edge band ≤ 1 px excluded).
+
+**Timeline:** defense date unknown; plan for 3–6 months and cut scope if needed. Paper 1
+(Peru benchmark, failure analysis, calibration, domain shift) is nearly writable now and does
+not depend on phase D.

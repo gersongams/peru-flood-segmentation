@@ -1,7 +1,7 @@
 # Research plan: flood detection in Peru with geospatial foundation models
 
 Status: 2026-10-12. Supersedes the 2026-09-29 draft. The specification lives in `openspec/changes/plan-flood-research/` (proposal, specs, design, tasks); this file is the short human-readable version.
-**Open inputs: defense deadline, paper venues, advisor OK on Sentinel-1 for phase D.**
+**Open inputs: defense deadline, paper venues. No thesis advisor is assigned yet (2026-10-14): the authors make the research decisions; a course teacher gives general input.**
 
 ## 1. One-line pitch
 
@@ -12,7 +12,7 @@ Flood detection models score well on the standard benchmark but are untested on 
 - **Detect, not forecast.** Forecasting needs hydrological models, rainfall forecasts and river gauges: a different field. Detection from satellite imagery has labelled data, pretrained models and expert maps for Peru.
 - **The standard benchmark is saturated.** In Prithvi-CAFE's Table 1 (arXiv 2601.02315, p. 6), water IoU on Sen1Floods11 `test` is 82.2–83.4 for the foundation models and **84.03 for a U-Net**, the best in the table. +0.3 IoU there is not a contribution. Verified numbers and caveats: `docs/REFERENCES.md`, "SOTA reference numbers".
 - **Generalization is where the gap is.** The same paper reports a 10.8 IoU gap over U-Net on the Bolivia holdout. Peru has no public labelled flood benchmark we know of (`docs/peru_dataset_proposal.md`).
-- **Advisor:** drop Bolivia; train and evaluate on Peruvian data (training on other countries is a waste).
+- **Teacher's input (general):** drop Bolivia; train and evaluate on Peruvian data. Kept because the data back it: Sen1Floods11 → Peru fine-tuning changed dev IoU by at most 0.4 points (`docs/failure_analysis_dev.md`).
 
 ## 3. Research questions
 
@@ -76,10 +76,10 @@ B runs in parallel with A. Chapters I–II are written during A–B, not at the 
 | Peru training set small or noisy | ~600+ chips per date from UNOSAT; Sen1Floods11 comparison rows show whether more data would help |
 | SOTA not reproduced | Fix normalization/budget before phase C; report residual gap |
 | No dominant failure in C | Paper 1 is benchmark + analysis; D targets the largest stratum |
-| Phase D needs Sentinel-1, outside the approved plan | Ask the advisor before C ends |
+| Phase D needs Sentinel-1, outside the plan | Authors decide in the phase-D decision record (task 6.5) |
 
 ## 10. Decisions needed
 
 1. Defense deadline and paper venues (to date the phases).
-2. Advisor OK for Sentinel-1 in phase D.
+2. ~~Sentinel-1 in phase D~~: decided 2026-10-14, not used (decision record in `docs/failure_analysis_dev.md`). Phase D = flood mapping in Peru without Peru labels.
 3. Optional: someone spends ~1 h looking at the most doubtful Peru chips.

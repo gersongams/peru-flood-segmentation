@@ -284,3 +284,66 @@ model normalization; the other cells come from existing logs. Script
 
 **Thesis use.** Chapter V (generalization RQ); paper 1 main table (regime × set), with the
 test-set version after section 7.
+
+## 2026-10-14 — Edge-tolerant IoU: is the foundation models' edge loss real? (input to task 6.5)
+
+**What and why.** The draft phase-D recommendation was "full-resolution detail for the
+foundation models", because they lose to the U-Net in the 1-px edge band (Finding 1). But
+UNOSAT labels are rasterized polygons, least reliable exactly at edges. If the U-Net's lead
+vanishes once the edge band is ignored, that method would mostly fit label noise.
+
+**Method.** `scripts/edge_tolerance.py` → `outputs/analysis_dev/edge_tolerance.{md,csv}`.
+- Water IoU from the float32 logits, recomputed after excluding labelled pixels within k px
+  of a label water edge, k = 0 (plain IoU), 1, 2, 3.
+- Edge definition as in `analyze_dev.py`; k px excludes distance < k + 0.5, so k = 1 is the
+  "edge (≤ 1 px)" stratum.
+- Runs: Peru-only and Sen1Floods11 → Peru, 3 seeds each.
+
+**Results** (Peru-only, mean over 3 seeds; U-Net minus foundation model, IoU points):
+
+| | plain | excl. ≤ 1 px | ≤ 2 px | ≤ 3 px |
+|---|---|---|---|---|
+| U-Net − TerraMind | +1.50 | +0.40 | +0.42 | +0.46 |
+| U-Net − Prithvi | +1.97 | +0.28 | +0.24 | +0.25 |
+| U-Net − TerraMind (Sen1Floods11 → Peru) | +1.01 | −0.01 | −0.01 | +0.01 |
+| U-Net − Prithvi (Sen1Floods11 → Peru) | +1.47 | +0.45 | +0.44 | +0.46 |
+
+- 75–100 % of the U-Net's lead lies in the 1-px label-edge band. The rest (0.25–0.46
+  points, Peru-only) is stable from k = 1 to 3, so it is a small but real difference.
+- The small-water recall gap (< 1 ha: U-Net 58 % vs foundation models 45–46 %) is not an edge
+  effect and remains a real resolution deficit, but it covers only 37,799 dev pixels.
+
+**Conclusion.** Full-resolution detail for the foundation models can gain at most about
+0.5 IoU points outside the label-noise band. That is too small to carry phase D, so it is
+demoted from the main candidate. Report a boundary-tolerant IoU next to plain IoU in the
+thesis: plain IoU ranks models partly on how they draw label edges.
+
+**Thesis use.** Chapter V (model comparison; metric choice), the phase-D decision record.
+
+## 2026-10-14 — Phase-D decisions (task 6.5)
+
+**Context.** No thesis advisor is assigned; the authors decide (a course teacher gives only
+general input). Decisions taken with the evidence above, recorded in full in the decision
+record of `docs/failure_analysis_dev.md`.
+
+**Decisions.**
+- **Phase D = mapping floods in Peru without Peru labels.** Adapt Sen1Floods11-trained
+  models to Peru using only unlabelled Peru Sentinel-2 imagery (self-training or unsupervised
+  domain adaptation). UNOSAT labels are used only for selection (`peru-dev`) and evaluation.
+  - Why: the measured headroom is 5–13 IoU points (Sen1Floods11-only 0.80–0.88 vs
+    Peru-trained 0.92–0.94 on dev). The alternative "spatial detail for the foundation
+    models" has at most ~0.5 points outside label noise (edge-tolerance entry).
+  - Practical framing: a new Peruvian flood has no labels.
+  - The Peru-trained models remain the main supervised result and the upper bound.
+- **No Sentinel-1** in Peru: little cloud impact, a costly new pipeline, a date mismatch
+  with S2-drawn labels. Future work. The authors asked to keep the focus on Peru.
+- **Labels: frozen v1 plus a pre-registered sensitivity row** on `peru-test` without the
+  "doubtful" chips (6 with all blobs, 3 without near-cloud blobs), fixed before seeing any
+  test result. Plain and boundary-tolerant IoU (≤ 1 px label edge excluded) are both
+  reported.
+- **Uncertainty is a secondary result.** MC-dropout (task 5.2) is optional; the models have
+  dropout only in the head.
+- **Timeline unknown:** plan for 3–6 months.
+
+**Thesis use.** Chapter I (contribution and RQs, phase D), Chapter IV (method), Chapter V
+(evaluation protocol: sensitivity row, tolerant IoU).

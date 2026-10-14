@@ -1,6 +1,6 @@
 ## Purpose
 
-Build a Peru flood dataset without manual labelling, from expert flood maps already drawn by UNOSAT and Copernicus EMS, used to train models on Peruvian data (advisor request) and to test them. Sources and checks: `docs/peru_label_sources.md`.
+Build a Peru flood dataset without manual labelling, from expert flood maps already drawn by UNOSAT and Copernicus EMS, used to train models on Peruvian data (teacher's suggestion; authors' decision) and to test them. Sources and checks: `docs/peru_label_sources.md`.
 
 ## ADDED Requirements
 

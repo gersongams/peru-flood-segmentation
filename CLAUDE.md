@@ -2,7 +2,7 @@
 
 Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson Andre Garrido Mansilla and Renzo Elvis Cerron Tome). The thesis also targets a paper.
 
-**Research:** flood extent segmentation in Sentinel-2 imagery with Transformer geospatial foundation models (TerraMind v1-B, Prithvi-EO-2.0 300M) against a U-Net baseline. Focus areas: generalization to Peru (Peru dataset built from UNOSAT 2023 and Copernicus EMS 2017 expert maps, no manual labelling; models trained on Peru only, per the advisor; Bolivia dropped) and calibrated uncertainty.
+**Research:** flood extent segmentation in Sentinel-2 imagery with Transformer geospatial foundation models (TerraMind v1-B, Prithvi-EO-2.0 300M) against a U-Net baseline. Focus areas: generalization to Peru (Peru dataset built from UNOSAT 2023 and Copernicus EMS 2017 expert maps, no manual labelling; models trained on Peru only (a course teacher's suggestion, since backed by data: Sen1Floods11 → Peru fine-tuning changed dev IoU by at most 0.4 points (`docs/failure_analysis_dev.md`)); Bolivia dropped). **No thesis advisor is assigned yet: the authors make the research decisions; the teacher gives general input.** and calibrated uncertainty.
 
 ## Read first
 

@@ -9,7 +9,7 @@ km² = pixel fraction × 5.12 km × 5.12 km per chip.
 ## Purpose
 
 Train and evaluate flood (surface water) segmentation on Peruvian Sentinel-2 imagery,
-with no manual labelling (advisor: train on Peru only). Labels come from expert flood
+with no manual labelling (authors' decision, following a teacher's suggestion: train on Peru only). Labels come from expert flood
 maps turned into rasters by fixed rules.
 
 ## Imagery

@@ -1,6 +1,6 @@
 # Peru flood label sources without manual labelling
 
-Checked 2026-10-12. Goal: train and test only on Peru (advisor) with no hand-labelling.
+Checked 2026-10-12. Goal: train and test only on Peru (authors' decision, following a teacher's suggestion) with no hand-labelling.
 
 ## Found
 
