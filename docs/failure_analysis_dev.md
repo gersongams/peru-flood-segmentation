@@ -89,9 +89,10 @@ Likely cause (hypothesis, not tested): both foundation models see the image as 1
 pixel patches (checked: Prithvi's `patch_embed.proj.weight` has a 16 × 16 kernel;
 TerraMind turns a 512 × 512 input into 1,024 tokens = 32 × 32 patches of 16 px), so fine
 detail must be recovered by the decoder, while the U-Net keeps full-resolution skip
-connections. Alternatives not yet ruled out: TerraMind hit the 100-epoch cap in all runs
-(best epochs 88–97), so it may be under-trained; and part of the edge error is label
-imprecision (the labels are rasterized UNOSAT polygons).
+connections. Under-training is ruled out: TerraMind hit the 100-epoch cap in all
+Peru-only runs, but a seed-0 rerun with a 200-epoch cap stopped by itself at epoch 97
+with the same dev IoU (0.9270 vs 0.9275; `docs/EXPERIMENT_LOG.md`). Not ruled out: part
+of the edge error is label imprecision (the labels are rasterized UNOSAT polygons).
 
 ## Finding 2: low-contrast water is hard for every model; Sen1Floods11 models only trade precision for recall
 
@@ -188,6 +189,4 @@ Recommendation for phase D: start with (1) full-resolution detail for the founda
 models, since the edge band is where most errors are and where they lose to the
 U-Net; pair it with (3), because part of the edge error is label imprecision and a
 boundary-tolerant metric is needed to tell the two apart. (4) depends on the advisor.
-Open question before committing: rule out TerraMind under-training in the Peru-only
-regime (one run with a higher epoch cap), although the fine-tuned TerraMind, which
-converged early, shows the same edge gap.
+TerraMind under-training was checked and ruled out (200-epoch run, same IoU).

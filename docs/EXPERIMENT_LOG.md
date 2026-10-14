@@ -194,4 +194,8 @@ all results were on the Mac; `list-pods` returns none. Nothing on RunPod bills a
 
 Pod `n7g3tfutcmy68k` (RTX 4090, Secure Cloud, US-IL-1, $0.89/h). Commit `0c3ee97`.
 `RUN_NAME=runs_cloud_tm200 run_queue.sh terramind_v1_base 0 --trainer.max_epochs=200`.
-Result: see below when finished.
+Result (`outputs/runs_cloud_tm200/terramind_v1_base/lightning_logs/seed0`, `dirty: false`,
+29 min): early stopping ended it after 98 epochs; best dev water IoU **0.9270** (mIoU
+0.9582) at epoch 77, against 0.9275 at epoch 92 with the 100-epoch cap (seed 0). The cap
+was not limiting TerraMind. Copy verified (10 files); pod created 11:42 UTC and deleted
+right after the copy, about 45 min ≈ $0.7; `list-pods` returns none.
