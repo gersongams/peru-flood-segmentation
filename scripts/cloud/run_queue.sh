@@ -15,6 +15,7 @@ export PATH="$HOME/.local/bin:$PATH" UV_CACHE_DIR=/root/.cache/uv UV_PROJECT_ENV
 INIT_DIR=${INIT_DIR:-}
 name=runs_cloud; [ -n "$INIT_DIR" ] && name=runs_cloud_s1f11_ft
 [ $# -gt 0 ] && name=${name}_test  # overrides = test run, kept apart
+name=${RUN_NAME:-$name}            # explicit folder name, e.g. for a one-off check run
 LOCAL=/root/outputs/$name KEEP=/workspace/outputs/$name
 mkdir -p "$LOCAL/logs" "$KEEP"
 
