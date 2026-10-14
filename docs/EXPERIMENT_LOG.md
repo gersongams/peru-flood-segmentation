@@ -173,3 +173,8 @@ $4.9; pod stopped 2026-10-14 after the download was verified.
   edge, patch size checked in code (16 px for both foundation models). Fine-tuned
   models' predictions added (`outputs/preds_dev/s1f11_ft/`; re-evaluated dev IoU matches
   each training log to 4 decimals). Results in `docs/failure_analysis_dev.md`.
+
+## 2026-10-14 — Cloud clean-up
+
+Both RunPod pods (`r62ve4bh8iksdj`, `827muf75pdgnme`) terminated on the user's request after
+all results were on the Mac; `list-pods` returns none. Nothing on RunPod bills any more.
