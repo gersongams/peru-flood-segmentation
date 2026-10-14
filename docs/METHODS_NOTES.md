@@ -22,6 +22,7 @@ the ranking of confident pixels by uncertainty depended on which class was predi
 recall/FPR and raw ECE were not (they depend only on the 0.5 threshold and the top
 confidence bin). Example, Prithvi Peru-only seed 0, all labelled dev pixels: AUROC 0.607
 (float16 as stored) vs 0.687 with symmetric clipping; seed ensemble 0.862 vs 0.771.
+Source: `scripts/float16_diagnostic.py` (reads the old `outputs/preds_dev/`).
 
 **Method now.** The callback saves z = logit_water − logit_other as float32 (p = sigmoid(z)).
 All analysis is done on float64 logits (`scripts/uncertainty_dev.py` helpers):
@@ -120,7 +121,11 @@ ensemble; ensemble + temperature. Reliability bins pooled over the 3 seeds. Tabl
 from bins = `ece()`; pooled reliability bins and per-stratum counts come from the same
 pixels as the overall rows.
 
-**Caveats.** Strata are not independent (low-contrast water is mostly at edges); AUROC
+**Caveats.** Two definitions of "near water" exist: `near_water()` (≤ 10 px from a label
+edge; `uncertainty_dev.py`, `calibration_dev.py`) and the edge-distance stratum of
+`analyze_dev.py` (bands up to 10.5 px), so the near-water ECE differs slightly between
+`failure_analysis_dev.md` (U-Net 3.14 %) and the uncertainty/calibration docs (3.16 %). Use
+the ≤ 10 px values in the thesis. Strata are not independent (low-contrast water is mostly at edges); AUROC
 within a stratum is computed only among that stratum's pixels; the Sen1Floods11 → Peru
 seeds share one starting checkpoint (less diverse ensemble). Runtime ≈ 1 h on the Mac
 (exact AUROC on continuous float64 logits; ~12–14 GB RAM).

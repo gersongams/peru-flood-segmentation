@@ -222,6 +222,7 @@ right after the copy, about 45 min ≈ $0.7; `list-pods` returns none.
   commit `583c018` (clean): 9 Peru-only + 9 Sen1Floods11 → Peru + 3 Sen1Floods11-only on
   `peru-dev` → `outputs/logits_dev/`, 3 Sen1Floods11-only on `valid` → `outputs/logits_valid/`
   (logs next to them). Every run's water IoU matches its training log to 4 decimals.
+  Size of the old bias: `scripts/float16_diagnostic.py`.
   `outputs/preds_dev/` and `outputs/preds_valid/` are kept only as a record of the old numbers.
 
 ## 2026-10-14 — Calibration analysis on the logits (tasks 5.3, 5.4, 6.4)

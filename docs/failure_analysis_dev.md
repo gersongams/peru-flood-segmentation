@@ -41,7 +41,7 @@ recall/FPR and ECE were not affected.
 
 ECE: 15 equal-width confidence bins; AUROC: how well the uncertainty
 1 − max(p, 1 − p) (ranked as −|logit|) ranks wrong pixels above right ones. First two rows: every 7th
-labelled pixel. Last two: all labelled pixels within 10 px of a water edge, because
+labelled pixel. Last two: all labelled pixels in the edge-distance bands up to 10 px (≤ 10.5 px; `docs/uncertainty_dev.md` uses ≤ 10 px, hence 3.16 vs 3.14 % for U-Net), because
 85 % of dev pixels are WorldCover "bare/sparse" land, mostly easy, confidently dry
 desert that dilutes the overall ECE.
 

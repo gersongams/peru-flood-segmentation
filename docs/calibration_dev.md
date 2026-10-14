@@ -74,7 +74,7 @@ error rate: in water-only strata every error is a miss.
 
 | Stratum (errors, U-Net) | U-Net ECE % | U-Net AUROC | TerraMind ECE % | TerraMind AUROC | Prithvi ECE % | Prithvi AUROC |
 |---|---|---|---|---|---|---|
-| NDWI −0.1–0 (47,039) | 0.20 ± 0.00 → 0.32 | 0.707 / 0.777 | 0.14 ± 0.03 → 0.52 | 0.650 / 0.710 | 0.24 ± 0.01 → 0.41 | 0.501 / 0.524 |
+| NDWI −0.1–0 (47,039) | 0.20 ± 0.00 → 0.32 | 0.707 / 0.777 | 0.14 ± 0.03 → 0.52 | 0.650 ± 0.066 / 0.710 | 0.24 ± 0.01 → 0.41 | 0.501 ± 0.053 / 0.524 |
 | NDWI 0–0.1 (88,905) | 1.60 ± 0.04 → 0.53 | 0.685 / 0.685 | 1.73 ± 0.20 → 0.79 | 0.673 / 0.725 | 2.24 ± 0.03 → 0.87 | 0.715 / 0.751 |
 | NDWI 0.1–0.3 (107,614) | 4.65 ± 0.22 → 2.28 | 0.777 / 0.800 | 5.96 ± 0.31 → 4.00 | 0.739 / 0.773 | 6.74 ± 0.15 → 2.69 | 0.753 / 0.789 |
 | WorldCover permanent water (41,926) | 4.07 ± 0.07 → 3.11 | 0.844 / 0.865 | 4.72 ± 0.16 → 3.93 | 0.844 / 0.842 | 4.61 ± 0.14 → 2.74 | 0.575 / 0.579 |
@@ -85,13 +85,13 @@ error rate: in water-only strata every error is a miss.
 | Stratum (errors, U-Net) | U-Net ECE % | U-Net AUROC | TerraMind ECE % | TerraMind AUROC | Prithvi ECE % | Prithvi AUROC |
 |---|---|---|---|---|---|---|
 | edge ≤ 1 px (174,486) | 8.46 ± 0.35 → 4.16 | 0.733 / 0.744 | 10.29 ± 0.63 → 7.21 | 0.724 / 0.739 | 13.38 ± 0.37 → 5.86 | 0.698 / 0.716 |
-| > 10 px from edge (40,811) | 0.12 ± 0.00 → 0.35 | 0.600 / 0.607 | 0.12 ± 0.03 → 0.52 | 0.481 / 0.571 | 0.15 ± 0.01 → 0.46 | 0.513 / 0.549 |
-| water, NDWI −0.1–0 (36,227) | 40.89 ± 0.73 → 35.88 | 0.561 / 0.586 | 42.23 ± 1.78 → 38.98 | 0.707 / 0.685 | 45.04 ± 0.24 → 38.92 | 0.447 / 0.449 |
+| > 10 px from edge (40,811) | 0.12 ± 0.00 → 0.35 | 0.600 ± 0.110 / 0.607 | 0.12 ± 0.03 → 0.52 | 0.481 ± 0.064 / 0.571 | 0.15 ± 0.01 → 0.46 | 0.513 ± 0.074 / 0.549 |
+| water, NDWI −0.1–0 (36,227) | 40.89 ± 0.73 → 35.88 | 0.561 ± 0.050 / 0.586 | 42.23 ± 1.78 → 38.98 | 0.707 / 0.685 | 45.04 ± 0.24 → 38.92 | 0.447 / 0.449 |
 | water, NDWI 0–0.1 (67,404) | 36.18 ± 1.96 → 28.89 | 0.472 / 0.492 | 37.22 ± 1.19 → 33.60 | 0.636 / 0.634 | 38.75 ± 1.55 → 29.09 | 0.422 / 0.443 |
 | water body < 1 ha (15,890) | 38.22 ± 4.10 → 27.55 | 0.533 / 0.555 | 47.18 ± 1.43 → 40.89 | 0.563 / 0.519 | 51.53 ± 1.32 → 37.79 | 0.413 / 0.430 |
 | water body > 100 ha (81,345) | 1.59 ± 0.12 → 0.90 | 0.843 / 0.882 | 2.00 ± 0.11 → 1.48 | 0.943 / 0.958 | 2.18 ± 0.19 → 0.56 | 0.683 / 0.714 |
 
-AUROC std over seeds is in the full tables (typically 0.01–0.05).
+Single-seed AUROC std over seeds is shown where it is ≥ 0.05; all others are below 0.05 (full tables: `calib_tables.md`).
 
 ## What it shows
 
@@ -104,7 +104,9 @@ AUROC std over seeds is in the full tables (typically 0.01–0.05).
    AUROC 0.41–0.56 for U-Net and Prithvi (below 0.5 means the misses are *more* confident
    than the hits), 0.56–0.71 for TerraMind. Ensembling barely changes this. The same pattern
    holds for Sen1Floods11 → Peru (Prithvi 0.35–0.44 there). An uncertainty map would not
-   point a user to these areas.
+   point a user to these areas. Caveat: in the turbid/shallow-water chips the label itself
+   is doubtful (`docs/failure_analysis_dev.md`, Finding 2), so part of these "confident
+   misses" may be confident disagreement with a doubtful label, the same confound as in point 3.
 3. **Errors far from any label edge are not detected either** (AUROC 0.48–0.60). These are
    mostly confident disagreements with the label, consistent with the label errors of
    Finding 3 in `docs/failure_analysis_dev.md` (e.g. permanent water labelled dry).
@@ -119,5 +121,5 @@ AUROC std over seeds is in the full tables (typically 0.01–0.05).
    band from 5 px on; AUROC 0.54–0.76; the < 5 px band has under 1,000 errors).
 
 For phase D, this argues that edge-aware methods should be judged on calibration as well
-as IoU, and that low-contrast and small water need a better model, not a post-hoc
-uncertainty fix. These are hypotheses for the decision record (task 6.5), not tested here.
+as IoU, and that low-contrast and small water need a better model (or better labels),
+not a post-hoc uncertainty fix. These are hypotheses for the decision record (task 6.5), not tested here.
