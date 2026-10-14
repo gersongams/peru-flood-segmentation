@@ -399,3 +399,42 @@ source→oracle gap closed.
 **Thesis use.** Chapter II (related work: domain adaptation, flood generalization, Peru),
 Chapter IV (phase-D method), Chapter V (baselines). All papers must go into Zotero with
 notes before being cited.
+
+## 2026-10-14 — How the UNOSAT 2023 labels were made (open question from the literature check)
+
+**Question.** A single MNDWI threshold tuned on dev (0.924 IoU) matches the Peru-trained
+foundation models. Were the UNOSAT polygons produced by an index threshold?
+
+**Evidence.**
+1. UNOSAT's methodology note in the HDX metadata of both Lambayeque/Piura datasets (read via
+   the HDX CKAN API, field `methodology_other`): "For flood extractions, landcover mapping and
+   similar analyses, a variety of automated remote sensing techniques are used to extract the
+   relevant information which is then reviewed and revised as necessary by the analyst."
+   Dataset notes: "satellite-detected water using Sentinel-2 … preliminary analysis … not yet
+   validated in the field".
+2. Polygon geometry (`scripts/unosat_provenance.py` → `outputs/label_qa/unosat_geometry.csv`,
+   all layers reprojected to UTM 17S):
+   - WaterExtent / FloodExtent layers (22 Mar, 1 Apr, 21 Apr): 87–91 % of vertices on a 20 m
+     grid, 92–93 % axis-aligned edges, median edge exactly 20 m. They were vectorized from a
+     20 m raster aligned to the Sentinel-2 grid.
+   - CloudObstruction: on a 10 m grid (89–99 %), from a 10 m raster.
+   - AnalysisExtent: 1–3 % on the grid, median edge 181 m. Hand-drawn.
+   - Tumbes layers (not used): axis-aligned ~10 m edges but not on our grid.
+3. The ArcGIS geoprocessing history in the `.shp.xml` files logs only attribute edits
+   (AddField / CalculateField), not the extraction step.
+
+**Conclusion.** The labels come from an automated extraction at 20 m, the resolution of the
+Sentinel-2 SWIR bands (B11/B12) that MNDWI uses, plus analyst review. The exact algorithm is
+not published, so "MNDWI-based" stays an inference.
+
+**Consequences.**
+- `peru-dev` / `peru-test` IoU partly measures agreement with an automated, probably
+  SWIR-index-based product. This explains the strong tuned-MNDWI baseline and must be stated
+  in the evaluation chapter.
+- Label edges are 20 m steps rasterized to 10 m, so the 1-px edge band is inherently
+  uncertain. This supports reporting the boundary-tolerant IoU (edge-tolerance entry).
+- For phase D, index-based pseudo-labels are close to how the evaluation labels were made.
+  That makes them a strong baseline, and a method that beats it is more convincing.
+
+**Thesis use.** Chapter III (dataset: label provenance and resolution), Chapter V (metric
+interpretation), Chapter VI (limitations).

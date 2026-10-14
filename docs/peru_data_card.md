@@ -87,6 +87,13 @@ alongside.
   them chip by chip; the checks done are in `docs/peru_label_sources.md` (date match,
   clouds, offset).
 - Thick-cloud masking is a fixed spectral rule; thin cloud and haze remain.
+- How UNOSAT made the labels: "automated remote sensing techniques … reviewed and revised as
+  necessary by the analyst" (UNOSAT methodology note on HDX). The Lambayeque/Piura water and
+  flood polygons were vectorized from a **20 m raster** on the Sentinel-2 grid (87–91 % of
+  vertices on a 20 m grid, median edge 20 m; cloud layers from a 10 m raster; analysis extent
+  hand-drawn), `scripts/unosat_provenance.py`. Labels are therefore 20 m products rasterized
+  to 10 m: water edges are uncertain by about one 10 m pixel, and the labels are likely
+  SWIR-index-based (algorithm not published).
 - Possible label errors: 32 UNOSAT chips (2.5 %) have ≥ 5 ha of clear label/MNDWI
   disagreement and 56 more have 1–5 ha, almost all pixels labelled dry that look like water.
   About half of that area is next to thick cloud (possible shadow, haze or surf); without

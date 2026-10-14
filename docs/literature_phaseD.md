@@ -81,10 +81,13 @@ the threshold is badly placed (hazy desert top-of-atmosphere pixels have MNDWI >
    with "pick the right MNDWI threshold". Index-based pseudo-labels (as in UUCP / H2O-Net)
    are therefore a natural, cheap baseline **and** a possible ingredient (combine index and
    model confidence for pseudo-labels).
-3. Open question: did UNOSAT draw its water layer with an index threshold on Sentinel-2? If so,
-   `peru-dev` IoU partly measures agreement with an index-derived product, which would explain
-   why a tuned MNDWI threshold matches the deep models. Check UNOSAT's product notes before
-   writing the evaluation chapter.
+3. Answered (2026-10-14, `scripts/unosat_provenance.py`, `docs/METHODS_NOTES.md`): UNOSAT's
+   water and flood layers were extracted automatically from a **20 m raster** aligned to the
+   Sentinel-2 grid and then reviewed by an analyst (UNOSAT methodology note on HDX; 87–91 %
+   of polygon vertices on a 20 m grid). The exact algorithm is not published; 20 m is the
+   resolution of the SWIR bands that MNDWI uses. So `peru-dev` IoU partly measures agreement
+   with an automated, probably SWIR-index-based product, which explains why a tuned MNDWI
+   threshold matches the deep models.
 
 ## 4. Protocol to copy (from CIM-TTDA, Portalés-Julià 2025, LoveDA, Patel 2021)
 
