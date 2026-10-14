@@ -234,3 +234,18 @@ on Sen1Floods11 `valid` (seed-0 Sen1Floods11 models, `temperatures_valid.json`):
 TerraMind 1.01, Prithvi 2.80. Results: `docs/calibration_dev.md`, `docs/uncertainty_dev.md`
 (rewritten), AUROC rows of `docs/failure_analysis_dev.md` corrected. Mac CPU, about 1 h 20 min
 in total. Method and decisions: `docs/METHODS_NOTES.md`.
+
+## 2026-10-14 — Label QA, band statistics and transfer matrix (tasks 4.4, 6.2)
+
+- Peru-only and Sen1Floods11 → Peru checkpoints (all 18) evaluated on Sen1Floods11 `valid`:
+  `terratorch validate -c configs/<m>.yaml -c configs/trainer/mps.yaml --ckpt_path <best ckpt>`,
+  commit `71ccc9c` (clean), Mac MPS fp32, logs `outputs/eval_valid/{peru,s1f11_ft}_<m>_seed<s>.log`.
+  All 18 finished. Water IoU, mean ± std over seeds: Peru-only U-Net 0.6898 ± 0.0065,
+  TerraMind 0.6559 ± 0.0131, Prithvi 0.6527 ± 0.0190; Sen1Floods11 → Peru 0.7019 ± 0.0133,
+  0.6911 ± 0.0234, 0.6805 ± 0.0056. Matrix with the existing logs:
+  `scripts/transfer_matrix.py` → `outputs/transfer/matrix.{md,csv}`.
+- `scripts/label_qa.py [--figs] [--check]` → `outputs/label_qa/` (no model used for the flags;
+  `--check` compares with the Peru-only logits afterwards). List: `docs/peru_doubtful_chips.md`.
+  Threshold revision (±0.2 → 0.5 / −0.1) recorded in `docs/METHODS_NOTES.md`.
+- `scripts/band_stats.py` → `outputs/band_stats/`.
+- Write-up: `docs/domain_shift_dev.md`. CPU parts about 2 min each on the Mac.

@@ -131,3 +131,138 @@ seeds share one starting checkpoint (less diverse ensemble). Runtime ≈ 1 h on 
 (exact AUROC on continuous float64 logits; ~12–14 GB RAM).
 
 **Thesis use.** Chapter V (failure analysis + calibration by stratum); paper 1 results.
+
+## 2026-10-14 — Doubtful-label chips in the UNOSAT 2023 set (task 4.4)
+
+**What and why.** Finding 3 of the failure analysis showed that part of the "errors" on
+`peru-dev` are label errors. Task 4.4 turns that into a model-free, reproducible list of
+chips whose UNOSAT label disagrees clearly with the image, for every split, so the thesis
+can describe label quality and a possible v2 can decide what to do with them.
+
+**Method.** `scripts/label_qa.py`, all 1,291 UNOSAT chips (train, dev, test, buffer).
+Index: MNDWI = (B03 − B11)/(B03 + B11), the same index as the builder's `agreement()` and
+the manifest's `mndwi_iou`. Pixels are counted only if labelled and more than 2 px from a
+label water edge, so slight misregistration along shores does not create blobs.
+- Omission blob: labelled dry and MNDWI > 0.5.
+- Commission blob: labelled water and MNDWI < −0.1.
+- Blobs are 4-connected components of ≥ 100 px (1 ha).
+- Each blob is tagged "near cloud" (< 20 px from thick cloud, using the builder's rule:
+  shadow or haze possible), "vegetated" (mean NDVI > 0.3: irrigated fields or flooded
+  vegetation) or "open".
+- Chip flags: doubtful if blobs cover ≥ 5 ha, minor if 1–5 ha.
+
+**How the thresholds were set (and one revision).** The rule uses the image and label only.
+- First version: ±0.2. It flagged 45 % of chips. Its blobs had median MNDWI 0.25, half of
+  their area was next to cloud (haze), and 99 % of labelled dry pixels lie below 0.21, so
+  0.2 sat inside the tail of dry land.
+- Revised from the label-conditional MNDWI distributions of 300 random train/dev chips
+  (every 20th labelled pixel). Labelled water: median 0.72, 1st percentile 0.05, 73 %
+  above 0.5. Labelled dry: median −0.16, 99th percentile 0.21, 0.03 % above 0.5.
+- Thresholds were fixed before any comparison with model errors, so the label-error
+  conclusion is not self-fulfilling.
+
+**Results** (`outputs/label_qa/chips.csv`; list in `docs/peru_doubtful_chips.md`):
+- 32 doubtful chips (2.5 %) and 56 minor. Train 16 / 40, dev 8 / 6, test 6 / 6, buffer 2 / 4.
+- 128 omission blobs (534 ha, about half next to cloud) against only 7 commission blobs
+  (18 ha). Clear disagreements are therefore almost all water labelled dry, not dry land
+  labelled water.
+- Example: a dark rectangular pond labelled dry (`2023-04-01_E588800_N9328640`, train).
+
+**Check against the models** (after the rule was fixed; `--check`, `outputs/label_qa/check_dev.txt`):
+- On dev, the 9 Peru-only runs call 85.6 % of omission-blob pixels water, against 0.5 % of
+  all other dry pixels.
+- They miss 100 % of the (few, 609) commission-blob pixels, against 3.9 % of other water.
+- Per chip, the omission share correlates with the false-positive rate (Spearman 0.36,
+  p < 1e-6, n = 174). Commission vs miss rate: 0.13, p = 0.10, too few blobs to tell.
+- Models trained on these labels disagree with them where the image clearly shows water,
+  which supports reading those pixels as label errors.
+
+**Limitation.** The rule is conservative and misses turbid/shallow water. Of the 10
+Finding-3 chips it flags 3 (2 doubtful, 1 minor). The clearest missed case
+(`2023-04-01_E517120_N9349120`, water labelled dry) has MNDWI 0.30–0.47 in the disputed
+area, the same as that chip's own labelled water (median 0.39), so a global 0.5 threshold
+cannot see it. A chip-relative threshold could catch it. It was not added, because it
+would be tuned to a known case. An unflagged chip is therefore not guaranteed clean.
+
+**Decisions.**
+- The list annotates the frozen v1 data and removes nothing. Exclusion would be a v2
+  decision, taken before section 7 and applied to all models alike.
+- Test chips are flagged mechanically, with no overlays.
+- EMSR 2017 is not screened: its labels already set EMS/index disagreement to −1, so the
+  check would be circular.
+- Nothing is added to the frozen manifests (that would break `freeze_peru.py --check`).
+
+**Thesis use.** Chapter III (dataset, label quality and known issues); Chapter V (label
+noise as a cause of errors; dev IoU is a lower bound); a v2 / phase-D label-noise method.
+
+## 2026-10-14 — Sen1Floods11 vs Peru band distributions (task 6.2, part 1)
+
+**What and why.** To explain why models transfer poorly between Sen1Floods11 and Peru,
+measure how the input distributions differ, per band and per class.
+
+**Method.** `scripts/band_stats.py`. Datasets: Sen1Floods11 S2Hand `train` (252 chips),
+`peru-train` (753), `peru-dev` (174); no `peru-test`.
+- Pixels: labelled pixels only (label −1 and all-zero no-data skipped), split into water
+  and dry, sampling every 37th labelled pixel of each chip.
+- Per band: median and percentiles.
+- Shift in units of the Sen1Floods11 train std of the band (what the U-Net sees after
+  normalization): standardized mean difference (SMD) and 1-D Wasserstein distance (W1).
+- MNDWI and NDWI percentiles per class; water share per dataset.
+- Prithvi's 6 HLS bands are marked.
+- Outputs: `outputs/band_stats/{summary.md,bands.csv,indices.csv,figs/hist_*.png}`.
+
+**Check.** Radiometric harmonization (Peru L1C after the −1000 DN offset fix): over water
+the low percentiles of B11/B12 are lower in Peru (p5 74 / 43 DN) than in Sen1Floods11
+(130 / 75), so there is no leftover offset that would fake a shift.
+
+**Results.**
+- **Dry land differs much more than water.** Peru dry land (Sechura desert, bare soil) is
+  far brighter in the visible bands and SWIR: SMD vs Sen1Floods11 +0.8 to +0.9 (peru-train)
+  and +1.4 to +1.7 (peru-dev) for B02–B04 and B12, +0.5 / +0.9 for B11. NIR changes
+  little (B08, B8A: −0.03 to +0.18).
+- **Water is similar.** |SMD| ≤ 0.4 in every band. Peru water is darker in NIR and red-edge
+  (B8A −0.22 / −0.40) and slightly brighter in green.
+- **Peru water is clearer by MNDWI** (median 0.72 vs 0.49 for Sen1Floods11). Peru dry land
+  has NDWI much closer to 0 (median −0.15 train, −0.06 dev, vs −0.38), because it is bare
+  and unvegetated.
+- So in Peru, dry land overlaps the low-contrast water range (NDWI around 0). This fits
+  Finding 2: the Sen1Floods11-only models have false-positive rates of 5–7 % on
+  Peru dry pixels with NDWI 0–0.1, and low-contrast water is the weakest stratum for every
+  model.
+- Water share of labelled pixels: Sen1Floods11 train 9.5 %, peru-train 4.6 %, peru-dev 12.4 %.
+
+**Caveats.**
+- The pixel sample is not stratified by event or chip, so large chips dominate.
+- Sen1Floods11 covers many biomes; the "Sen1Floods11 distribution" is a mixture.
+- SMD and W1 are 1-D, per band; they do not capture band interactions.
+
+**Thesis use.** Chapter III (dataset description: how Peru differs) and Chapter V (domain
+shift as the explanation for the transfer results); paper 1 (benchmark motivation).
+
+## 2026-10-14 — Transfer matrix: training regime × evaluation set (task 6.2, part 2)
+
+**What and why.** Task 6.2 asks for the IoU drop between Sen1Floods11 and Peru. One model
+scored on two sets is confounded by how hard each set is, so all regimes are evaluated on
+both sets and compared **within** each evaluation set (in-domain vs transferred training).
+
+**Method.** Water IoU (`val/IoU_Flood`) from `terratorch validate` logs. The 18 new runs are
+the Peru-only and Sen1Floods11 → Peru checkpoints on Sen1Floods11 `valid`, each with its own
+model normalization; the other cells come from existing logs. Script
+`scripts/transfer_matrix.py`; write-up `docs/domain_shift_dev.md`.
+
+**Results.**
+- Sen1Floods11 → Peru costs 4.6–13.1 IoU points on `peru-dev` (Prithvi least, TerraMind most).
+- Peru → Sen1Floods11 costs 12.9–18.0 points on `valid` (U-Net least).
+- After Peru-only training, U-Net generalizes best to `valid` (0.690 vs 0.656 / 0.653).
+- Peru fine-tuning drops the Sen1Floods11 checkpoints by 12–15 points on `valid`
+  (forgetting), yet they stay 1–4 points above Peru-only training.
+
+**Caveats.**
+- In-domain cells are optimistic, because each checkpoint was selected on that split. This
+  slightly inflates the measured gaps.
+- Sen1Floods11-only rows have one seed.
+- Cross-column comparisons are not meaningful: label sources, water share (9.5 % vs 12.4 %)
+  and difficulty differ.
+
+**Thesis use.** Chapter V (generalization RQ); paper 1 main table (regime × set), with the
+test-set version after section 7.

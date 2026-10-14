@@ -30,7 +30,7 @@
 - [x] 4.1 Find label sources that need no manual labelling; record them (`docs/peru_label_sources.md`); download UNOSAT 2023 vectors
 - [x] 4.2 Download S2 L1C (13 bands, 10 m, UTM 17S) chips for the UNOSAT 2023 analysed area on 2023-03-21 and 2023-04-01; local demo on a few chips first
 - [x] 4.3 Rasterize UNOSAT layers to labels with the automatic rules; write the chip manifest with provenance fields
-- [ ] 4.4 Overlays and label-vs-water-index agreement per chip; list the doubtful chips
+- [x] 4.4 Overlays and label-vs-water-index agreement per chip; list the doubtful chips
 - [x] 4.5 Build `peru-2017-test` from EMSR199 + S2 2017-04-07 with disagreement pixels set to −1
 - [x] 4.6 Spatial-block split into `peru-train` / `peru-dev` / `peru-test`; guard that refuses training on held-out parts
 - [x] 4.7 Freeze v1 (checksums) and write the data card (`docs/peru_data_card.md`)
@@ -52,7 +52,7 @@
 ## 6. Failure analysis (phase C, on `peru-dev`)
 
 - [x] 6.1 Build stratum layers: cloud/shadow, WorldCover land cover, Copernicus DEM, permanent water, water-body size
-- [ ] 6.2 Evaluate all models on `peru-dev`; IoU drop vs `valid`; band-distribution comparison
+- [x] 6.2 Evaluate all models on `peru-dev`; IoU drop vs `valid`; band-distribution comparison
 - [x] 6.3 Stratified IoU / FN / FP tables (mean ± std over seeds)
 - [x] 6.4 Calibration and error-detection AUROC per stratum
 - [ ] 6.5 Write the decision record: dominant failure mode(s) and 3–4 candidate methods for phase D
