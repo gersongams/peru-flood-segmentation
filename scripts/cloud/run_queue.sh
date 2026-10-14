@@ -27,5 +27,7 @@ for s in $SEEDS; do
     echo "$m seed$s exit=$rc $(date -Is)" | tee -a "$LOCAL/queue.txt"
     [ $rc -eq 0 ] && touch "$LOCAL/$run/done"
     rsync -rlt "$LOCAL/" "$KEEP/"
+    # Prithvi checkpoints are 3.9 GB: keep only best-*.ckpt of a finished run, on the volume.
+    if [ $rc -eq 0 ]; then rm -f "$KEEP/$run/checkpoints/last.ckpt"; rm -rf "$LOCAL/$run/checkpoints"; fi
   done
 done
