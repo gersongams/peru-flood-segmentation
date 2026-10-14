@@ -43,9 +43,9 @@
 
 ## 5. Uncertainty
 
-- [ ] 5.1 Ensemble inference over seed checkpoints (mean probability, entropy, mutual information)
+- [x] 5.1 Ensemble inference over seed checkpoints (mean probability, entropy, mutual information)
 - [ ] 5.2 MC-dropout inference on the best single model
-- [ ] 5.3 Temperature scaling fitted on `valid`; store temperature per model
+- [x] 5.3 Temperature scaling fitted on `valid`; store temperature per model
 - [ ] 5.4 ECE, reliability diagrams and error-detection AUROC; validate on `valid` first
 - [ ] 5.5 Export georeferenced probability and uncertainty rasters per chip
 

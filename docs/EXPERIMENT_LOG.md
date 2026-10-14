@@ -178,3 +178,20 @@ $4.9; pod stopped 2026-10-14 after the download was verified.
 
 Both RunPod pods (`r62ve4bh8iksdj`, `827muf75pdgnme`) terminated on the user's request after
 all results were on the Mac; `list-pods` returns none. Nothing on RunPod bills any more.
+
+## 2026-10-14 — Uncertainty on `peru-dev` (tasks 5.1, 5.3, 5.4) and an AUROC correction
+
+- `scripts/uncertainty_dev.py` → `outputs/analysis_dev/uncertainty.csv`, write-up
+  `docs/uncertainty_dev.md`: seed ensembles (entropy, MI) and temperature scaling
+  (2-fold by chip on dev) for the Peru-only and Sen1Floods11 → Peru models.
+- Correction: the error-detection AUROC in the first version of
+  `docs/failure_analysis_dev.md` used a 1000-bin histogram that overstated it (U-Net
+  0.710 instead of 0.662). `scripts/analyze_dev.py` now uses the exact rank-based AUROC
+  (checked against `scipy.stats.rankdata`: 0.6574 on the same pixels); the document was
+  corrected.
+
+## 2026-10-14 — TerraMind Peru-only, 200-epoch cap (under-training check)
+
+Pod `n7g3tfutcmy68k` (RTX 4090, Secure Cloud, US-IL-1, $0.89/h). Commit `0c3ee97`.
+`RUN_NAME=runs_cloud_tm200 run_queue.sh terramind_v1_base 0 --trainer.max_epochs=200`.
+Result: see below when finished.

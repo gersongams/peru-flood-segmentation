@@ -23,9 +23,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import rasterio
+import sys
 from scipy.ndimage import binary_erosion, distance_transform_edt, label as cc_label
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 PRED = REPO / "outputs" / "preds_dev"
 LABEL = REPO / "data" / "peru" / "unosat2023" / "label"
 STRATA = REPO / "data" / "peru" / "strata" / "unosat2023"
@@ -70,13 +72,11 @@ def ece_auroc(p: np.ndarray, y: np.ndarray) -> tuple[float, float]:
     acc = np.bincount(b, weights=correct, minlength=15)
     cf = np.bincount(b, weights=conf, minlength=15)
     ece = float(np.sum(np.abs(acc - cf)) / len(p))
-    # AUROC of uncertainty for detecting errors, from a 1000-bin histogram (ties split evenly)
-    u = np.minimum(((1 - conf) * 2 * 1000).astype(int), 999)
-    pos = np.bincount(u[~correct], minlength=1000).astype(float)
-    neg = np.bincount(u[correct], minlength=1000).astype(float)
-    if pos.sum() == 0 or neg.sum() == 0:
-        return ece, float("nan")
-    auroc = (np.sum(pos * (np.cumsum(neg) - neg)) + 0.5 * np.sum(pos * neg)) / (pos.sum() * neg.sum())
+    # exact AUROC of the uncertainty for detecting errors (ties counted half);
+    # an earlier 1000-bin histogram version merged the most confident pixels and
+    # overstated it
+    from uncertainty_dev import auroc as exact_auroc
+    auroc = exact_auroc(1 - conf, ~correct)
     return ece, float(auroc)
 
 
