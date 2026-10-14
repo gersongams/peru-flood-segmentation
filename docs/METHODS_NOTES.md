@@ -347,3 +347,55 @@ record of `docs/failure_analysis_dev.md`.
 
 **Thesis use.** Chapter I (contribution and RQs, phase D), Chapter IV (method), Chapter V
 (evaluation protocol: sensitivity row, tolerant IoU).
+
+## 2026-10-14 — Literature check for phase D and index-threshold baselines (task 6.6, part 1)
+
+**What and why.** Phase D adapts Sen1Floods11 models to Peru without Peru labels. The old
+literature base has no domain-adaptation papers, so a new search was needed to (a) see whether
+the topic is open, (b) pick methods and baselines, (c) copy an evaluation protocol.
+
+**How.** Two research agents searched the web in parallel (general UDA/test-time adaptation
+for segmentation; adaptation and generalization in Earth observation, floods, foundation
+models, Peru). They read arXiv PDFs and publisher full texts and recorded a URL and a
+verification status per paper (`docs/literature/`). Spot-checks here: Crossref/OpenAlex
+metadata of CIM-TTDA and Portalés-Julià 2025, and the VFM-UDA arXiv page. Publisher pages
+were not readable from here, so the agents' numbers stay marked "re-check in the PDF".
+
+**Findings** (synthesis: `docs/literature_phaseD.md`):
+- Closest work: CIM-TTDA (2026), test-time self-training for **SAR** flood mapping. Nothing
+  found for optical S2 flood adaptation with geospatial foundation models, for desert
+  backgrounds, or deep-learning flood segmentation of the Peruvian coast / Yaku. The claim
+  to make is therefore narrow (optical + GFM + desert shift), not "first DA for floods".
+- Method choice: self-training with an EMA teacher, per-class (CBST-style) thresholds and
+  masked consistency (MIC/VFM-UDA) fits ViT foundation models. AdaBN reaches only the U-Net,
+  because TerraMind/Prithvi encoders use LayerNorm. TENT is weak for transformers (CoTTA
+  Table 5, agent-read). Adversarial methods are superseded.
+- An MNDWI baseline is expected by the literature (Portalés-Julià 2025: MNDWI close to deep
+  learning on unseen datasets).
+
+**Index baselines measured here** (`scripts/index_baseline.py` → `outputs/analysis_dev/index_baseline.md`):
+
+| Baseline | peru-dev water IoU | Sen1Floods11 valid |
+|---|---|---|
+| MNDWI > 0 | 0.486 (precision 0.49, recall 1.00) | 0.599 |
+| MNDWI > Otsu of unlabelled peru-train (t = 0.039) | 0.572 | — |
+| best MNDWI threshold picked on the split itself | 0.924 (t = 0.25) | 0.745 (t = 0.15) |
+| best NDWI threshold picked on the split itself | 0.844 (t = 0.15) | 0.710 (t = −0.05) |
+
+- Without labels the index is badly placed in Peru: hazy desert top-of-atmosphere pixels
+  have MNDWI > 0.
+- A threshold tuned on dev labels matches the Peru-trained Prithvi (0.922); it is an
+  optimistic, single-parameter fit.
+- Open question: did UNOSAT draw its water layer with an index threshold? If so, dev IoU
+  partly measures agreement with an index-derived product. Check UNOSAT's product notes.
+- Correction in the same session: an interpolated "≈ 0.55" for the Otsu baseline was replaced
+  by the exact 0.572 once the computation was put in the script.
+
+**Consequences.** Phase-D baselines include label-free index methods (MNDWI > 0, Otsu) and
+index-based pseudo-labels. Pseudo-labels that combine model confidence with MNDWI are a
+candidate ingredient. Report precision and recall separately, and the share of the
+source→oracle gap closed.
+
+**Thesis use.** Chapter II (related work: domain adaptation, flood generalization, Peru),
+Chapter IV (phase-D method), Chapter V (baselines). All papers must go into Zotero with
+notes before being cited.

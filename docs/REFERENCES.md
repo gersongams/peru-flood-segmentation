@@ -48,12 +48,12 @@ These were found in the September 2026 SOTA search. **Add each one to Zotero, wr
 | Reference | Why | Verification status |
 |---|---|---|
 | Bonafilia et al., *Sen1Floods11*, CVPR Workshops 2020, github.com/cloudtostreet/Sen1Floods11 | Our benchmark | Split counts verified from the CSVs (train 252 / valid 89 / test 90 / bolivia 15) |
-| Kaushik, Maurya & Tellman, *Prithvi-CAFE*, arXiv 2601.02315 (2026) | Latest SOTA table; U-Net ≈ FMs in-distribution; +10.8 IoU on Bolivia | **Table 1 checked against the PDF** (Prithvi 2.0 600M 82.50 IoU / 90.30 mIoU; TerraMind v1-B 82.90 / 90.60) |
+| Kaushik, Maurya & Tellman, *Prithvi-CAFE*, arXiv 2601.02315 (2026) | Latest SOTA table; U-Net ≈ FMs in-distribution; +10.8 IoU on Bolivia (⚠️ its Bolivia rows come from different papers, so this gap mixes studies; `docs/literature/uda_earth_observation.md` §3.1) | **Table 1 checked against the PDF** (Prithvi 2.0 600M 82.50 IoU / 90.30 mIoU; TerraMind v1-B 82.90 / 90.60) |
 | Prithvi-EO-2.0, arXiv 2412.02732 (2024) | Foundation model #2 | From web search; verify numbers in the PDF |
 | TerraMind, arXiv 2504.11171 (ICCV 2025) | Foundation model #1 (main) | From web search; verify numbers in the PDF |
 | TerraTorch, arXiv 2503.20563 (2025) | Fine-tuning toolkit (cite as software) | Used; v1.2.13 |
 | Portalés-Julià et al., *WorldFloods v2 / ml4floods*, Sci. Rep. 13:20316 (2023) | Optional extra data | From web search |
-| Portalés-Julià et al., Remote Sensing of Environment (2025), cross-dataset generalization of S1/S2 flood models | Motivates the OOD focus | From web search; verify |
+| Portalés-Julià et al., Remote Sensing of Environment (2025), cross-dataset generalization of S1/S2 flood models | Motivates the OOD focus; MNDWI baseline | Metadata confirmed (doi:10.1016/j.rse.2025.114882, RSE 328:114882); full text read by a research agent 2026-10-14, numbers to re-check in the PDF |
 | Badillo-Rivera et al., Frontiers in Environmental Science (2025), doi 10.3389/fenvs.2025.1672107 | Piura / Niño Costero 2017 susceptibility with S1 inventory, RF/SVM, 182 samples, random split | Study facts checked on the page. ⚠️ Two reads disagreed on the best validation AUC (0.932 vs >0.907), so **re-read the paper before quoting it** |
 | Tellman et al., *Global Flood Database*, Nature (2021) | Context: global flood labels | From web search |
 | Nearing et al., Google Flood Hub, Nature 627 (2024) | Context: flood forecasting (out of scope) | From web search |
@@ -81,3 +81,11 @@ Notes for phase A (reproduction):
 - ⚠️ The 82.90 for TerraMind v1-B in Prithvi-CAFE has no citation and is much higher than TerraMind's own S2 L1C fine-tuning result (76.32, Table 12). Their setups differ; do not quote 82.90 as "TerraMind's result" without finding its source. The official TerraMind Sen1Floods11 config (IBM/terramind) feeds S2L1C + S1GRD; our phase A uses S2L1C only.
 - The best in-distribution number in Prithvi-CAFE's table is a **U-Net (84.03)**, so in-distribution SOTA is a CNN. Find and read Li et al. 2023 (ref. [19]) for its setup before claiming reproduction.
 - Reproduction targets for our S2-only runs: Prithvi-EO-2.0-300M ≈ 82.2 (same 6 bands, official config); TerraMind v1-B S2 L1C ≈ 76.3 (TerraMind's own number); U-Net 80.7–84.0 depending on the setup.
+
+## Phase D: domain adaptation (added 2026-10-14)
+
+Synthesis: `docs/literature_phaseD.md`. Full notes with URLs and per-paper verification
+status: `docs/literature/uda_segmentation_methods.md` and `docs/literature/uda_earth_observation.md`.
+None is in Zotero yet. Before citing: add to Zotero, write a note, re-check each number in
+the PDF. Key items: CIM-TTDA (Chen et al. 2026, doi:10.1029/2025JH001145, metadata confirmed),
+VFM-UDA (arXiv 2406.09896, page confirmed), DAFormer, MIC, CBST, FDA, AdaBN, TENT, CoTTA, LoveDA.
