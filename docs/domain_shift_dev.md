@@ -23,17 +23,20 @@ Sen1Floods11-only: seed 0.
 
 Bold = in-domain (the checkpoint was selected on that split, so these cells are slightly
 optimistic). Compare cells **within a column**. Across columns, scores are not comparable:
-the two sets differ in labels, water share (9.5 % vs 12.4 % of labelled pixels) and
-difficulty. Sen1Floods11-only U-Net and Prithvi even score higher on `peru-dev` than on
+the two sets differ in labels, water share (`valid` 11.0 %, `peru-dev` 12.4 % of labelled
+pixels) and difficulty. Sen1Floods11-only U-Net and Prithvi even score higher on `peru-dev` than on
 `valid`, because `peru-dev` has large, easy water bodies.
 
 - **Sen1Floods11 → Peru costs 5–13 points** on `peru-dev`: in-domain 0.92–0.94, transferred
   U-Net −10.6, TerraMind −13.1, Prithvi −4.6 against the Peru-only mean of the same model.
   Prithvi transfers best and TerraMind worst.
-- **Peru → Sen1Floods11 costs more, 13–18 points** on `valid`: U-Net −12.9, TerraMind
+- **Peru → Sen1Floods11 costs 13–18 points** on `valid`: U-Net −12.9, TerraMind
   −16.1, Prithvi −18.0 against the Sen1Floods11-only checkpoint of the same model. Peru is
   one event in one region, Sen1Floods11 `train` spans 10 regions (chip-name prefixes: Ghana, India, Mekong, Nigeria, Pakistan, Paraguay, Somalia, Spain, Sri Lanka, USA), so a Peru-trained model
-  sees a narrower distribution.
+  sees a narrower distribution. The two gaps are measured from different in-domain
+  baselines, so compare them with care: as a share of the in-domain IoU they are 5–14 %
+  on `peru-dev` and 16–22 % on `valid`, so the Peru → Sen1Floods11 direction is still the
+  harder one.
 - **After Peru-only training the CNN generalizes best**: U-Net 0.690 on `valid` vs
   TerraMind 0.656 and Prithvi 0.653. With Peru labels, the foundation models' pretraining
   does not buy out-of-domain robustness.
@@ -76,12 +79,15 @@ B11/B12 p5 74 / 43 DN vs Sen1Floods11 130 / 75).
 ## What it shows
 
 The main shift between the two datasets is the background, not the water: bright,
-unvegetated desert whose spectra overlap low-contrast water. That explains why
-Sen1Floods11-only models over-predict water in Peru, and why Peru-trained models (which
-learned a strict desert/water boundary) transfer badly to Sen1Floods11's vegetated scenes.
+unvegetated desert whose spectra overlap low-contrast water. Hypothesis, consistent with
+the false-positive pattern but not tested: this is why Sen1Floods11-only models over-predict
+water in Peru, and why Peru-trained models (which learned a strict desert/water boundary)
+transfer badly to Sen1Floods11's vegetated scenes.
 Foundation-model pretraining does not remove the gap in either direction. This motivates
 reporting Peru results separately from Sen1Floods11 (RQ on generalization) and not
 expecting a single model to serve both without Peru data.
 
 Caveats: Sen1Floods11-only rows are one seed; the fine-tuned seeds share one starting
-checkpoint; pixel sampling is not stratified by event.
+checkpoint; pixel sampling is not stratified by event; peru-dev's background is brighter
+than peru-train's (dry-land SMD +1.4–1.7 vs +0.8–0.9), because dev blocks were drawn only
+from blocks with water, so dev is not a random sample of the Peru background.

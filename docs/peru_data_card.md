@@ -87,10 +87,14 @@ alongside.
   them chip by chip; the checks done are in `docs/peru_label_sources.md` (date match,
   clouds, offset).
 - Thick-cloud masking is a fixed spectral rule; thin cloud and haze remain.
-- Label errors: 32 UNOSAT chips (2.5 %) have ≥ 5 ha of clear disagreement with the image
-  (mostly water labelled dry), 56 more 1–5 ha; list and rule in `docs/peru_doubtful_chips.md`
+- Possible label errors: 32 UNOSAT chips (2.5 %) have ≥ 5 ha of clear label/MNDWI
+  disagreement and 56 more have 1–5 ha, almost all pixels labelled dry that look like water.
+  About half of that area is next to thick cloud (possible shadow, haze or surf); without
+  it, 15 chips are doubtful. List and rule: `docs/peru_doubtful_chips.md`
   (`scripts/label_qa.py`). The rule misses turbid water, so unflagged chips are not
   guaranteed clean. v1 is unchanged; the list only annotates it.
+- `peru-dev` (and `peru-test`) blocks were drawn only from blocks with water, so their
+  background is brighter desert than `peru-train`'s (`docs/domain_shift_dev.md`).
 - The 1 April 2023 label reuses the 22 March existing-water layer.
 - The 2017 labels exclude pixels where EMS and the water index disagree.
 - One region and two events; results may not transfer to the Amazon or the highlands.

@@ -163,19 +163,30 @@ label water edge, so slight misregistration along shores does not create blobs.
 
 **Results** (`outputs/label_qa/chips.csv`; list in `docs/peru_doubtful_chips.md`):
 - 32 doubtful chips (2.5 %) and 56 minor. Train 16 / 40, dev 8 / 6, test 6 / 6, buffer 2 / 4.
-- 128 omission blobs (534 ha, about half next to cloud) against only 7 commission blobs
-  (18 ha). Clear disagreements are therefore almost all water labelled dry, not dry land
-  labelled water.
-- Example: a dark rectangular pond labelled dry (`2023-04-01_E588800_N9328640`, train).
+- Without the blobs next to thick cloud: 15 doubtful (train 8, dev 4, test 3) and 57 minor.
+- 128 omission blobs (534 ha) against only 7 commission blobs (18 ha). More than half the
+  omission area (281 ha) is next to thick cloud, where shadow, haze or bright surf can fool
+  the index. The largest dev case is the sea edge just inside UNOSAT's analysed extent
+  (`2023-04-01_E517120_N9308160`): ocean labelled dry, with surf triggering the cloud rule.
+- Clear open cases exist, e.g. a dark rectangular pond labelled dry
+  (`2023-04-01_E588800_N9328640`, train). A flag therefore means a clear label/MNDWI
+  disagreement, not a proven label error.
 
 **Check against the models** (after the rule was fixed; `--check`, `outputs/label_qa/check_dev.txt`):
-- On dev, the 9 Peru-only runs call 85.6 % of omission-blob pixels water, against 0.5 % of
-  all other dry pixels.
-- They miss 100 % of the (few, 609) commission-blob pixels, against 3.9 % of other water.
-- Per chip, the omission share correlates with the false-positive rate (Spearman 0.36,
-  p < 1e-6, n = 174). Commission vs miss rate: 0.13, p = 0.10, too few blobs to tell.
-- Models trained on these labels disagree with them where the image clearly shows water,
-  which supports reading those pixels as label errors.
+- On dev, the 9 Peru-only runs call omission-blob pixels water 83.2 % (not near cloud) and
+  87.3 % (near cloud) of the time, against 0.4 % of other dry pixels.
+- But they also call 90.6 % of the dry, MNDWI > 0.5 pixels that the rule left out (blobs
+  under 1 ha or in the edge band) water. Omission pixels are high-MNDWI by construction, so
+  this check mostly shows that the models follow the index, whether or not the label is
+  wrong. It cannot separate label errors from index failures (shadow, surf).
+- Same limitation for the per-chip Spearman between omission share and false-positive rate
+  (0.36, p < 1e-6, n = 174). Commission vs miss rate: 0.13, p = 0.10, too few blobs.
+- What the check does show: models trained on these labels still call these pixels water,
+  which is consistent with label error. The direct evidence is visual (overlays in
+  `outputs/label_qa/figs/`).
+- Correction (same day): the first version of this entry said the check "supports" label
+  error; it compared against all other dry pixels (mostly desert, MNDWI ≈ −0.16), which is
+  not a fair baseline.
 
 **Limitation.** The rule is conservative and misses turbid/shallow water. Of the 10
 Finding-3 chips it flags 3 (2 doubtful, 1 minor). The clearest missed case
@@ -229,7 +240,11 @@ the low percentiles of B11/B12 are lower in Peru (p5 74 / 43 DN) than in Sen1Flo
   Finding 2: the Sen1Floods11-only models have false-positive rates of 5–7 % on
   Peru dry pixels with NDWI 0–0.1, and low-contrast water is the weakest stratum for every
   model.
-- Water share of labelled pixels: Sen1Floods11 train 9.5 %, peru-train 4.6 %, peru-dev 12.4 %.
+- Water share of labelled pixels: Sen1Floods11 train 9.5 %, peru-train 4.6 %, peru-dev 12.4 %
+  (Sen1Floods11 `valid`: 11.0 %).
+- peru-dev's dry land is much brighter than peru-train's (SMD +1.4–1.7 vs +0.8–0.9 for the
+  visible bands and B12), because dev blocks were drawn only from blocks with water, in the
+  desert coastal plain. Dev is not a random sample of the Peru background.
 
 **Caveats.**
 - The pixel sample is not stratified by event or chip, so large chips dominate.
@@ -261,8 +276,11 @@ model normalization; the other cells come from existing logs. Script
 - In-domain cells are optimistic, because each checkpoint was selected on that split. This
   slightly inflates the measured gaps.
 - Sen1Floods11-only rows have one seed.
-- Cross-column comparisons are not meaningful: label sources, water share (9.5 % vs 12.4 %)
-  and difficulty differ.
+- Cross-column comparisons are not meaningful: label sources, water share (`valid` 11.0 %,
+  `peru-dev` 12.4 %) and difficulty differ. Gaps in different columns are measured from
+  different in-domain baselines (0.82–0.83 vs 0.92–0.94), so "Peru → Sen1Floods11 costs
+  more" is a hedged statement; as a share of the in-domain IoU the gaps are 5–14 % on
+  `peru-dev` and 16–22 % on `valid`.
 
 **Thesis use.** Chapter V (generalization RQ); paper 1 main table (regime × set), with the
 test-set version after section 7.
