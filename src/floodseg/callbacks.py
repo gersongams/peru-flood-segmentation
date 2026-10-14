@@ -4,6 +4,23 @@ import lightning.pytorch as pl
 import torch
 
 
+class InitFromCheckpoint(pl.Callback):
+    """Start training from another run's weights (e.g. Sen1Floods11 -> Peru).
+
+    Loads only the model state dict, strictly; optimizer, scheduler and epoch
+    start fresh. Unlike `--ckpt_path`, which resumes the old run.
+    """
+
+    def __init__(self, path: str) -> None:
+        self.path = path
+
+    def setup(self, trainer, pl_module, stage: str) -> None:
+        if stage != "fit" or trainer.ckpt_path:  # a resume restores its own weights
+            return
+        state = torch.load(self.path, map_location="cpu", weights_only=False)["state_dict"]
+        pl_module.load_state_dict(state, strict=True)
+
+
 class MPSMemoryGuard(pl.Callback):
     """Abort when MPS driver memory exceeds the recommended maximum.
 

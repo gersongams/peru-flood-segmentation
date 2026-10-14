@@ -2,6 +2,8 @@
 # Run ON the pod with setsid/nohup. Trains the Peru-only runs one after another.
 #   bash scripts/cloud/run_queue.sh "unet terramind_v1_base prithvi_eo_v2_300" "0 1 2"
 #   bash scripts/cloud/run_queue.sh unet 0 --trainer.max_epochs=2      # speed test
+#   INIT_DIR=/workspace/init_s1f11 bash scripts/cloud/run_queue.sh "..." "0 1 2"
+#     fine-tunes from $INIT_DIR/<model>/best-*.ckpt (Sen1Floods11 -> Peru) into runs_cloud_s1f11_ft
 # Runs write to the container disk ($LOCAL): checkpoint writes to the /workspace
 # volume hung once its quota filled. Each finished run, and
 # the queue log, is copied to $KEEP on the volume. A run with a last.ckpt in
@@ -10,7 +12,9 @@ set -uo pipefail
 MODELS=${1:?models}; SEEDS=${2:?seeds}; shift 2
 cd /workspace/peru-flood-segmentation
 export PATH="$HOME/.local/bin:$PATH" UV_CACHE_DIR=/root/.cache/uv UV_PROJECT_ENVIRONMENT=/root/venv HF_HOME=/workspace/.cache/huggingface
-name=runs_cloud; [ $# -gt 0 ] && name=runs_cloud_test  # overrides = test run, kept apart
+INIT_DIR=${INIT_DIR:-}
+name=runs_cloud; [ -n "$INIT_DIR" ] && name=runs_cloud_s1f11_ft
+[ $# -gt 0 ] && name=${name}_test  # overrides = test run, kept apart
 LOCAL=/root/outputs/$name KEEP=/workspace/outputs/$name
 mkdir -p "$LOCAL/logs" "$KEEP"
 
@@ -20,9 +24,14 @@ for s in $SEEDS; do
     [ -f "$KEEP/$run/done" ] && { echo "$m seed$s already done"; continue; }
     last=$LOCAL/$run/checkpoints/last.ckpt
     resume=(); [ -f "$last" ] && resume=(--ckpt_path "$last")
+    init=()
+    if [ -n "$INIT_DIR" ]; then
+      ckpt=$(ls "$INIT_DIR/$m"/best-*.ckpt) || { echo "$m: no init checkpoint"; continue; }
+      init=(--trainer.callbacks+=floodseg.callbacks.InitFromCheckpoint --trainer.callbacks.path="$ckpt")
+    fi
     uv run terratorch fit -c configs/$m.yaml -c configs/datasets/peru_unosat.yaml -c configs/trainer/cuda.yaml \
       --trainer.logger.init_args.save_dir "$LOCAL/$m" --trainer.logger.init_args.version "seed$s" \
-      --seed_everything "$s" "${resume[@]}" "$@" >> "$LOCAL/logs/${m}_seed$s.log" 2>&1
+      --seed_everything "$s" "${resume[@]}" "${init[@]}" "$@" >> "$LOCAL/logs/${m}_seed$s.log" 2>&1
     rc=$?
     echo "$m seed$s exit=$rc $(date -Is)" | tee -a "$LOCAL/queue.txt"
     [ $rc -eq 0 ] && touch "$LOCAL/$run/done"
