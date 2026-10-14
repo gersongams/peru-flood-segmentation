@@ -122,3 +122,35 @@ Logs: `outputs/eval_s1f11_<m>.log`.
 
 Single seed only. Without Peru data Prithvi transfers best and TerraMind worst; with
 Peru training the order flips and U-Net leads.
+
+## 2026-10-14 — Peru dataset frozen (v1)
+
+`scripts/freeze_peru.py` (commit `f5319e5`): all 2,990 chip files match their manifest
+SHA-256; manifests and split lists pinned in `docs/peru_v1_checksums.txt`. Data card:
+`docs/peru_data_card.md`.
+
+## 2026-10-14 — Sen1Floods11 → Peru fine-tuning, 3 seeds (RunPod RTX 4090, 16-mixed)
+
+Same Peru-only configs, but the weights start from the seed-0 Sen1Floods11 best
+checkpoints above (`floodseg.callbacks.InitFromCheckpoint`, model weights only;
+optimizer and epochs start fresh). Commit `0edf781`. Local check first (Mac, 1 epoch,
+U-Net): dev water IoU 0.879 after one epoch, so the weights load.
+Pod `827muf75pdgnme` (RTX 4090, Secure Cloud, EUR-IS-2, $0.89/h; the first pod could
+not restart because its host had no free GPU). Queue:
+`INIT_DIR=/workspace/init_s1f11 scripts/cloud/run_queue.sh ... "0 1 2"`, outputs
+`runs_cloud_s1f11_ft`. First epoch of U-Net seed 0: dev water IoU 0.910 (from scratch on
+the 4090: 0.556). Results: see the entry below when finished.
+
+## 2026-10-14 — Failure analysis on `peru-dev` (phase C)
+
+- Strata (task 6.1): `scripts/build_strata.py dev` → `data/peru/strata/unosat2023/`
+  (ESA WorldCover 2021 v200 tiles S06W081, S09W081; Copernicus DEM GLO-30 tiles
+  S06/S07 × W080/W081, from the public AWS buckets, in `data/aux/`; UNOSAT existing
+  water; thick-cloud distance; NDWI).
+- Predictions: `terratorch validate ... --trainer.callbacks+=floodseg.callbacks.SaveValPredictions`
+  (commit `7662657`) for the 9 Peru-only cloud checkpoints and the 3 Sen1Floods11-only
+  checkpoints, on the Mac (MPS, fp32) → `outputs/preds_dev/`. The re-evaluated dev
+  water IoU of every cloud run matches its training log to 4 decimals (e.g. U-Net seed 0
+  0.9397, TerraMind seed 0 0.9275, Prithvi seed 0 0.9212).
+- Analysis: `scripts/analyze_dev.py`, `scripts/report_dev.py`, `scripts/plot_dev_chips.py`
+  → `outputs/analysis_dev/`. Write-up with all tables: `docs/failure_analysis_dev.md`.
