@@ -22,7 +22,12 @@ class InitFromCheckpoint(pl.Callback):
 
 
 class SaveValPredictions(pl.Callback):
-    """During `validate`, save each chip's water probability (float16 .npy).
+    """During `validate`, save each chip's water logit z = logit_water − logit_other
+    (float32 .npy); the water probability is sigmoid(z).
+
+    Logits, not probabilities: float16 probabilities saturate (only 0.99951 and 1.0
+    lie in [0.99951, 1]) while near 0 they keep resolving down to ~1e-7, so
+    confidence rankings of confident pixels depended on the predicted class.
 
     Re-runs the forward pass on the batch the task just validated (already
     normalized), so the saved maps match the logged validation metrics.
@@ -39,11 +44,12 @@ class SaveValPredictions(pl.Callback):
         with torch.no_grad():
             out = pl_module.handle_full_or_tiled_inference(
                 batch["image"], pl_module.tiled_inference_on_validation, **rest).output
-        prob = torch.softmax(out.float(), dim=1)[:, 1].cpu().numpy().astype(np.float16)
+        out = out.float()
+        z = (out[:, 1] - out[:, 0]).cpu().numpy().astype(np.float32)
         out_dir = Path(self.out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
-        for name, p in zip(batch["filename"], prob):
-            np.save(out_dir / f"{Path(name).stem}.npy", p)
+        for name, zi in zip(batch["filename"], z):
+            np.save(out_dir / f"{Path(name).stem}.npy", zi)
 
 
 class MPSMemoryGuard(pl.Callback):
