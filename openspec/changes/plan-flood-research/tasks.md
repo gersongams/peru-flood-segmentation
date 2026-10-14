@@ -37,8 +37,8 @@
 
 ## 4b. Training on Peru
 
-- [ ] 4b.1 Peru-only training config per model (pretrained backbone → `peru-train`, early stopping on `peru-dev`); local demo first
-- [ ] 4b.2 Run ≥3 seeds per model
+- [x] 4b.1 Peru-only training config per model (pretrained backbone → `peru-train`, early stopping on `peru-dev`); local demo first
+- [x] 4b.2 Run ≥3 seeds per model
 - [ ] 4b.3 Comparison rows: Sen1Floods11-only models and Sen1Floods11 → `peru-train` fine-tuning, evaluated on `peru-dev`
 
 ## 5. Uncertainty
