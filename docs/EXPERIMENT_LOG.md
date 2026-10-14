@@ -139,7 +139,21 @@ Pod `827muf75pdgnme` (RTX 4090, Secure Cloud, EUR-IS-2, $0.89/h; the first pod c
 not restart because its host had no free GPU). Queue:
 `INIT_DIR=/workspace/init_s1f11 scripts/cloud/run_queue.sh ... "0 1 2"`, outputs
 `runs_cloud_s1f11_ft`. First epoch of U-Net seed 0: dev water IoU 0.910 (from scratch on
-the 4090: 0.556). Results: see the entry below when finished.
+the 4090: 0.556).
+
+Results (run dirs `outputs/runs_cloud_s1f11_ft/<model>/lightning_logs/seed<s>`, per-run
+table `outputs/runs_cloud_s1f11_ft/summary_peru_dev.csv`; all `dirty: false`, commit
+`0edf781`; all 9 runs `exit=0` and marked done; copy verified file by file, 82 files):
+
+| Model | seed 0 | seed 1 | seed 2 | Dev water IoU mean ± std | Dev mIoU mean ± std | Best epochs |
+|---|---|---|---|---|---|---|
+| U-Net | 0.9400 | 0.9364 | 0.9385 | 0.9383 ± 0.0018 | 0.9647 ± 0.0011 | 52 / 28 / 31 |
+| TerraMind v1-B | 0.9279 | 0.9291 | 0.9275 | 0.9282 ± 0.0009 | 0.9588 ± 0.0005 | 23 / 22 / 15 |
+| Prithvi-EO-2.0 300M | 0.9229 | 0.9240 | 0.9240 | 0.9236 ± 0.0006 | 0.9562 ± 0.0004 | 38 / 58 / 37 |
+
+All three seeds start from the same seed-0 Sen1Floods11 checkpoint, so the std covers
+only the Peru stage. Pod uptime 19,926 s (RunPod `pod-action stop` read) × $0.89/h ≈
+$4.9; pod stopped 2026-10-14 after the download was verified.
 
 ## 2026-10-14 — Failure analysis on `peru-dev` (phase C)
 
@@ -154,3 +168,8 @@ the 4090: 0.556). Results: see the entry below when finished.
   0.9397, TerraMind seed 0 0.9275, Prithvi seed 0 0.9212).
 - Analysis: `scripts/analyze_dev.py`, `scripts/report_dev.py`, `scripts/plot_dev_chips.py`
   → `outputs/analysis_dev/`. Write-up with all tables: `docs/failure_analysis_dev.md`.
+- Follow-up checks (same day): NDWI binned over all labelled pixels (precision/recall
+  in the low-contrast band), ECE/AUROC restricted to pixels within 10 px of a water
+  edge, patch size checked in code (16 px for both foundation models). Fine-tuned
+  models' predictions added (`outputs/preds_dev/s1f11_ft/`; re-evaluated dev IoU matches
+  each training log to 4 decimals). Results in `docs/failure_analysis_dev.md`.

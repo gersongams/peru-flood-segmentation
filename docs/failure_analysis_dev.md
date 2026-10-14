@@ -7,8 +7,9 @@ produced by `scripts/analyze_dev.py` from the per-chip probabilities saved by
 `scripts/report_dev.py` (full output: `outputs/analysis_dev/tables.md`). Runs and
 commits are listed in `docs/EXPERIMENT_LOG.md`.
 
-Models: Peru-only (3 seeds each, RunPod) and Sen1Floods11-only (seed 0, Mac); the
-Sen1Floods11 → Peru fine-tuning row is added when its runs finish. Values are
+Models: Peru-only (3 seeds each, RunPod), Sen1Floods11 → Peru fine-tuning (3 seeds
+each, RunPod; all three seeds start from the same seed-0 Sen1Floods11 checkpoint, so
+their spread reflects only the Peru stage) and Sen1Floods11-only (seed 0, Mac). Values are
 mean ± std over seeds; a single number means one seed. Prediction = probability > 0.5.
 Only labelled pixels count (label ≠ −1).
 
@@ -31,6 +32,30 @@ ECE: 15 equal-width confidence bins; AUROC: how well the uncertainty
 labelled pixel. Last two: all labelled pixels within 10 px of a water edge, because
 85 % of dev pixels are WorldCover "bare/sparse" land, mostly easy, confidently dry
 desert that dilutes the overall ECE.
+
+## Sen1Floods11 → Peru fine-tuning (task 4b.3)
+
+| | U-Net | TerraMind | Prithvi |
+|---|---|---|---|
+| Peru-only, dev water IoU | 0.941 ± 0.002 | 0.927 ± 0.002 | 0.922 ± 0.001 |
+| Sen1Floods11 → Peru, dev water IoU | 0.938 ± 0.002 | 0.928 ± 0.001 | 0.924 ± 0.001 |
+| Peru-only, best epoch (3 seeds) | 51 / 98 / 63 | 92 / 93 / 88 | 48 / 51 / 44 |
+| Sen1Floods11 → Peru, best epoch | 52 / 28 / 31 | 23 / 22 / 15 | 38 / 58 / 37 |
+| Edge band (≤ 1 px) IoU, Peru-only | 0.761 ± 0.007 | 0.695 ± 0.007 | 0.661 ± 0.008 |
+| Edge band (≤ 1 px) IoU, Sen1Floods11 → Peru | 0.742 ± 0.015 | 0.683 ± 0.006 | 0.682 ± 0.004 |
+| IoU at −0.1 ≤ NDWI < 0.1, Peru-only | 0.531 ± 0.007 | 0.474 ± 0.016 | 0.452 ± 0.006 |
+| IoU at −0.1 ≤ NDWI < 0.1, Sen1Floods11 → Peru | 0.521 ± 0.007 | 0.476 ± 0.006 | 0.455 ± 0.004 |
+| ECE ≤ 10 px from water, Peru-only (%) | 3.14 ± 0.10 | 3.51 ± 0.24 | 4.38 ± 0.11 |
+| ECE ≤ 10 px from water, Sen1Floods11 → Peru (%) | 3.32 ± 0.13 | 3.19 ± 0.12 | 4.29 ± 0.05 |
+
+Best epochs from the runs' `metrics.csv` (`outputs/runs_cloud*/…/summary_peru_dev.csv`).
+Starting from Sen1Floods11 weights changes dev IoU by at most 0.4 points (U-Net −0.3,
+TerraMind +0.1, Prithvi +0.2), changes no failure stratum materially, and makes the
+foundation models converge sooner (TerraMind best at epoch 15–23 instead of 88–93,
+which also removes the 100-epoch-cap concern for that regime: fine-tuned TerraMind
+reaches the same IoU well before the cap). With Peru labels available, Sen1Floods11
+pretraining neither helps nor hurts; the ranking U-Net > TerraMind > Prithvi holds in
+both regimes.
 
 ## Finding 1: most errors are at water edges, and the foundation models are worse there
 
@@ -146,13 +171,18 @@ Peru-only training; (3) label noise in UNOSAT.
 1. **Full-resolution detail for the foundation models**: add a light convolutional
    branch / skip connections from the input image to the decoder (hybrid FM + CNN),
    or a boundary-aware loss. Target: edge-band IoU and < 1 ha recall.
-2. **Better use of broader training data**: Sen1Floods11 → Peru fine-tuning (running
-   now) or mixed training; judge it on band IoU (not recall) for NDWI −0.1 to 0.1 and on
-   the edge band, since Sen1Floods11-only models gain recall there only by losing
-   precision.
+2. ~~Broader training data~~: Sen1Floods11 → Peru fine-tuning was tried and changes
+   neither overall IoU (≤ 0.4 points) nor the low-contrast-water or edge strata; mixed
+   training is unlikely to be worth a phase-D slot.
 3. **Noise-robust training on UNOSAT labels**: ignore a 1-px band at label edges in the
    loss, or a noise-robust loss; report a boundary-tolerant metric next to IoU.
 4. **Sentinel-1 for TerraMind** (needs the advisor's OK): radar sees through cloud and
    separates water from wet soil; useful for the cloud-adjacent and turbid cases.
 
-To decide after the Sen1Floods11 → Peru results: which of 1–3 to pursue first.
+Recommendation for phase D: start with (1) full-resolution detail for the foundation
+models, since the edge band is where most errors are and where they lose to the
+U-Net; pair it with (3), because part of the edge error is label imprecision and a
+boundary-tolerant metric is needed to tell the two apart. (4) depends on the advisor.
+Open question before committing: rule out TerraMind under-training in the Peru-only
+regime (one run with a higher epoch cap), although the fine-tuned TerraMind, which
+converged early, shows the same edge gap.
