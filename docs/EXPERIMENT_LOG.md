@@ -249,3 +249,15 @@ in total. Method and decisions: `docs/METHODS_NOTES.md`.
   Threshold revision (±0.2 → 0.5 / −0.1) recorded in `docs/METHODS_NOTES.md`.
 - `scripts/band_stats.py` → `outputs/band_stats/`.
 - Write-up: `docs/domain_shift_dev.md`. CPU parts about 2 min each on the Mac.
+
+## 2026-10-14 — Edge-tolerant IoU, index baselines, UNOSAT provenance (no training)
+
+CPU evaluations on existing outputs, Mac; no test split used.
+- `scripts/edge_tolerance.py` (commit `266281b`) on `outputs/logits_dev/{peru,s1f11_ft}` →
+  `outputs/analysis_dev/edge_tolerance.{md,csv}`.
+- `scripts/index_baseline.py` (commit `822a9c4`) on `peru-dev` and Sen1Floods11 `valid` →
+  `outputs/analysis_dev/index_baseline.{md,csv}` (MNDWI/NDWI threshold sweep; Otsu on unlabelled
+  `peru-train`: t = 0.0391, dev IoU 0.5718).
+- `scripts/unosat_provenance.py` (commit `5d769fe`) on `data/unosat2023/raw/` →
+  `outputs/label_qa/unosat_geometry.csv`.
+Results and interpretation: `docs/METHODS_NOTES.md` (entries of 2026-10-14).

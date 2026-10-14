@@ -92,8 +92,9 @@ alongside.
   flood polygons were vectorized from a **20 m raster** on the Sentinel-2 grid (87–91 % of
   vertices on a 20 m grid, median edge 20 m; cloud layers from a 10 m raster; analysis extent
   hand-drawn), `scripts/unosat_provenance.py`. Labels are therefore 20 m products rasterized
-  to 10 m: water edges are uncertain by about one 10 m pixel, and the labels are likely
-  SWIR-index-based (algorithm not published).
+  to 10 m, so water edges are uncertain by about one 10 m pixel. The extraction method is
+  unpublished; the 20 m grid is consistent with a SWIR index (B11/B12 are 20 m), but red-edge
+  bands and Sen2Cor's SCL are also 20 m, so this is not proven.
 - Possible label errors: 32 UNOSAT chips (2.5 %) have ≥ 5 ha of clear label/MNDWI
   disagreement and 56 more have 1–5 ha, almost all pixels labelled dry that look like water.
   About half of that area is next to thick cloud (possible shadow, haze or surf); without

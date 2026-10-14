@@ -15,7 +15,7 @@
 
 ## 3. Label-free baselines and input alignment
 
-- [ ] 3.1 MNDWI > 0 and Otsu-on-pool baselines on `peru-dev` (extend `scripts/index_baseline.py` with tolerant IoU, precision, recall)
+- [ ] 3.1 MNDWI > 0 and Otsu-on-pool baselines (label-free) plus the dev-tuned MNDWI threshold (oracle row) on `peru-dev`; extend `scripts/index_baseline.py` with tolerant IoU, precision, recall
 - [ ] 3.2 Source-only rows: the 3-seed source models of 1.4 evaluated on `peru-dev` (plain and tolerant IoU, precision, recall)
 - [ ] 3.3 AdaBN for the U-Net (BN statistics re-estimated on the pool); `peru-dev` scores
 - [ ] 3.4 Per-band histogram matching and FDA transforms; source training with each, U-Net + TerraMind, seed 0 on dev; 3 seeds for the better one
@@ -24,13 +24,14 @@
 
 - [ ] 4.1 Adaptation LightningModule: EMA teacher, source + target batches, per-class top-q % pseudo-labels, CE on pseudo-labels, Dice on source, warm-up
 - [ ] 4.2 Binary DACS mixing (paste source water onto target chips) and student-only colour jitter / blur
-- [ ] 4.3 Water-fraction collapse warning; run record with source checkpoint, budget, wall clock, peak memory
+- [ ] 4.3 Water-fraction collapse warning (on the unlabelled pool); checkpoint every 500 iterations; run record with source checkpoint, budget, wall clock, peak memory; no Peru label read in the run
 - [ ] 4.4 Local MPS demo (U-Net, few iterations) to check that losses, mixing and EMA work; unit test for the pseudo-label thresholds
 - [ ] 4.5 Cloud demo: memory and speed for TerraMind (student + teacher + masked view) at batch 8
-- [ ] 4.6 Tuning on `peru-dev` (≤ 6 configs per backbone: q ∈ {20, 50, 80} × EMA α ∈ {0.99, 0.999}), seed 0
-- [ ] 4.7 Masked-consistency variant (32 px patches, ratio 0.7) on the best config
-- [ ] 4.8 3 seeds of the chosen self-training and masked variants, U-Net + TerraMind
-- [ ] 4.9 Optional: index-aware pseudo-labels (teacher confidence AND MNDWI vs pool-Otsu)
+- [ ] 4.6 Default-config runs (pre-registered in design.md), seed 0, U-Net + TerraMind; score saved checkpoints on `peru-dev` offline
+- [ ] 4.7 Oracle-selection variant (q ∈ {20, 50, 80} × α ∈ {0.99, 0.999}, best dev checkpoint), reported only as the secondary row
+- [ ] 4.8 Masked-consistency variant (64 px patches, ratio 0.7) with the default config
+- [ ] 4.9 3 seeds of the default self-training and masked variants (and the oracle variant), U-Net + TerraMind
+- [ ] 4.10 Optional: index-aware pseudo-labels (teacher confidence AND MNDWI vs pool-Otsu)
 
 ## 5. Analysis on peru-dev
 

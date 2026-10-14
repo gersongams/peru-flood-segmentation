@@ -5,10 +5,18 @@ bound, and finally scored, so that phase-D claims are fair and pre-registered.
 
 ## ADDED Requirements
 
-### Requirement: Selection on peru-dev only
-Adaptation hyperparameters, iteration budgets and checkpoint choice SHALL be selected using
-`peru-dev` only. `peru-test` and `peru-2017-test` SHALL be evaluated once per frozen
-configuration, after all phase-D choices are fixed.
+### Requirement: Label-free headline, oracle selection as a secondary row
+The headline result of each adaptation method SHALL use hyperparameters and an iteration
+budget fixed in the design before any adaptation run, and the final checkpoint, so that no
+Peru label influences it. Runs tuned or checkpoint-selected on `peru-dev` labels SHALL be
+reported only as a secondary row named "oracle selection", next to the MNDWI threshold tuned
+on `peru-dev`, which uses the same label information. `peru-dev` SHALL be scored offline
+from saved checkpoints, never inside an adaptation run. `peru-test` and `peru-2017-test`
+SHALL be evaluated once per frozen configuration, after all phase-D choices are fixed.
+
+#### Scenario: Headline row
+- **WHEN** the phase-D results table is generated
+- **THEN** the headline row of each method comes from the pre-registered defaults and the final checkpoint, and any dev-selected run appears only in the "oracle selection" row
 
 #### Scenario: Premature test evaluation
 - **WHEN** a test evaluation is requested for an adaptation configuration not marked frozen
@@ -18,7 +26,8 @@ configuration, after all phase-D choices are fixed.
 For each backbone, results SHALL report the source-only model, each adaptation method and
 baseline, and the Peru-trained model (upper bound), with ≥ 3 seeds (mean ± std), plus the
 share of the source→upper-bound gap closed by each method: (IoU_method − IoU_source) /
-(IoU_upper − IoU_source).
+(IoU_upper − IoU_source). Label-free index baselines (MNDWI > 0, Otsu on the target pool) and
+the label-using MNDWI threshold tuned on `peru-dev` SHALL appear in the same table.
 
 #### Scenario: Gap-closed table
 - **WHEN** phase-D tables are generated

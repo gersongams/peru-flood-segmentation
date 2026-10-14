@@ -12,8 +12,8 @@ See proposal.md (Why). Current state:
 
 Facts that shape the design (all in `docs/`):
 - The shift is the background: bright desert with NDWI near 0.
-- UNOSAT labels are an automated 20 m product (probably SWIR-index based) with analyst
-  review.
+- UNOSAT labels are derived from an automated 20 m Sentinel-2 product (method unpublished;
+  consistent with a SWIR index) with analyst review.
 - A label-free MNDWI threshold reaches 0.49–0.57 IoU on dev; one tuned on dev reaches 0.92.
 - TerraMind and Prithvi encoders use LayerNorm.
 
@@ -52,12 +52,14 @@ Facts that shape the design (all in `docs/`):
    - Pseudo-label loss: pixel cross-entropy on confident pixels only.
    - *Why CE for pseudo-labels:* Dice over a mostly ignored mask is unstable, and CE is what
      DACS/DAFormer/MIC use.
-   - Learning rate: 0.1× the source LR with linear warm-up. DAFormer Table 4 (per the agent
-     notes) shows warm-up matters for transformers.
+   - Learning rate: 0.1× the source LR with linear warm-up over the first 10 % of iterations.
+     DAFormer Table 4 (per the agent notes) shows warm-up matters for transformers.
+   - EMA α = 0.99 (DAFormer/DACS default, per the agent notes).
 
 4. **Per-class confidence thresholds (CBST-style) instead of one global cut.**
    - Within each target batch, keep the top q % most confident teacher pixels of each
-     predicted class, q ∈ {20, 50, 80}, selected on dev.
+     predicted class. q grows linearly from 20 % to 50 % over training (CBST's schedule
+     starts at 20 % and grows, per the agent notes).
    - *Why:* water is rare (4.6 % of labelled train pixels), so one global threshold lets the
      dry class dominate, and binary self-training can collapse to "all dry".
    - *Alternative:* DAFormer's τ = 0.968 plus an image-level weight. Rejected, because with
@@ -69,11 +71,11 @@ Facts that shape the design (all in `docs/`):
    - *Why:* it puts real water next to desert backgrounds, which is the failure mode.
 
 6. **Masked consistency at image level for all backbones.**
-   - Mask random 32 × 32 px patches (mask ratio 0.7) of the target image for the student.
+   - Mask random 64 × 64 px patches (mask ratio 0.7) of the target image for the student
+     (MIC Table 8 best setting, b = 64, r = 0.7, per the agent notes).
    - Target: the teacher's pseudo-label of the unmasked image.
    - *Why image-level, not token-level:* it is the same for the CNN and the ViTs, matches MIC's
-     original formulation, and 32 px is a multiple of the 16 px ViT patch. Ratio and patch size
-     follow MIC's defaults and are tuned only if time allows.
+     original formulation, and 64 px is a multiple of the 16 px ViT patch.
 
 7. **Input-alignment baselines are run as source training with transformed inputs.**
    - Per-band histogram matching of each source chip to the target-pool CDF.
@@ -87,12 +89,18 @@ Facts that shape the design (all in `docs/`):
    teacher is confident and MNDWI below it. *Why:* the labels are likely index-based, so this
    tests whether a physically motivated prior helps. It runs only after methods 3–6 work.
 
-9. **Budgets.**
-   - Adaptation runs: a fixed 4,000 iterations at batch 8 (TerraMind) / 16 (U-Net), each
-     batch half source, half target, on a 4090. Dev is evaluated every 500 iterations, and
-     the checkpoint with the best dev IoU is kept.
-   - The tuning grid is small (≤ 6 configurations per backbone), to limit overfitting to dev.
-   - Final runs: 3 seeds of the chosen configuration.
+9. **Pre-registered defaults and selection without Peru labels.**
+   - Every adaptation run uses the defaults above (α = 0.99, q 20 → 50 %, LR 0.1× source with
+     10 % warm-up, 64 px / 0.7 masking) and a fixed 4,000 iterations at batch 8 (TerraMind) /
+     16 (U-Net), each batch half source, half target, on a 4090. **The final checkpoint is the
+     headline result.** No Peru label is read during the run.
+   - *Why:* selecting on dev labels would leak Peru label information into a "no-label"
+     method. A single MNDWI threshold tuned on dev already reaches 0.924 IoU, so dev labels are
+     worth a lot.
+   - Checkpoints are saved every 500 iterations and scored on `peru-dev` **offline** afterwards.
+     A small dev-tuned variant (q ∈ {20, 50, 80} × α ∈ {0.99, 0.999}, best dev checkpoint) is
+     reported only as an "oracle selection" row, next to the dev-tuned MNDWI threshold.
+   - Final runs: 3 seeds of the default configuration (and of the oracle variant).
 
 10. **Evaluation reuses the frozen-config gate of `plan-flood-research` section 7.** Phase-D
     configs are added to `configs/frozen.yaml`. Tables come from scripts that read run outputs
@@ -103,10 +111,11 @@ Facts that shape the design (all in `docs/`):
 - **Collapse to all-dry under self-training.** Mitigations: per-class thresholds, the source
   loss in every step, a water-fraction floor warning, and a CoTTA-style stochastic restore
   only if it still happens.
-- **Overfitting `peru-dev` through tuning.** Mitigations: a small grid, every configuration
-  tried recorded in EXPERIMENT_LOG, and a final score on `peru-test` plus a cross-event score
-  on `peru-2017-test`, both untouched.
-- **Index-label circularity.** Evaluation labels are probably SWIR-index based, so
+- **Defaults may be far from optimal for binary water.** The headline row may then
+  under-sell the method; the oracle-selection row shows the ceiling. Both are reported.
+  Every configuration tried is recorded in EXPERIMENT_LOG; `peru-test` and `peru-2017-test`
+  stay untouched until the end.
+- **Index-label circularity.** Evaluation labels may be SWIR-index based, so
   index-aware pseudo-labels may look good partly by construction. The Otsu-MNDWI baseline is
   reported next to them, and the 2017 EMS labels (a different provider) are the cross-check.
 - **Memory.** Student + EMA teacher + masked view for TerraMind at batch 8 on 24 GB is not

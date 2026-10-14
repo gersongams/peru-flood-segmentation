@@ -423,14 +423,14 @@ foundation models. Were the UNOSAT polygons produced by an index threshold?
 3. The ArcGIS geoprocessing history in the `.shp.xml` files logs only attribute edits
    (AddField / CalculateField), not the extraction step.
 
-**Conclusion.** The labels come from an automated extraction at 20 m, the resolution of the
-Sentinel-2 SWIR bands (B11/B12) that MNDWI uses, plus analyst review. The exact algorithm is
-not published, so "MNDWI-based" stays an inference.
+**Conclusion.** The labels come from an automated extraction on a 20 m Sentinel-2 grid, plus
+analyst review. The method is unpublished. 20 m fits the SWIR bands (B11/B12) that MNDWI
+uses, but red-edge bands and Sen2Cor's SCL (with a water class) are also 20 m, so
+"index-based" is consistent with the evidence, not proven.
 
 **Consequences.**
-- `peru-dev` / `peru-test` IoU partly measures agreement with an automated, probably
-  SWIR-index-based product. This explains the strong tuned-MNDWI baseline and must be stated
-  in the evaluation chapter.
+- `peru-dev` / `peru-test` IoU partly measures agreement with an automated 20 m product. That
+  fits the strong tuned-MNDWI baseline, and it must be stated in the evaluation chapter.
 - Label edges are 20 m steps rasterized to 10 m, so the 1-px edge band is inherently
   uncertain. This supports reporting the boundary-tolerant IoU (edge-tolerance entry).
 - For phase D, index-based pseudo-labels are close to how the evaluation labels were made.
@@ -456,7 +456,12 @@ interpretation), Chapter VI (limitations).
   for the CNN and the ViTs, and 32 px is a multiple of the 16 px ViT patch.
 - **Baselines on the same backbones:** MNDWI > 0, Otsu-MNDWI on the pool, histogram matching,
   FDA, AdaBN (U-Net only, because the ViT encoders use LayerNorm).
-- **Protocol:** selection on `peru-dev` with a grid of ≤ 6 configurations per backbone;
+- **Protocol: the headline uses no Peru labels at all.** Hyperparameters are pre-registered
+  from the literature (EMA α = 0.99, class-wise share q 20 → 50 %, LR 0.1× source with 10 %
+  warm-up, 64 px / 0.7 masking, 4,000 iterations, final checkpoint). Selecting on dev labels
+  would leak Peru label information into a "no-label" method: one MNDWI threshold tuned on dev
+  already reaches 0.924. Dev-tuned runs are a secondary "oracle selection" row next to the
+  dev-tuned MNDWI threshold. Dev is scored offline from saved checkpoints. Also:
   gap-closed reporting; plain and tolerant IoU, precision, recall; final `peru-test` (with the
   pre-registered sensitivity row) and `peru-2017-test` once.
 - **Rejected:** adversarial alignment (superseded), per-event test-time adaptation on test

@@ -84,10 +84,10 @@ the threshold is badly placed (hazy desert top-of-atmosphere pixels have MNDWI >
 3. Answered (2026-10-14, `scripts/unosat_provenance.py`, `docs/METHODS_NOTES.md`): UNOSAT's
    water and flood layers were extracted automatically from a **20 m raster** aligned to the
    Sentinel-2 grid and then reviewed by an analyst (UNOSAT methodology note on HDX; 87–91 %
-   of polygon vertices on a 20 m grid). The exact algorithm is not published; 20 m is the
-   resolution of the SWIR bands that MNDWI uses. So `peru-dev` IoU partly measures agreement
-   with an automated, probably SWIR-index-based product, which explains why a tuned MNDWI
-   threshold matches the deep models.
+   of polygon vertices on a 20 m grid). The method is unpublished; a 20 m Sentinel-2 product is
+   consistent with a SWIR index such as MNDWI (also with red-edge bands or Sen2Cor's SCL, all
+   20 m). So `peru-dev` IoU partly measures agreement with an automated product, which fits
+   (without proving) the strong tuned-MNDWI baseline.
 
 ## 4. Protocol to copy (from CIM-TTDA, Portalés-Julià 2025, LoveDA, Patel 2021)
 
