@@ -9,6 +9,7 @@ Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson A
 - `docs/PLAN.md`: research questions, data, models, protocol, phases, open decisions.
 - `docs/REFERENCES.md`: what to cite and where the literature notes live.
 - `docs/feasibility.md`: measured MPS training speed and memory; known MPS pitfalls.
+- `docs/NEXT_STEPS.md`: handoff — what to do next, in order.
 - `docs/EXPERIMENT_LOG.md`: every run and evaluation with commit, run dir and source file. Add an entry for each new run.
 
 ## Environment
