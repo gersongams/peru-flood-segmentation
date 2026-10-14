@@ -1,0 +1,8 @@
+# Peru dataset v1 (scripts/freeze_peru.py). Chip files are pinned by the
+# s2_sha256/label_sha256 columns of the manifests below; 2990 files verified.
+a0e7fcadbc145c9d20ebd3cf8bebb0db6f1241e81939e1a88bc179264d655b0a  data/peru/unosat2023/manifest.csv
+3b03a8eb6b4c4cc5f3daccd88d33b71f8ee81df7722883d0c73d355f763e1944  data/peru/unosat2023/splits/train.txt
+d7152557eee3d6a692732deb6f29b6fae84f768205f142e2d037a36247013bac  data/peru/unosat2023/splits/dev.txt
+dfd7482521f024c3f9c110a6200ff8c0a007639da7010621997a3917abbaf25a  data/peru/unosat2023/splits/test.txt
+1525e5a1b9b59ca99b13f1dcd74a40d1bf77a7dd1df72535a40d65ef62203af7  data/peru/unosat2023/splits/split.csv
+cd93dde5e912a70ba55109e7acff588f226aadef8fff920705a15fbade7a2855  data/peru/emsr2017/manifest.csv

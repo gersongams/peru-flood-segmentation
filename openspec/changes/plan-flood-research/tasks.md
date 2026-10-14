@@ -33,7 +33,7 @@
 - [ ] 4.4 Overlays and label-vs-water-index agreement per chip; list the doubtful chips
 - [x] 4.5 Build `peru-2017-test` from EMSR199 + S2 2017-04-07 with disagreement pixels set to −1
 - [x] 4.6 Spatial-block split into `peru-train` / `peru-dev` / `peru-test`; guard that refuses training on held-out parts
-- [ ] 4.7 Freeze v1 (checksums) and write the data card (`docs/peru_data_card.md`)
+- [x] 4.7 Freeze v1 (checksums) and write the data card (`docs/peru_data_card.md`)
 
 ## 4b. Training on Peru
 
