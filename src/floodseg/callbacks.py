@@ -21,6 +21,31 @@ class InitFromCheckpoint(pl.Callback):
         pl_module.load_state_dict(state, strict=True)
 
 
+class SaveValPredictions(pl.Callback):
+    """During `validate`, save each chip's water probability (float16 .npy).
+
+    Re-runs the forward pass on the batch the task just validated (already
+    normalized), so the saved maps match the logged validation metrics.
+    """
+
+    def __init__(self, out_dir: str) -> None:
+        self.out_dir = out_dir
+
+    def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0) -> None:
+        import numpy as np
+        from pathlib import Path
+
+        rest = {k: batch[k] for k in batch.keys() - {"image", "mask", "filename"}}
+        with torch.no_grad():
+            out = pl_module.handle_full_or_tiled_inference(
+                batch["image"], pl_module.tiled_inference_on_validation, **rest).output
+        prob = torch.softmax(out.float(), dim=1)[:, 1].cpu().numpy().astype(np.float16)
+        out_dir = Path(self.out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for name, p in zip(batch["filename"], prob):
+            np.save(out_dir / f"{Path(name).stem}.npy", p)
+
+
 class MPSMemoryGuard(pl.Callback):
     """Abort when MPS driver memory exceeds the recommended maximum.
 
