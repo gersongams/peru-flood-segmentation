@@ -684,3 +684,38 @@ statistics-alignment step for the LayerNorm models (TerraMind) is worth a look; 
 different date or area transfer is not tested here (relevant to the `peru-2017-test` event).
 
 **Thesis use.** Chapter V (phase-D baselines).
+
+## 2026-10-15 — Design amendments recorded before scoring: test-time input alignment, decoder AdaBN for TerraMind
+
+Written before any of these rows was scored.
+
+1. **Input alignment first as a test-time transform (task 3.4, part 1).** The design ran
+   histogram matching and FDA as *source training* on transformed inputs. Given the
+   run-to-run noise now measured (1.7 IoU points on `valid` for an identical rerun; TerraMind
+   dev IoU 0.60–0.76 across seeds), a retrained model differs from its source by training
+   noise that can exceed the transform's effect, and picking "the better transform" from
+   seed 0 on dev would pick noise. So the paired, training-free version comes first: the
+   existing 6 source checkpoints, unchanged, on transformed dev images.
+   - **Histogram matching:** per band, one global monotone map fitted on raw DN:
+     v → F_S⁻¹(F_P(v)), F_P = empirical CDF of the unlabelled pool (753 images), F_S = that
+     of the Sen1Floods11 `train` images (252; images only), each from every 50th pixel with a
+     non-zero band, 1,001 quantiles, linear interpolation. Fitted once on the pool, never on
+     dev or on a single dev image (label-free, not transductive). Applied to dev images
+     before the model's normalization; no-data pixels stay 0.
+   - **FDA (Yang & Soatto 2020), per band:** replace the low-frequency amplitude
+     (|f| within β = 0.01 of the centred spectrum, i.e. a (2·⌊0.01·512⌋+1)² = 11 × 11 square
+     for 512 × 512 chips) of each dev image by the **mean** amplitude of the Sen1Floods11
+     `train` images (deterministic; a random source image would add noise), keep the phase,
+     inverse FFT, clip to ≥ 0. β fixed in advance (the paper's small-β setting), not tuned.
+   - The training-time version (source trained on pool-styled inputs) stays in the plan,
+     but only as transform × 3 seeds × both models if run at all, after a cost estimate.
+2. **Decoder AdaBN for TerraMind (extra row).** TerraMind's encoder has no BatchNorm, but
+   its UNet decoder and neck have 9 `BatchNorm2d` layers. AdaBN on those 9 layers, same
+   recipe as the U-Net (one cumulative pass over the pool, no tuning).
+3. **Rule for BatchNorm during self-training (section 4), fixed now because AdaBN is worth
+   ≈ 6 points:** the student's BN layers run in train mode on its batches; the EMA teacher's
+   BN buffers are copied from the student at every EMA step (not averaged); before every
+   offline evaluation of a self-trained U-Net or TerraMind checkpoint, one AdaBN pass on the
+   pool re-estimates the BN statistics (same recipe as `scripts/adabn.py`). The comparison
+   row for self-training is therefore "AdaBN alone", and the self-training gain is reported
+   against it as well as against source-only.
