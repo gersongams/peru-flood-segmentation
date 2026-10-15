@@ -890,6 +890,11 @@ superseded by these values; they are left as written for the record.
 
 ## 2026-10-15 — Self-training results on `peru-dev` (tasks 4.5–4.7): negative result
 
+> **Partly corrected the same day** (next entry, "Correction: the evaluation-time AdaBN pass
+> causes most of the self-training drop"). The numbers below stand; the *mechanism* paragraph
+> and the AdaBN caveat were wrong: without the AdaBN pass, TerraMind `st` scores 0.758 ± 0.006,
+> and its predicted water area does not grow.
+
 **What was done.** The 22 pre-registered self-training runs (cloud-protocol entry above) were
 scored on `peru-dev` on the Mac: per backbone, `st` (teacher–student with binary DACS) and
 `mic` (+ masked consistency), pre-registered defaults, seeds 0–2, final EMA teacher after the
@@ -959,10 +964,9 @@ table script); the Peru-label guard was active in every fit, and the pod held no
   design: a two-sided band, or a precision proxy that needs no labels (e.g. agreement with
   an MNDWI threshold).
 - The AdaBN pass before evaluation (pre-registered) is known to hurt TerraMind source-only
-  (decoder AdaBN −0.047 mean). It cannot explain the drop by itself (every TerraMind
-  checkpoint is below source-only and the training-time teacher, which never got the AdaBN
-  pass, already shows the growing water fraction), but a no-AdaBN evaluation is a post-hoc
-  diagnostic (separate entry if run); the headline rows stay as pre-registered.
+  (decoder AdaBN −0.047 mean). ~~It cannot explain the drop by itself~~ **Wrong, see the
+  correction entry: it explains most of the TerraMind drop.** The headline rows stay as
+  pre-registered.
 - The oracle grid is seed 0 only; the 3-seed follow-up of the oracle configuration (4.7 part
   2) is not run. For U-Net the oracle configuration is the default, so the 3 headline seeds
   already are that follow-up.
@@ -982,3 +986,73 @@ recipe, amplifies the source model's dominant error (desert false positives) ins
 correcting it. Feeds: thesis chapter 5 (results, unsupervised adaptation) and 6
 (discussion: why self-training fails when the source error is confident and systematic);
 paper section "Adapting without Peru labels".
+
+## 2026-10-15 — Correction: the evaluation-time AdaBN pass causes most of the self-training drop (post-hoc diagnostic)
+
+**What was done and why.** The previous entry kept the pre-registered evaluation (final EMA
+teacher, then one AdaBN pass on the pool) and attributed the TerraMind collapse to
+confirmation bias. Because decoder AdaBN already hurt TerraMind source-only (−0.047), the
+same final teachers were re-evaluated **without** the AdaBN pass, i.e. with the BN buffers the
+teacher had at the end of training (copied from the student every step: running statistics,
+momentum 0.1, over the separate source, mixed and — for `mic` — masked forward passes).
+`scripts/eval_adapted.py --no_adabn` (new flag), regimes `st_noadabn`, `mic_noadabn` in
+`outputs/logits_dev/` and in `outputs/phaseD/dev_table.md` (labelled "post-hoc diagnostic").
+Both backbones, all 3 seeds, final checkpoint only (intermediate weights were deleted on the
+pod after their AdaBN-evaluated predictions, so the oracle grid cannot be re-evaluated).
+**This is post-hoc**: chosen after seeing dev results; not a headline row.
+
+**Results (water IoU, seeds 0/1/2; mean ± std):**
+
+| | source | AdaBN only | HM only | `st` (+AdaBN, headline) | `st`, no AdaBN | `mic` (+AdaBN, headline) | `mic`, no AdaBN |
+|---|---|---|---|---|---|---|---|
+| U-Net | 0.843/0.855/0.811 | 0.905/0.907/0.878 | 0.875/0.868/0.878 | 0.914/0.844/0.698 | 0.900/0.891/0.841 (0.8774 ± 0.0319) | 0.859/0.884/0.713 | 0.796/0.877/0.857 (0.8435 ± 0.0424) |
+| TerraMind | 0.764/0.598/0.746 | 0.733/0.541/0.695 | 0.815/0.809/0.802 | 0.470/0.467/0.516 | 0.751/0.761/0.761 (0.7576 ± 0.0058) | 0.482/0.540/0.523 | 0.619/0.704/0.672 (0.6648 ± 0.0432) |
+
+TerraMind `st` without AdaBN: precision 0.771 ± 0.004, recall 0.978 (source 0.714 / 0.979);
+predicted dev water fraction 0.205/0.239/0.167 vs source 0.229/0.270/0.205 (labels 0.107),
+i.e. the water area **shrinks** slightly; with AdaBN it grew to 0.322/0.353/0.271.
+`mic` without AdaBN: 0.277/0.262/0.256 (grows); U-Net `st` no AdaBN 0.112/0.120/0.131.
+
+**What this corrects.**
+1. The TerraMind headline collapse (0.48) is mostly caused by the evaluation-time AdaBN pass
+   (0.758 → 0.484 on the same weights), not by self-training itself. The "confirmation bias:
+   water area grows" mechanism of the previous entry is **withdrawn for `st`**: the evidence
+   for it (dev precision falling, dev water fraction growing) came from AdaBN-evaluated
+   teachers. The training-time teacher's water fraction on pool batches does rise (TerraMind
+   iteration 100 → 4,000: 0.147/0.131/0.104 → 0.175/0.194/0.131), but the pool has no labels
+   and dev shows no expansion, so this is not evidence of false positives.
+2. For `mic`, the water area does grow even without AdaBN and IoU falls below source on seeds
+   0 and 2. Hypothesis (not tested): the masked forward pass (70 % of pixels set to 0) enters
+   the BN running statistics the teacher inherits, so the masked variant's BN buffers describe
+   a distribution no real image has.
+3. Why AdaBN after self-training is harmful (hypothesis): during self-training the weights
+   co-adapt with BN statistics of a *mixture* (source batches, DACS-mixed batches); replacing
+   them with pure-pool statistics moves every BN layer at once, away from what the weights
+   were trained with. AdaBN is a fix for a model trained on source statistics only; applying
+   it on top of a model that already saw target data in training is not justified. The
+   pre-registered BN rule (2026-10-15, design amendments) did not anticipate this; we also did
+   not revisit it after the decoder-AdaBN result for TerraMind (−0.047), which came before the
+   pod runs — a missed warning, recorded as such.
+
+**What does not change.** Even with the evaluation choice made post hoc in its favour,
+self-training does not beat the simple alignment baselines on any seed:
+- U-Net `st` no AdaBN 0.900/0.891/0.841 < AdaBN 0.905/0.907/0.878 (paired: −0.005/−0.016/−0.037);
+- TerraMind `st` no AdaBN 0.751/0.761/0.761 < HM 0.815/0.809/0.802 (−0.064/−0.048/−0.041).
+Paired vs source, `st` without AdaBN is positive on every U-Net seed (+0.057/+0.036/+0.030) and
+mixed for TerraMind (−0.013/+0.163/+0.014): mostly it repairs the weak seed 1 and removes the
+seed sensitivity (std 0.006), as HM does, but less. The thesis conclusion "simple statistics
+alignment beats teacher–student self-training on Peru" stands; the explanation of *why*
+self-training fails changes from "confirmation bias" to "small gains that do not reach the
+alignment baselines, made worse by an evaluation rule (AdaBN after self-training) that
+destroys TerraMind and destabilizes U-Net".
+
+**Reporting rule.** Headline rows stay as pre-registered (with AdaBN). The no-AdaBN rows are
+reported as a post-hoc diagnostic, with the reason above; the oracle grid (all with AdaBN) is
+reported with this caveat, since its TerraMind cells are depressed by the same pass.
+
+**Checks.** 174 dev logit files per folder (asserted); run.json of each diagnostic folder
+records `adabn_bn_layers: 0`; same weights file (`iter4000.pt`, teacher) as the headline rows.
+
+Feeds: thesis chapter 5 (results; the diagnostic row) and 6 (discussion: BN statistics and
+self-training; pre-registration caught an evaluation rule that was wrong, and the honest
+report keeps it); paper section "Adapting without Peru labels".

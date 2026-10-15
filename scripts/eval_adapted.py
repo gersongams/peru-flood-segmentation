@@ -8,6 +8,9 @@ logits to outputs/logits_dev/<regime>/<model>/seed<s>/ with run.json. Score with
 scripts/phaseD_dev_table.py.
 
     uv run python scripts/eval_adapted.py outputs/phaseD/self_train/st/unet/seed0 [--iter N] [--weights student] [--regime NAME]
+
+`--no_adabn` (post-hoc diagnostic, not pre-registered): skip the AdaBN pass and keep the BN
+buffers the teacher had at the end of training; regime gets the suffix `_noadabn`.
 """
 
 import argparse
@@ -34,6 +37,7 @@ def main() -> None:
     ap.add_argument("--all", action="store_true",
                     help="evaluate every saved iteration: intermediate ones as packed binary predictions "
                          "(<run>/dev_pred/iter<N>.npz), the final one as float32 logits")
+    ap.add_argument("--no_adabn", action="store_true", help="post-hoc diagnostic: no AdaBN pass before prediction")
     a = ap.parse_args()
     run = Path(a.run).resolve()
     rec = json.loads((run / "run.json").read_text())
@@ -47,14 +51,15 @@ def main() -> None:
     for it in iters:
         task.model.load_state_dict(torch.load(ckpts[it], map_location="cpu")[a.weights])
         net = task.model.to(device)
-        n_bn, n_pool = adapt_bn(net, spec, device, BATCHES[model])
+        n_bn, n_pool = (0, 0) if a.no_adabn else adapt_bn(net, spec, device, BATCHES[model])
         if it != final and a.all:
             z = predict_dev_arrays(net, spec, device, BATCHES[model])
             (run / "dev_pred").mkdir(exist_ok=True)
             np.savez_compressed(run / "dev_pred" / f"iter{it}.npz", **{s: np.packbits(v > 0) for s, v in z.items()})
             print(json.dumps(dict(run=str(run.relative_to(REPO)), iter=it, packed=True)), flush=True)
             continue
-        regime = a.regime or f"{run.parts[-3]}" + ("" if a.weights == "teacher" else "_student") + ("" if it == final else f"_iter{it}")
+        regime = a.regime or f"{run.parts[-3]}" + ("" if a.weights == "teacher" else "_student") + ("" if it == final else f"_iter{it}") \
+            + ("_noadabn" if a.no_adabn else "")
         out = REPO / "outputs" / "logits_dev" / regime / model / f"seed{seed}"
         n = predict_dev(net, spec, device, BATCHES[model], out)
         info = dict(run=str(run.relative_to(REPO)), iter=it, weights=a.weights, adabn_bn_layers=n_bn, adabn_pool_images=n_pool,
