@@ -32,6 +32,20 @@ rule) — new design, pre-register, pod ≈ $3–6; (b) training-time HM (3.4 pa
 decision; (c) Prithvi (5.4). Free, local: 5.2 stratified analysis and 5.3 calibration of
 AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
 
+### 1b. Phase-D order of work (agreed 2026-10-15)
+1. **Stratified analysis and calibration of the best methods (tasks 5.2, 5.3)**, local, free.
+   Best methods: U-Net + AdaBN (0.897) and TerraMind + test-time histogram matching (0.809).
+   Where do they still fail vs the Peru-trained models (near water edges, low water-index
+   contrast, small water bodies)? Is their uncertainty still calibrated after adaptation?
+   Reuses the phase-C scripts (`scripts/analyze_dev.py`, `calibration_dev.py`, `uncertainty_dev.py`).
+   Before it: move today's inline phase-D diagnostics (paired deltas, water fractions, no-AdaBN
+   grid scoring) into `scripts/phaseD_diagnostics.py` and check they reproduce.
+2. **Decide on Prithvi (5.4) and training-time histogram matching (3.4 part 2).** Both need a
+   pod (≈ $7 credit left); decide after step 1. No further self-training session recommended
+   (`docs/phaseD_dev.md`).
+3. **Freeze the phase-D methods and evaluate the test sets once (section 6).** Closes phase D.
+4. **Start writing:** Chapter III (data, Peru dataset, protocol) and the phase-D results, in Spanish.
+
 ### 2. Close the open phase-C tasks (local, free, a few hours)
 - ~~**6.4** per-stratum calibration, **5.4** reliability diagrams~~: done 2026-10-14
   (`docs/calibration_dev.md`). Predictions are now float32 logits in `outputs/logits_*`;
