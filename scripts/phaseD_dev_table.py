@@ -14,7 +14,9 @@ recall; pooled over the 174 dev chips):
   `s1f11` = phase-C seed-0 Sen1Floods11 models (reference only),
   `s1f11_src_lr2e-5` = superseded TerraMind source runs at LR 2e-5 (diagnostic only; not used),
   `adabn` = source models after AdaBN (scripts/adabn.py),
-  `hm`, `fda` = source models on aligned dev images (scripts/input_alignment_dev.py).
+  `hm`, `fda` = source models on aligned dev images (scripts/input_alignment_dev.py),
+  `st`, `mic` = self-training headline runs (scripts/self_train.py; oracle grid runs are scored
+  by scripts/phaseD_oracle.py, not here).
 - Gap closed (adaptation rows only) vs source-only and the Peru-trained upper bound of the same
   backbone: (IoU − IoU_source) / (IoU_upper − IoU_source).
 MNDWI = (B03 − B11)/(B03 + B11), as in scripts/index_baseline.py.
@@ -43,7 +45,9 @@ REGIMES = {"s1f11_src": "Sen1Floods11 source-only (phase D)", "peru": "Peru-trai
            "s1f11_src_lr2e-5": "Sen1Floods11 TerraMind LR 2e-5 (superseded, diagnostic)",
            "adabn": "AdaBN on the pool (source-only + BN statistics)",
            "hm": "Test-time histogram matching (pool → Sen1Floods11)",
-           "fda": "Test-time FDA (β = 0.01, mean Sen1Floods11 amplitude)"}
+           "fda": "Test-time FDA (β = 0.01, mean Sen1Floods11 amplitude)",
+           "st": "Self-training, pre-registered defaults (final teacher, AdaBN)",
+           "mic": "Self-training + masked consistency, defaults (final teacher, AdaBN)"}
 NOT_METHODS = {"s1f11_src", "peru", "s1f11", "s1f11_src_lr2e-5"}  # no gap-closed value
 MODELS = {"unet": "U-Net", "terramind_v1_base": "TerraMind", "prithvi_eo_v2_300": "Prithvi"}
 T_SWEEP = np.round(np.arange(-0.30, 0.601, 0.01), 2)

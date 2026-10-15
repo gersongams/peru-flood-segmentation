@@ -352,3 +352,24 @@ HM U-Net 0.8748 / 0.8677 / 0.8778, TerraMind 0.8152 / 0.8091 / 0.8024; FDA U-Net
 0.0105 / 0.0117 / 0.0125, TerraMind 0.0085 / 0.0114 / 0.0112. Demos of `scripts/self_train.py
 --variant mic --demo` (20 iterations) for U-Net and TerraMind seed 0, commit `db9c33a` +
 uncommitted runner (dirty; demo only): logs `outputs/phaseD/demo_{unet,terramind}_mic.log`.
+
+## 2026-10-15 — Phase-D self-training on RunPod (tasks 4.5–4.7, 4.9): pod session
+
+Pod `otv36sv0k42lyh` ("peru-flood-phaseD-selftrain"), Secure Cloud RTX 4090, $0.89/h,
+EUR-IS-1 (EU-RO-1 had no capacity at create time), CUDA 13.0 host, driver 580.65.06, 16 vCPU
+allocated, image `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, 50 GB container disk,
+60 GB `/workspace` (network filesystem). Created 12:55 UTC. Code: commit `e8a5841` (clean),
+`bash /workspace/setup_pod.sh e8a5841` (torch 2.14.0+cu130).
+- **Data on the pod, no Peru label file:** 753 pool + 174 dev images, Peru split lists,
+  Sen1Floods11 downloaded on the pod (`scripts/download_sen1floods11.py`, official GCS bucket),
+  slim source checkpoints (sha256 checked after transfer). `read_manifest` verified all 753
+  pool images against the manifest checksums; no `label`, `emsr2017` or raw UNOSAT folder.
+- **Upload problem:** a single SSH stream from the Mac to Iceland ran at ≈ 0.5 MB/s (the Mac's
+  uplink measured 475 Mbps), so `sync_phaseD.sh` would have taken > 2 h. Fixed with 16
+  parallel rsync streams (≈ 17 MB/s; too many simultaneous connections were reset by sshd and
+  were retried) and 50 MB checkpoint chunks sent in parallel. Upload and setup took until
+  13:43 UTC (≈ 48 min of pod time). For later sessions: parallel transfer from the start,
+  download public data on the pod.
+- Queues started 13:43 UTC: `scripts/cloud/run_phaseD.sh scripts/cloud/jobs_phaseD_<model>.txt`,
+  U-Net and TerraMind in parallel on the GPU. Early speed (shared GPU): TerraMind ≈ 4 it/s,
+  U-Net ≈ 2.7 it/s (input-bound; GPU utilization 40 %).
