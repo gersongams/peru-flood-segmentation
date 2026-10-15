@@ -1086,3 +1086,13 @@ source-only but still below test-time HM on the same seed (0.8152), which needs 
 U-Net no cell reaches AdaBN on seed 0 (0.9052). So even oracle-selected self-training, with the
 evaluation choice made post hoc in its favour, does not beat the simple alignment baselines on
 seed 0. This weakens the case for a further self-training session on the current recipe.
+
+## 2026-10-15 — Reproducibility: phase-D diagnostics moved from inline code into a script
+
+The paired deltas, water-fraction trajectories, dev water fractions and the no-AdaBN oracle-grid
+scores of the three entries above were first computed with inline Python. They are now produced
+by `scripts/phaseD_diagnostics.py` (definitions in its docstring) → `outputs/phaseD/{paired_deltas.csv,
+water_frac_trajectory.csv, dev_water_fraction.csv, oracle_grid_noadabn.md}`. Check: re-running it
+reproduced the earlier files exactly (trajectory CSV byte-identical, grid table identical, every
+paired delta and dev water fraction quoted above unchanged; `paired_deltas.csv` gains the
+no-AdaBN columns). No number changes. Feeds: reproducibility appendix.

@@ -407,3 +407,9 @@ evaluation-time AdaBN pass causes most of the self-training drop".
 Addendum: the 10 seed-0 oracle-grid runs (5 per backbone) were also evaluated with `--no_adabn`
 (final teacher) → `outputs/logits_dev/st_a*_noadabn/<model>/seed0/`; scored inline (pooled
 counts with `floodseg.metrics`, 174 files asserted) → `outputs/phaseD/oracle_grid_noadabn.md`.
+
+## 2026-10-15 — Phase-D diagnostics as a script (no new runs)
+
+`uv run python scripts/phaseD_diagnostics.py` (after `scripts/phaseD_dev_table.py`) →
+`outputs/phaseD/{paired_deltas.csv, water_frac_trajectory.csv, dev_water_fraction.csv, oracle_grid_noadabn.md}`;
+reproduces the inline results of the earlier phase-D entries (METHODS_NOTES 2026-10-15, reproducibility entry).
