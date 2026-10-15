@@ -105,6 +105,16 @@ class TargetPoolDataset(Dataset):
         return {"image": self.transform(x) if self.transform else x}
 
 
+class D4:
+    """Random dihedral transform (flips and 90° rotations) of a (C, H, W) tensor; picklable,
+    so it works in spawned DataLoader workers."""
+
+    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+        k = int(torch.randint(0, 4, (1,)))
+        x = torch.rot90(x, k, dims=(1, 2))
+        return torch.flip(x, dims=(2,)) if torch.rand(1) < 0.5 else x
+
+
 def _read(path, idx, mean, std, no_data) -> torch.Tensor:
     with rasterio.open(path) as src:
         x = src.read().astype(np.float32)[idx]

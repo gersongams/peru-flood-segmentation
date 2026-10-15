@@ -18,14 +18,14 @@
 - [x] 3.1 MNDWI > 0 and Otsu-on-pool baselines (label-free) plus the dev-tuned MNDWI threshold (oracle row) on `peru-dev`; extend `scripts/index_baseline.py` with tolerant IoU, precision, recall
 - [x] 3.2 Source-only rows: the 3-seed source models of 1.4 evaluated on `peru-dev` (plain and tolerant IoU, precision, recall)
 - [x] 3.3 AdaBN for the U-Net (BN statistics re-estimated on the pool); `peru-dev` scores
-- [ ] 3.4 Per-band histogram matching and FDA transforms; source training with each, U-Net + TerraMind, seed 0 on dev; 3 seeds for the better one
+- [ ] 3.4 Per-band histogram matching and FDA transforms; source training with each, U-Net + TerraMind, seed 0 on dev; 3 seeds for the better one (test-time version done 2026-10-15: HM helps, FDA fails; training-time version only as transform × 3 seeds, after a cost decision)
 
 ## 4. Self-training
 
-- [ ] 4.1 Adaptation LightningModule: EMA teacher, source + target batches, per-class top-q % pseudo-labels, CE on pseudo-labels, Dice on source, warm-up
-- [ ] 4.2 Binary DACS mixing (paste source water onto target chips) and student-only colour jitter / blur
-- [ ] 4.3 Water-fraction collapse warning (on the unlabelled pool); checkpoint every 500 iterations; run record with source checkpoint, budget, wall clock, peak memory; no Peru label read in the run
-- [ ] 4.4 Local MPS demo (U-Net, few iterations) to check that losses, mixing and EMA work; unit test for the pseudo-label thresholds
+- [x] 4.1 Adaptation LightningModule: EMA teacher, source + target batches, per-class top-q % pseudo-labels, CE on pseudo-labels, Dice on source, warm-up
+- [x] 4.2 Binary DACS mixing (paste source water onto target chips) and student-only colour jitter / blur
+- [x] 4.3 Water-fraction collapse warning (on the unlabelled pool); checkpoint every 500 iterations; run record with source checkpoint, budget, wall clock, peak memory; no Peru label read in the run
+- [x] 4.4 Local MPS demo (U-Net, few iterations) to check that losses, mixing and EMA work; unit test for the pseudo-label thresholds
 - [ ] 4.5 Cloud demo: memory and speed for TerraMind (student + teacher + masked view) at batch 8
 - [ ] 4.6 Default-config runs (pre-registered in design.md), seed 0, U-Net + TerraMind; score saved checkpoints on `peru-dev` offline
 - [ ] 4.7 Oracle-selection variant (q ∈ {20, 50, 80} × α ∈ {0.99, 0.999}, best dev checkpoint), reported only as the secondary row

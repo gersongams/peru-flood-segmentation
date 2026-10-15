@@ -760,3 +760,67 @@ pre-registered default configuration; nothing here is tuned on dev):
   method, full config, iterations, wall clock, peak memory, collapse events, the pool
   manifest name, and the label-guard status (the whole fit runs inside
   `forbid_peru_labels()`; DataLoader workers use `guard_worker_init`).
+
+## 2026-10-15 — Test-time input alignment and TerraMind decoder AdaBN on `peru-dev` (task 3.4 part 1, extra row)
+
+Pre-registered in the "design amendments" entry above (same date), scored afterwards with
+`scripts/phaseD_dev_table.py` → `outputs/phaseD/dev_table.md`. Runs: `scripts/adabn.py
+terramind_v1_base`, `scripts/input_alignment_dev.py` (commit `4903b5f`, clean; Mac MPS);
+fitted parameters `outputs/phaseD/alignment/params.npz` (pool and Sen1Floods11 `train`
+quantiles, mean Sen1Floods11 amplitude).
+
+| Row (3 seeds) | U-Net IoU | U-Net P / R | TerraMind IoU | TerraMind P / R |
+|---|---|---|---|---|
+| Source-only | 0.8364 ± 0.0224 | 0.848 / 0.985 | 0.7027 ± 0.0913 | 0.714 / 0.979 |
+| AdaBN (U-Net all 46 BN; TerraMind decoder + neck 9 BN) | 0.8969 ± 0.0161 | 0.919 / 0.974 | 0.6563 ± 0.1019 | 0.665 / 0.981 |
+| Test-time histogram matching | 0.8734 ± 0.0052 | 0.918 / 0.948 | **0.8089 ± 0.0064** | 0.853 / 0.940 |
+| Test-time FDA (β = 0.01) | 0.0116 ± 0.0010 | 0.632 / 0.012 | 0.0104 ± 0.0016 | 0.487 / 0.011 |
+
+Tolerant IoU in the table file. Per seed, TerraMind HM: 0.8152 / 0.8091 / 0.8024 (source
+0.7639 / 0.5978 / 0.7464); decoder AdaBN: 0.7333 / 0.5407 / 0.6948.
+
+**Findings.**
+1. **Histogram matching helps TerraMind most and removes its seed sensitivity.** Mean
+   0.703 → 0.809 (47 % of the gap), and the seed spread drops from ± 0.091 to ± 0.006: the
+   weak seed 1 goes 0.598 → 0.809. So TerraMind's seed-dependent failure is a reaction to the
+   input distribution (the bright desert), and moving inputs back into the Sen1Floods11 range
+   removes it. For the U-Net, HM (0.873) is below AdaBN (0.897): the feature-level fix is
+   better there. HM raises precision and costs recall (0.98 → 0.94–0.95).
+2. **Decoder-only AdaBN hurts TerraMind** on every seed (−3 to −6 points). Re-normalizing the
+   decoder while the encoder features stay shifted does not help; whatever TerraMind needs
+   happens in the encoder (LayerNorm, no stored statistics).
+3. **Per-band FDA destroys the water signal.** Not a code bug (checked on a dev chip): the
+   transform does what was specified. Replacing the low-frequency amplitude includes the zero
+   frequency, i.e. each band's mean. Peru chips are much brighter than the Sen1Floods11
+   average (e.g. B03 mean 3312 vs 1364, B11 3076 vs 2031 on the first dev chip), so each band
+   is shifted by a different amount and the B03 − B11 difference that marks water shrinks by
+   ~900 DN; the models then see almost no water (recall 0.01). FDA was designed for RGB
+   photographs; its per-band use on multispectral data was our extrapolation
+   (`docs/literature_phaseD.md`), and this is why it fails. Reported as pre-registered; an
+   FDA variant that keeps the zero frequency was **not** run (it would be a post-hoc change).
+
+**Thesis use.** Chapter V (baselines); the discussion: TerraMind's seed sensitivity is an
+input-distribution effect; spectral data needs alignment that preserves band relationships
+(HM is monotone per band and kept the water/dry ordering; FDA's mean shift did not).
+
+## 2026-10-15 — Self-training implementation and local demos (tasks 4.1–4.4)
+
+`src/floodseg/self_training.py` (module), `scripts/self_train.py` (runner),
+`src/floodseg/adapt_eval.py` + `scripts/eval_adapted.py` (offline dev evaluation: AdaBN pass,
+then logits), as pre-registered in the "self-training details" entry. Changes found while
+implementing, before any real run:
+- **Pseudo-label ranking by logit margin, exact top-k.** A unit test showed that a
+  probability threshold keeps more than q % when confidences tie; in float32 the softmax ties
+  at 1.0 for logit margins above ~17, which is common for confident pixels (same trap as the
+  float16 bug). The margin |z_water − z_dry| ranks pixels identically for two classes and
+  does not saturate; exactly ⌈q·n⌉ pixels per class are kept. The logged cut-offs are margins.
+- **The teacher stays in eval mode** (Lightning's `train()` would otherwise switch on dropout
+  and BN batch statistics in the teacher).
+- **Collapse warnings** recorded once per episode.
+Unit tests `tests/test_self_training.py` (per-class top-q, ties, mixing pastes only labelled
+source water, masking ratio and block structure, augmentation). Demos (`--demo`: 20
+iterations, batch 2 + 2, MIC variant, Mac MPS fp32): U-Net 40 s, TerraMind 71 s (11.7 GB MPS
+allocation); losses finite, q schedule 0.20 → 0.50, teacher between source and student weights
+(EMA working), no collapse warning; teacher water fraction on pool batches ≈ 0.05 (U-Net)
+and ≈ 0.15 (TerraMind). The offline evaluation ran on the demo checkpoint (174 dev files).
+Demo outputs in `outputs/phaseD/self_train/mic_demo/` are not results.

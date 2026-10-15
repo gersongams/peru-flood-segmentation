@@ -342,3 +342,13 @@ Interpretation: `docs/METHODS_NOTES.md` (2026-10-15).
 `peru-train` (753 images). Output `outputs/logits_dev/adabn/unet/seed<s>/` (+ `run.json`).
 Dev water IoU (`scripts/phaseD_dev_table.py`): 0.9052 / 0.9071 / 0.8783, mean 0.8969 ± 0.0161
 (source-only 0.8364 ± 0.0224). 43–66 s per seed.
+
+## 2026-10-15 — Test-time alignment, TerraMind decoder AdaBN, self-training demos (tasks 3.4 part 1, 4.4)
+
+Mac MPS fp32. `scripts/adabn.py terramind_v1_base` and `scripts/input_alignment_dev.py`,
+commit `4903b5f` (clean) → `outputs/logits_dev/{adabn,hm,fda}/<model>/seed<s>/` (+ run.json).
+Dev water IoU (`scripts/phaseD_dev_table.py`): TerraMind decoder AdaBN 0.7333 / 0.5407 / 0.6948;
+HM U-Net 0.8748 / 0.8677 / 0.8778, TerraMind 0.8152 / 0.8091 / 0.8024; FDA U-Net
+0.0105 / 0.0117 / 0.0125, TerraMind 0.0085 / 0.0114 / 0.0112. Demos of `scripts/self_train.py
+--variant mic --demo` (20 iterations) for U-Net and TerraMind seed 0, commit `db9c33a` +
+uncommitted runner (dirty; demo only): logs `outputs/phaseD/demo_{unet,terramind}_mic.log`.
