@@ -1,5 +1,7 @@
 # Calibration: reliability diagrams and calibration per stratum (tasks 5.3, 5.4, 6.4)
 
+Corrected 2026-10-15: edge-distance numbers recomputed after the chip-frame fix (commit f849700; docs/METHODS_NOTES.md 2026-10-15). Old values: outputs/analysis_dev_before_edgefix_2026-10-15/.
+
 Date: 2026-10-14. Splits: Sen1Floods11 `valid` (check) and `peru-dev`. No test split used.
 Script: `scripts/calibration_dev.py` (float32 logits in `outputs/logits_valid/`,
 `outputs/logits_dev/`); tables: `scripts/report_calibration.py` →
@@ -24,9 +26,9 @@ Seed-0 Sen1Floods11 models on their own validation split (89 chips, 20.3 M label
 
 | Model | T (all valid) | IoU | ECE all % raw → temp | ECE near % raw → temp | AUROC all | AUROC near |
 |---|---|---|---|---|---|---|
-| U-Net | 1.73 | 0.8188 | 1.74 → 0.68 | 5.89 → 3.87 | 0.780 | 0.770 |
-| TerraMind | 1.01 | 0.8168 | 1.06 → 1.16 | 3.76 → 3.66 | 0.739 | 0.741 |
-| Prithvi | 2.80 | 0.8327 | 1.73 → 0.75 | 5.98 → 3.43 | 0.813 | 0.822 |
+| U-Net | 1.73 | 0.8188 | 1.74 → 0.68 | 7.86 → 5.71 | 0.780 | 0.771 |
+| TerraMind | 1.01 | 0.8168 | 1.06 → 1.16 | 5.48 → 5.38 | 0.739 | 0.739 |
+| Prithvi | 2.80 | 0.8327 | 1.73 → 0.75 | 7.93 → 4.97 | 0.813 | 0.824 |
 
 The code checks pass (ECE from the reliability bins = `ece()`; IoU = logged `val/IoU_Flood`).
 Even in-domain, U-Net and Prithvi are clearly overconfident (T 1.7 and 2.8; in the diagram,
@@ -39,9 +41,9 @@ Applying the `valid` temperature to the same models on `peru-dev` (domain shift)
 
 | Model | ECE all % raw → T_valid | ECE near % raw → T_valid |
 |---|---|---|
-| U-Net | 1.36 → 2.35 | 5.89 → 3.25 |
-| TerraMind | 0.52 → 0.57 | 5.73 → 5.65 |
-| Prithvi | 1.55 → 1.08 | 7.63 → 5.13 |
+| U-Net | 1.36 → 2.35 | 10.31 → 7.69 |
+| TerraMind | 0.52 → 0.57 | 10.58 → 10.51 |
+| Prithvi | 1.55 → 1.08 | 13.12 → 9.85 |
 
 An in-domain temperature only partly transfers: it helps near water for U-Net and Prithvi,
 but makes U-Net's overall ECE worse; it does not help TerraMind.
@@ -53,14 +55,14 @@ ECE % (`figs/reliability_perudev_peru.png`; Sen1Floods11 → Peru in
 
 | Model | all: single / temp / ensemble / ens+temp | near water: single / temp / ensemble / ens+temp |
 |---|---|---|
-| U-Net | 0.66 / 0.20 / 0.54 / 0.11 | 3.16 / 2.10 / 2.58 / 1.64 |
-| TerraMind | 0.65 / 0.36 / 0.54 / 0.25 | 3.54 / 2.72 / 3.06 / 2.35 |
-| Prithvi | 0.90 / 0.39 / 0.75 / 0.23 | 4.42 / 2.65 / 3.68 / 1.97 |
+| U-Net | 0.66 / 0.20 / 0.54 / 0.11 | 5.42 / 4.02 / 4.42 / 3.14 |
+| TerraMind | 0.65 / 0.36 / 0.54 / 0.25 | 6.17 / 5.27 / 5.36 / 4.52 |
+| Prithvi | 0.90 / 0.39 / 0.75 / 0.23 | 7.60 / 5.01 / 6.33 / 3.76 |
 
 All raw models lie below the diagonal (overconfident) at every confidence level. Temperature
-scaling and ensembling each help and add up: ens+temp halves the near-water ECE for U-Net
-(3.16 → 1.64 %) and Prithvi (4.42 → 1.97 %), and cuts TerraMind's by a third
-(3.54 → 2.35 %). Over 99 % of pixels sit in the top bin, which is why the overall ECE is small.
+scaling and ensembling each help and add up: ens+temp halves the near-water ECE for Prithvi
+(7.60 → 3.76 %), cuts U-Net's by about 40 % (5.42 → 3.14 %), and TerraMind's by about a quarter
+(6.17 → 4.52 %). Over 99 % of pixels sit in the top bin, which is why the overall ECE is small.
 
 ## 3. Calibration and error detection per stratum (`peru-dev`, Peru-only)
 
@@ -84,8 +86,8 @@ error rate: in water-only strata every error is a miss.
 
 | Stratum (errors, U-Net) | U-Net ECE % | U-Net AUROC | TerraMind ECE % | TerraMind AUROC | Prithvi ECE % | Prithvi AUROC |
 |---|---|---|---|---|---|---|
-| edge ≤ 1 px (174,486) | 8.46 ± 0.35 → 4.16 | 0.733 / 0.744 | 10.29 ± 0.63 → 7.21 | 0.724 / 0.739 | 13.38 ± 0.37 → 5.86 | 0.698 / 0.716 |
-| > 10 px from edge (40,811) | 0.12 ± 0.00 → 0.35 | 0.600 ± 0.110 / 0.607 | 0.12 ± 0.03 → 0.52 | 0.481 ± 0.064 / 0.571 | 0.15 ± 0.01 → 0.46 | 0.513 ± 0.074 / 0.549 |
+| edge ≤ 1 px (172,010) | 12.70 ± 0.53 → 6.68 | 0.725 / 0.725 | 15.58 ± 0.87 → 11.19 | 0.696 / 0.691 | 20.18 ± 0.56 → 9.43 | 0.649 / 0.655 |
+| > 10 px from edge (45,012) | 0.12 ± 0.00 → 0.35 | 0.609 ± 0.105 / 0.620 | 0.12 ± 0.03 → 0.52 | 0.494 ± 0.062 / 0.583 | 0.15 ± 0.01 → 0.45 | 0.531 ± 0.071 / 0.568 |
 | water, NDWI −0.1–0 (36,227) | 40.89 ± 0.73 → 35.88 | 0.561 ± 0.050 / 0.586 | 42.23 ± 1.78 → 38.98 | 0.707 / 0.685 | 45.04 ± 0.24 → 38.92 | 0.447 / 0.449 |
 | water, NDWI 0–0.1 (67,404) | 36.18 ± 1.96 → 28.89 | 0.472 / 0.492 | 37.22 ± 1.19 → 33.60 | 0.636 / 0.634 | 38.75 ± 1.55 → 29.09 | 0.422 / 0.443 |
 | water body < 1 ha (15,890) | 38.22 ± 4.10 → 27.55 | 0.533 / 0.555 | 47.18 ± 1.43 → 40.89 | 0.563 / 0.519 | 51.53 ± 1.32 → 37.79 | 0.413 / 0.430 |
@@ -95,10 +97,10 @@ Single-seed AUROC std over seeds is shown where it is ≥ 0.05; all others are b
 
 ## What it shows
 
-1. **Calibration is worst where the errors are.** ECE is 8–13 % on the 1-px edge band
-   against ≤ 0.15 % more than 10 px from the edge; Prithvi is worst at the edge (13.4 %),
-   U-Net best (8.5 %). Ens+temp halves the edge ECE for U-Net and Prithvi (4.2 %, 5.9 %),
-   less for TerraMind (7.2 %).
+1. **Calibration is worst where the errors are.** ECE is 13–20 % on the 1-px edge band
+   against ≤ 0.15 % more than 10 px from the edge; Prithvi is worst at the edge (20.2 %),
+   U-Net best (12.7 %). Ens+temp roughly halves the edge ECE for U-Net and Prithvi (6.7 %, 9.4 %),
+   less for TerraMind (11.2 %).
 2. **The uncertainty does not flag the dominant failure modes.** Missed low-contrast water
    (NDWI −0.1 to 0.1) and water bodies under 1 ha are missed with high confidence: error
    AUROC 0.41–0.56 for U-Net and Prithvi (below 0.5 means the misses are *more* confident
@@ -107,7 +109,7 @@ Single-seed AUROC std over seeds is shown where it is ≥ 0.05; all others are b
    point a user to these areas. Caveat: in the turbid/shallow-water chips the label itself
    is doubtful (`docs/failure_analysis_dev.md`, Finding 2), so part of these "confident
    misses" may be confident disagreement with a doubtful label, the same confound as in point 3.
-3. **Errors far from any label edge are not detected either** (AUROC 0.48–0.60). These are
+3. **Errors far from any label edge are not detected either** (AUROC 0.49–0.61). These are
    mostly confident disagreements with the label, consistent with the label errors of
    Finding 3 in `docs/failure_analysis_dev.md` (e.g. permanent water labelled dry).
 4. **TerraMind's uncertainty ranks errors best inside the water strata** (e.g. AUROC

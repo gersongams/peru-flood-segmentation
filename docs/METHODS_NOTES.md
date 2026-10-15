@@ -849,3 +849,41 @@ Demo outputs in `outputs/phaseD/self_train/mic_demo/` are not results.
 - **Two queues share one GPU** (U-Net and TerraMind in parallel) to use the GPU fully; the
   recorded wall clock per run is therefore under shared load and is reported as such (peak
   memory is per process).
+
+## 2026-10-15 — Correction: label-edge distance counted the chip frame (phase-C analysis recomputed)
+
+**What was wrong.** The phase-C scripts (`analyze_dev.py`, `uncertainty_dev.py`,
+`edge_tolerance.py`) found label edges with `scipy.ndimage.binary_erosion`, whose default
+treats everything outside the chip as background. So every chip's 1-px frame counted as a
+"label water edge": the "edge (≤ 1 px)" band and the "≤ 10 px from a water edge" (near water)
+region also contained a frame around every chip, mostly easy desert. Found while writing the
+phase-D metric module (a unit test on a toy chip). A second, related problem: for chips with
+no edge at all, scipy's distance transform has no zero pixel and measures to a phantom point
+outside the corner, marking corner pixels as edge (hidden before, because the frame always
+gave an edge).
+
+**Fix** (commit `f849700`): one shared `floodseg.metrics.edge_distance` with
+`border_value=1` (the frame is not an edge) and +∞ for chips without edges; tests in
+`tests/test_metrics.py`. The phase-C scripts now use it, and only the phase-C regimes
+(commit after `f849700`). The whole analysis was re-run (`outputs/analysis_dev/run_edgefix.log`,
+Mac CPU, ≈ 50 min); old outputs kept in `outputs/analysis_dev_before_edgefix_2026-10-15/`.
+
+**What changed** (Peru-only, mean ± std over 3 seeds; U-Net / TerraMind / Prithvi):
+- Pixels: edge band 1,721,974 → 1,131,488; near-water region 6,911,817 → 3,961,359.
+- Edge-band water IoU: 0.761 / 0.695 / 0.661 → 0.740 / 0.667 / 0.631 (ranking unchanged).
+- Near-water ECE (single models): 3.16 / 3.54 / 4.42 % → 5.42 / 6.17 / 7.60 %; after
+  ensembling + temperature: 1.64 / 2.35 / 1.97 % → 3.14 / 4.52 / 3.76 %. The models are
+  roughly twice as miscalibrated near water as reported; the relative effect of temperature
+  scaling and ensembling (largest for Prithvi and U-Net, smallest for TerraMind) is unchanged.
+- Near-water error AUROC (single): 0.783 / 0.766 / 0.793 → 0.814 / 0.815 / 0.801.
+- Edge-tolerant IoU: changes ≤ 0.0002; the conclusion that most of the U-Net's lead lies in
+  the 1-px edge band stands (Peru-only lead 1.50 → 0.39 and 1.97 → 0.27 points).
+- Not affected: overall IoU, ECE and AUROC; temperatures; NDWI, water-body-size, land-cover
+  and other strata that do not use the edge distance.
+Source: `outputs/analysis_dev/{tables.md,calib_tables.md,edge_tolerance.md}` vs the old copies.
+The write-ups `docs/failure_analysis_dev.md`, `docs/calibration_dev.md` and
+`docs/uncertainty_dev.md` were updated to the new numbers (each has a dated note). Earlier
+METHODS_NOTES entries quoting near-water ECE/AUROC or edge-band IoU (2026-10-14) are
+superseded by these values; they are left as written for the record.
+
+**Thesis use.** Chapter V (calibration and failure analysis): use only the corrected values.

@@ -1,5 +1,7 @@
 # Failure analysis on `peru-dev` (phase C, tasks 6.1, 6.3; parts of 6.4–6.5)
 
+Corrected 2026-10-15: edge-distance numbers recomputed after the chip-frame fix (commit f849700; docs/METHODS_NOTES.md 2026-10-15). Old values: outputs/analysis_dev_before_edgefix_2026-10-15/.
+
 Date: 2026-10-14. Split: `peru-dev` only (174 chips, 112 with water). No test split was
 used. All numbers come from `outputs/analysis_dev/{strata,calibration,chips}.csv`,
 produced by `scripts/analyze_dev.py` from the per-chip probabilities saved by
@@ -24,8 +26,8 @@ Check: water IoU recomputed from the saved probabilities equals the logged
 | ECE (%) | 0.66 ± 0.02 | 0.65 ± 0.15 | 0.90 ± 0.02 | 1.36 | 0.52 | 1.56 |
 | error-detection AUROC | 0.735 ± 0.036 | 0.696 ± 0.034 | 0.725 ± 0.045 | 0.662 | 0.679 | 0.850 |
 
-| ECE (%), ≤ 10 px from a water edge | 3.14 ± 0.10 | 3.51 ± 0.24 | 4.38 ± 0.11 | 5.84 | 5.67 | 7.56 |
-| error AUROC, ≤ 10 px from a water edge | 0.783 ± 0.004 | 0.765 ± 0.017 | 0.793 ± 0.016 | 0.682 | 0.700 | 0.847 |
+| ECE (%), ≤ 10 px from a water edge | 5.32 ± 0.17 | 6.07 ± 0.31 | 7.46 ± 0.19 | 10.11 | 10.36 | 12.86 |
+| error AUROC, ≤ 10 px from a water edge | 0.814 ± 0.018 | 0.815 ± 0.002 | 0.802 ± 0.002 | 0.736 | 0.738 | 0.843 |
 
 Correction (2026-10-14): the AUROC values in the first version of this file came from a
 1000-bin histogram that merged the most confident pixels and overstated them (e.g.
@@ -41,7 +43,7 @@ recall/FPR and ECE were not affected.
 
 ECE: 15 equal-width confidence bins; AUROC: how well the uncertainty
 1 − max(p, 1 − p) (ranked as −|logit|) ranks wrong pixels above right ones. First two rows: every 7th
-labelled pixel. Last two: all labelled pixels in the edge-distance bands up to 10 px (≤ 10.5 px; `docs/uncertainty_dev.md` uses ≤ 10 px, hence 3.16 vs 3.14 % for U-Net), because
+labelled pixel. Last two: all labelled pixels in the edge-distance bands up to 10 px (≤ 10.5 px; `docs/uncertainty_dev.md` uses ≤ 10 px, hence 5.42 vs 5.32 % for U-Net), because
 85 % of dev pixels are WorldCover "bare/sparse" land, mostly easy, confidently dry
 desert that dilutes the overall ECE.
 
@@ -53,12 +55,12 @@ desert that dilutes the overall ECE.
 | Sen1Floods11 → Peru, dev water IoU | 0.938 ± 0.002 | 0.928 ± 0.001 | 0.924 ± 0.001 |
 | Peru-only, best epoch (3 seeds) | 51 / 98 / 63 | 92 / 93 / 88 | 48 / 51 / 44 |
 | Sen1Floods11 → Peru, best epoch | 52 / 28 / 31 | 23 / 22 / 15 | 38 / 58 / 37 |
-| Edge band (≤ 1 px) IoU, Peru-only | 0.761 ± 0.007 | 0.695 ± 0.007 | 0.661 ± 0.008 |
-| Edge band (≤ 1 px) IoU, Sen1Floods11 → Peru | 0.742 ± 0.015 | 0.683 ± 0.006 | 0.682 ± 0.004 |
+| Edge band (≤ 1 px) IoU, Peru-only | 0.740 ± 0.007 | 0.667 ± 0.007 | 0.631 ± 0.009 |
+| Edge band (≤ 1 px) IoU, Sen1Floods11 → Peru | 0.719 ± 0.016 | 0.654 ± 0.007 | 0.654 ± 0.004 |
 | IoU at −0.1 ≤ NDWI < 0.1, Peru-only | 0.531 ± 0.007 | 0.474 ± 0.016 | 0.452 ± 0.006 |
 | IoU at −0.1 ≤ NDWI < 0.1, Sen1Floods11 → Peru | 0.521 ± 0.007 | 0.476 ± 0.006 | 0.455 ± 0.004 |
-| ECE ≤ 10 px from water, Peru-only (%) | 3.14 ± 0.10 | 3.51 ± 0.24 | 4.38 ± 0.11 |
-| ECE ≤ 10 px from water, Sen1Floods11 → Peru (%) | 3.32 ± 0.13 | 3.19 ± 0.12 | 4.29 ± 0.05 |
+| ECE ≤ 10 px from water, Peru-only (%) | 5.32 ± 0.17 | 6.07 ± 0.31 | 7.46 ± 0.19 |
+| ECE ≤ 10 px from water, Sen1Floods11 → Peru (%) | 5.64 ± 0.22 | 5.66 ± 0.14 | 7.30 ± 0.09 |
 
 Best epochs from the runs' `metrics.csv` (`outputs/runs_cloud*/…/summary_peru_dev.csv`).
 Starting from Sen1Floods11 weights changes dev IoU by at most 0.4 points (U-Net −0.3,
@@ -73,17 +75,17 @@ both regimes.
 
 | Distance to the label's water edge (water IoU) | Peru U-Net | Peru TerraMind | Peru Prithvi |
 |---|---|---|---|
-| edge, ≤ 1 px (4.4 % of pixels) | 0.761 ± 0.007 | 0.695 ± 0.007 | 0.661 ± 0.008 |
-| 2–3 px | 0.930 ± 0.000 | 0.931 ± 0.002 | 0.925 ± 0.002 |
-| 4–10 px | 0.961 ± 0.001 | 0.959 ± 0.001 | 0.960 ± 0.001 |
-| > 10 px | 0.985 ± 0.001 | 0.979 ± 0.002 | 0.981 ± 0.001 |
+| edge, ≤ 1 px (2.9 % of pixels) | 0.740 ± 0.007 | 0.667 ± 0.007 | 0.631 ± 0.009 |
+| 2–3 px | 0.922 ± 0.000 | 0.923 ± 0.002 | 0.917 ± 0.002 |
+| 4–10 px | 0.957 ± 0.001 | 0.956 ± 0.001 | 0.957 ± 0.000 |
+| > 10 px | 0.984 ± 0.001 | 0.979 ± 0.002 | 0.981 ± 0.001 |
 
-Share of all errors (FP + FN) on the ≤ 1 px edge band: U-Net 59.4 ± 0.5 %, TerraMind
-63.3 ± 0.5 %, Prithvi 66.9 ± 0.8 %; within 3 px: 69.9 %, 71.5 %, 75.2 %.
+Share of all errors (FP + FN) on the ≤ 1 px edge band: U-Net 58.6 ± 0.6 %, TerraMind
+62.8 ± 0.5 %, Prithvi 66.3 ± 0.8 %; within 3 px: 68.8 %, 70.7 %, 74.4 %.
 Away from edges the three models are within 0.6 IoU points; the U-Net's overall lead
 comes mostly from the edge band. The "edge" band is computed from the label and also
-contains water pixels next to ignore (−1) areas and at the chip border, not only true
-water/land edges. Small water bodies point the same way:
+contains water pixels next to ignore (−1) areas, not only true
+water/land edges (the chip border is not counted as an edge). Small water bodies point the same way:
 
 | Water-body size (recall %) | Peru U-Net | Peru TerraMind | Peru Prithvi |
 |---|---|---|---|
@@ -169,9 +171,9 @@ vs 0.937 on 1 April).
 ## Calibration
 
 Over all dev pixels the Peru-only models look well calibrated (ECE 0.65–0.90 %), but
-this is diluted by easy desert pixels: within 10 px of a water edge ECE is 3.1–4.4 %
-(Sen1Floods11-only 5.7–7.6 %), with U-Net best and Prithvi worst. The uncertainty flags
-errors only moderately (Peru-only AUROC 0.70–0.74 overall, 0.77–0.79 near water). Temperature
+this is diluted by easy desert pixels: within 10 px of a water edge ECE is 5.3–7.5 %
+(Sen1Floods11-only 10.1–12.9 %), with U-Net best and Prithvi worst. The uncertainty flags
+errors only moderately (Peru-only AUROC 0.70–0.74 overall, 0.80–0.82 near water). Temperature
 scaling, seed ensembles, reliability diagrams and calibration per stratum are in
 `docs/uncertainty_dev.md` and `docs/calibration_dev.md`. The key per-stratum result: the
 uncertainty does not flag the dominant failure modes. Low-contrast water (NDWI −0.1 to 0.1) and
