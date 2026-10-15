@@ -38,6 +38,8 @@ REPO = Path(__file__).resolve().parents[1]
 PRED = REPO / "outputs" / "logits_dev"
 LABEL = REPO / "data" / "peru" / "unosat2023" / "label"
 OUT = REPO / "outputs" / "analysis_dev"
+# Phase-C training regimes only (phase-D folders in outputs/logits_dev are analysed elsewhere).
+PHASE_C = ("peru", "s1f11_ft", "s1f11")
 
 
 def near_water(y: np.ndarray) -> np.ndarray:
@@ -118,7 +120,7 @@ def scores(name, z, y, unc, near, every):
 def main() -> None:
     groups = {}
     for d in sorted(PRED.glob("*/*/seed*")):
-        if len(list(d.glob("*.npy"))) == 174:
+        if d.parts[-3] in PHASE_C and len(list(d.glob("*.npy"))) == 174:
             groups.setdefault((d.parts[-3], d.parts[-2]), []).append(d)
     stems = sorted(p.stem for p in next(iter(groups.values()))[0].glob("*.npy"))
     ys, nears = [], []

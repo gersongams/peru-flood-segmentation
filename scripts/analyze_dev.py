@@ -29,7 +29,7 @@ from scipy.ndimage import label as cc_label
 from floodseg.metrics import edge_distance
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from uncertainty_dev import auroc, ece  # noqa: E402
+from uncertainty_dev import PHASE_C, auroc, ece  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 PRED = REPO / "outputs" / "logits_dev"
@@ -75,7 +75,7 @@ def ece_auroc(z: np.ndarray, y: np.ndarray) -> tuple[float, float]:
 
 
 def main() -> None:
-    runs = sorted(d for d in PRED.glob("*/*/seed*") if d.is_dir() and len(list(d.glob("*.npy"))) == 174)
+    runs = sorted(d for d in PRED.glob("*/*/seed*") if d.parts[-3] in PHASE_C and d.is_dir() and len(list(d.glob("*.npy"))) == 174)
     stems = sorted(p.stem for p in runs[0].glob("*.npy"))
     labels = {}
     strata = {}

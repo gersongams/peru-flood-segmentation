@@ -40,7 +40,7 @@ import rasterio
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from analyze_dev import strata_for  # noqa: E402
-from uncertainty_dev import auroc, ece, ens_logit, fit_t, iou, load_z, near_water, sigmoid  # noqa: E402
+from uncertainty_dev import PHASE_C, auroc, ece, ens_logit, fit_t, iou, load_z, near_water, sigmoid  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 PRED_DEV = REPO / "outputs" / "logits_dev"
@@ -135,7 +135,7 @@ def stratum_cells(code: np.ndarray, ncat: int, z: np.ndarray, y: np.ndarray, unc
 def dev_part(t_valid: dict[str, float], bins_rows: list) -> None:
     groups = {}
     for d in sorted(PRED_DEV.glob("*/*/seed*")):
-        if len(list(d.glob("*.npy"))) == 174:
+        if d.parts[-3] in PHASE_C and len(list(d.glob("*.npy"))) == 174:
             groups.setdefault((d.parts[-3], d.parts[-2]), []).append(d)
     stems = sorted(p.stem for p in next(iter(groups.values()))[0].glob("*.npy"))
     y2d, near, chip = labels([LABEL_DEV / f"{st}.tif" for st in stems])
