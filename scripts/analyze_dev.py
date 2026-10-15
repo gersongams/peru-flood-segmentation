@@ -24,7 +24,9 @@ import numpy as np
 import pandas as pd
 import rasterio
 import sys
-from scipy.ndimage import binary_erosion, distance_transform_edt, label as cc_label
+from scipy.ndimage import label as cc_label
+
+from floodseg.metrics import edge_distance
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from uncertainty_dev import auroc, ece  # noqa: E402
@@ -50,8 +52,7 @@ def strata_for(stem: str, y: np.ndarray) -> dict[str, np.ndarray]:
     comp, _ = cc_label(water)
     size = np.bincount(comp.ravel())[comp] * PX_HA  # ha of the water body each pixel is in
     size[~water] = np.nan
-    edge = (water ^ binary_erosion(water)) | (~water ^ binary_erosion(~water))
-    d_edge = distance_transform_edt(~edge)
+    d_edge = edge_distance(water)  # corrected 2026-10-15: chip frame no edge (METHODS_NOTES)
     return {
         "date": np.full(y.shape, stem[:10], dtype=object),
         "landcover": np.vectorize(lambda v: WORLDCOVER.get(int(v), "no data"), otypes=[object])(s["landcover"]),

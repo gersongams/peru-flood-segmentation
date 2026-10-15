@@ -30,7 +30,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import rasterio
-from scipy.ndimage import binary_erosion, distance_transform_edt
+from floodseg.metrics import edge_distance
 from scipy.optimize import minimize_scalar
 from scipy.special import logsumexp
 
@@ -41,9 +41,7 @@ OUT = REPO / "outputs" / "analysis_dev"
 
 
 def near_water(y: np.ndarray) -> np.ndarray:
-    w = y == 1
-    edge = (w ^ binary_erosion(w)) | (~w ^ binary_erosion(~w))
-    return distance_transform_edt(~edge) <= 10
+    return edge_distance(y == 1) <= 10  # corrected 2026-10-15: chip frame no edge (METHODS_NOTES)
 
 
 def load_z(d: Path, stems: list[str], ok: np.ndarray | None = None) -> np.ndarray:

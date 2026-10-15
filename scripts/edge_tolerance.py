@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import rasterio
-from scipy.ndimage import binary_erosion, distance_transform_edt
+from floodseg.metrics import edge_distance
 
 REPO = Path(__file__).resolve().parents[1]
 PRED = REPO / "outputs" / "logits_dev"
@@ -37,8 +37,7 @@ def main() -> None:
         with rasterio.open(LABEL / f"{st}.tif") as src:
             y = src.read(1)
         w = y == 1
-        edge = (w ^ binary_erosion(w)) | (~w ^ binary_erosion(~w))
-        dist = distance_transform_edt(~edge)
+        dist = edge_distance(w)  # corrected 2026-10-15: chip frame no edge (METHODS_NOTES)
         ok = y != -1
         for d in runs:
             pred = np.load(d / f"{st}.npy") > 0

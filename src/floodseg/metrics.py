@@ -15,14 +15,22 @@ from scipy.ndimage import binary_erosion, distance_transform_edt
 TOLERANCE_PX = 1
 
 
+def edge_distance(water: np.ndarray) -> np.ndarray:
+    """Euclidean distance (px) of every pixel to the nearest label water/not-water edge pixel.
+
+    border_value=1: the chip frame is not an edge (with scipy's default 0 every border pixel
+    would be one). A chip without any edge gets +inf everywhere (scipy's transform of an array
+    without zeros measures to a phantom point outside the corner)."""
+    edge = (water ^ binary_erosion(water, border_value=1)) | (~water ^ binary_erosion(~water, border_value=1))
+    if not edge.any():
+        return np.full(water.shape, np.inf)
+    return distance_transform_edt(~edge)
+
+
 def masks(y: np.ndarray, k: int = TOLERANCE_PX) -> tuple[np.ndarray, np.ndarray]:
     """(plain, tolerant) boolean masks of the pixels scored, for a label array y in {−1, 0, 1}."""
-    w = y == 1
-    # border_value=1: the chip frame is not an edge (with the default 0 every border pixel
-    # would be one; scripts/edge_tolerance.py and analyze_dev.py have that, see METHODS_NOTES)
-    edge = (w ^ binary_erosion(w, border_value=1)) | (~w ^ binary_erosion(~w, border_value=1))
     ok = y != -1
-    return ok, ok & (distance_transform_edt(~edge) >= k + 0.5)
+    return ok, ok & (edge_distance(y == 1) >= k + 0.5)
 
 
 def counts(pred: np.ndarray, y: np.ndarray, k: int = TOLERANCE_PX) -> np.ndarray:
