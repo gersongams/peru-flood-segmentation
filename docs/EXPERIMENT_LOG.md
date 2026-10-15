@@ -387,8 +387,8 @@ allocated, image `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, 50 GB contai
   teacher + student `iter4000.pt`), `outputs/logits_dev/<tag>/<model>/seed<s>/` (final dev logits).
 - **Pod deleted** 19:41 UTC (`list-pods` empty afterwards). Billing read at ≈ 19:42 UTC
   (`list-pod-billing`, podId `otv36sv0k42lyh`): $5.34 (GPU $5.249 + disk $0.089). Expected
-  ≈ $6.0 from uptime × rate (12:55–19:41 UTC ≈ 6.8 h × $0.89/h); the billing record lags,
-  re-read before quoting a final cost.
+  ≈ $6.0 from uptime × rate (12:55–19:41 UTC ≈ 6.8 h × $0.89/h); the billing record lags.
+  Second read ≈ 20:30 UTC: $5.72 (GPU $5.620 + disk $0.095), still converging to ≈ $6.0.
 - **Scoring (Mac):** `uv run python scripts/phaseD_dev_table.py` → `outputs/phaseD/dev_table.md`,
   `dev_table_runs.csv`; `uv run python scripts/phaseD_oracle.py` → `outputs/phaseD/oracle_selection.{csv,md}`;
   paired per-seed deltas → `outputs/phaseD/paired_deltas.csv`; teacher water fraction on pool

@@ -86,7 +86,7 @@ Gap-closed values for the diagnostic rows come from the same table script.
 ## Cost
 
 Self-training session: RunPod RTX 4090, 22 runs, pod up 12:55–19:41 UTC on 2026-10-15
-(≈ 6.8 h × $0.89/h ≈ $6.0; billing read $5.34 shortly after deletion, still lagging). Source
+(≈ 6.8 h × $0.89/h ≈ $6.0; billing reads $5.34, then $5.72 after deletion, still catching up). Source
 models (section 1): $4.56.
 
 ## Open decisions (authors)
