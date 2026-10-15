@@ -1096,3 +1096,66 @@ water_frac_trajectory.csv, dev_water_fraction.csv, oracle_grid_noadabn.md}`. Che
 reproduced the earlier files exactly (trajectory CSV byte-identical, grid table identical, every
 paired delta and dev water fraction quoted above unchanged; `paired_deltas.csv` gains the
 no-AdaBN columns). No number changes. Feeds: reproducibility appendix.
+
+## 2026-10-15 — Pod session 2, pre-registered before launch: Prithvi source models and training-time input alignment (tasks 5.4, 3.4 part 2)
+
+**Authors' decision:** the authors added $10 of RunPod credit and asked to run what fits
+(balance ≈ $16.4). Everything below is fixed before any run; dev results are not used for
+any choice in this session except where stated (and then only the pre-registered rule).
+
+**Queue A — Prithvi-EO-2.0 300M source models on Sen1Floods11 (task 5.4).** Why: Prithvi
+was the best Sen1Floods11-only model on Peru in phase C (seed 0, dev 0.8758), so it is the most
+relevant missing backbone. Config `configs/prithvi_eo_v2_300.yaml` unchanged (6 HLS bands,
+UNet decoder, batch 4, AdamW wd 0.1, ReduceLROnPlateau, early stopping patience 20), 16-mixed
+on an RTX 4090, official Sen1Floods11 splits.
+- LR sweep, seed 0, 100-epoch cap: {3e-5, 1e-4, 3e-4} (half-decade steps around the config's
+  1e-4). Winner = highest `valid` water IoU (`val/IoU_Flood`, max over epochs).
+- **Edge rule** (TerraMind's best LR sat on its grid edge): if the winner is 3e-5, add 1e-5;
+  if 3e-4, add 1e-3; re-select over all four.
+- Final: seeds 0–2 at the winner, 200-epoch cap (as section 1). Checkpoint = best `valid`.
+- Selection runs automatically on the pod (`scripts/cloud/queue_phaseD2.sh A`), so finals cannot
+  be queued with a wrong LR (the section-1 mistake). `valid` labels are on the pod; no Peru data.
+- Afterwards, on the Mac: `peru-dev` logits (source-only), test-time histogram matching (as
+  for U-Net/TerraMind), decoder AdaBN if the decoder has BN layers (noting it hurt TerraMind,
+  −0.047), `valid` logits for the temperature fit. **No self-training** for Prithvi
+  (`docs/phaseD_dev.md`).
+
+**Queue B — training-time input alignment (task 3.4 part 2, design decision 7).** The source
+model is trained on Sen1Floods11 chips transformed towards the Peru pool, then applied to
+**unchanged** Peru images.
+- `floodseg.train_alignment.HistMatchToPool`: per band, v → F_pool⁻¹(F_s1f(v)), the inverse of
+  the test-time map, from the same cached quantiles (`outputs/phaseD/alignment/params.npz`:
+  1,001 quantiles of every 50th non-no-data pixel of the 252 Sen1Floods11 `train` images and of
+  the 753 pool images). Check: mapping all 252 train chips reproduces the pool quantiles exactly
+  (5/25/50/75/95 % of GREEN, NIR, SWIR1, SWIR2).
+- `FDAToPool`: per band, the centred low-frequency amplitude square (β = 0.01, half-width 5 px)
+  replaced by that of a random pool image (phase kept); validation uses the mean pool amplitude
+  (deterministic, as the test-time FDA). Pool amplitude windows: (753, 13, 11, 11), built by
+  `scripts/build_train_alignment.py` under the Peru-label guard; only this npz (5 MB) goes to the
+  pod, no Peru image. FDA is run as designed even though test-time FDA failed (it shifts each
+  band's mean and so changes B03 − B11); expectation recorded: likely harmful.
+- Applied to raw DN after TerraTorch's NaN → 0 and band selection, before D4 and normalization;
+  pixels with all bands 0 stay 0 (checked). Also applied to `valid`, so checkpoint selection sees
+  the same input style as training (the model is meant for Peru-styled inputs).
+- Runs: U-Net (LR 3e-4) and TerraMind (LR 5e-5, the section-1 LRs) × {HM, FDA} × seeds 0–2,
+  200-epoch cap; then Prithvi × HM × seeds 0–2 at queue A's LR (after queue A is done: two
+  Prithvi runs may not fit in 24 GB). All 3 seeds are run up front (cheap, ≈ 10 min each) to
+  avoid a dev-dependent pause; the pre-registered choice between HM and FDA per backbone
+  (task 3.4) is still made on **seed-0 dev IoU**, and both are reported.
+- Evaluation on the Mac: dev logits on unchanged Peru images; rows `trhm`, `trfda` in the dev table.
+
+**Budget rule.** Pod RTX 4090 Secure ($0.89/h), CUDA ≥ 13.0. Estimate from measured 4090 times
+(phase-C Peru runs: Prithvi 2,056 s / 69 epochs over 753 chips ≈ 0.04 s per chip-epoch → ≈ 10 s per
+Sen1Floods11 epoch; TerraMind Sen1Floods11 470 s / 73 epochs; U-Net 602 s / 104): queue A ≈ 2–3 h,
+queue B ≈ 2–3 h in parallel, ≈ 3.5–4.5 h of pod time ≈ $3–4 plus setup. Ceiling: stop the pod if
+the session reaches $9 (keeps ≥ $7 for later). Priority if the budget runs short: A (Prithvi) >
+B U-Net/TerraMind HM > FDA > Prithvi HM.
+
+**Checks before launch:** unit tests `tests/test_train_alignment.py` (nodata, quantile map,
+band subset, FDA shape); Mac smoke tests (1 epoch, few batches) of U-Net + HM, U-Net + FDA,
+Prithvi + HM all train and validate. One first U-Net + HM attempt with 4 DataLoader workers
+stalled at 0 % CPU and was killed; it did not reproduce (two later runs with workers finished),
+so the pod watcher also checks that logs keep growing.
+
+Feeds: thesis chapter 5 (Prithvi rows; input alignment at training vs test time), paper section
+"Adapting without Peru labels".
