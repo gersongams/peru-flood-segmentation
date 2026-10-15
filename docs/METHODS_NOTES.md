@@ -824,3 +824,28 @@ allocation); losses finite, q schedule 0.20 → 0.50, teacher between source and
 (EMA working), no collapse warning; teacher water fraction on pool batches ≈ 0.05 (U-Net)
 and ≈ 0.15 (TerraMind). The offline evaluation ran on the demo checkpoint (174 dev files).
 Demo outputs in `outputs/phaseD/self_train/mic_demo/` are not results.
+
+## 2026-10-15 — Cloud protocol for the self-training runs (fixed before the runs; tasks 4.5–4.7, 4.9)
+
+- **Authors' decision:** run the default and masked variants with 3 seeds and the oracle grid
+  (seed 0) in one pod session (stages A + B together).
+- **Jobs** (`scripts/cloud/jobs_phaseD_<model>.txt`), per backbone: `st` and `mic` with the
+  pre-registered defaults, seeds 0–2 (6 runs); oracle grid at seed 0, `st`, α ∈ {0.99, 0.999}
+  × q ∈ {20, 50, 80} %, where q is the **final** share of the q schedule (start stays 20 %,
+  so q = 20 % is constant); the default (0.99, 50 %) is shared with the headline runs, so 5
+  extra runs. 11 runs per backbone, 22 in total. The 3-seed follow-up of the oracle-best
+  configuration needs dev labels to choose it, so it is a later, separate session.
+- **Checkpoint interval 1,000 iterations** (was 500 in design.md), changed before any run to
+  keep pod disk and transfer small; it only changes the resolution of the oracle checkpoint
+  choice (iterations 1,000 / 2,000 / 3,000 / 4,000). The headline stays the final checkpoint.
+- **Dev predictions on the pod, scoring on the Mac.** After each run, the pod runs the AdaBN
+  pass and saves dev predictions (`scripts/eval_adapted.py --all`): packed binary maps for
+  intermediate checkpoints, float32 logits for the final one. The pod holds dev and pool
+  *images* but **no Peru label file** (`scripts/cloud/sync_phaseD.sh` copies images and split
+  lists only and checks that no label folder exists); scoring happens on the Mac. Intermediate
+  weights are deleted after their predictions are saved; final teacher and student kept.
+- **Source checkpoints uploaded weights-only** (`scripts/cloud/stage_phaseD.py`; state dict
+  identical, checked).
+- **Two queues share one GPU** (U-Net and TerraMind in parallel) to use the GPU fully; the
+  recorded wall clock per run is therefore under shared load and is reported as such (peak
+  memory is per process).

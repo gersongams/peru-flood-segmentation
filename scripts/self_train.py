@@ -3,8 +3,8 @@
     uv run python scripts/self_train.py --model unet --seed 0 [--variant st|mic] [--iters 4000] [--demo]
 
 Defaults are the pre-registered configuration (design.md decision 9, METHODS_NOTES 2026-10-15).
-The whole fit runs inside the Peru-label guard. Every 500 iterations the teacher and student
-weights are saved to <out>/checkpoints/iter<N>.pt; <out>/run.json records the source
+The whole fit runs inside the Peru-label guard. Every 1,000 iterations the teacher weights (at
+the end also the student's) are saved to <out>/checkpoints/iter<N>.pt; <out>/run.json records the source
 checkpoint and its commit, the config, wall clock, peak memory and collapse events.
 Evaluation is offline: scripts/eval_adapted.py (AdaBN pass on the pool, then peru-dev logits).
 `--demo`: 20 iterations, batch 2 + 2, checkpoint every 10 (local check of losses, mixing, EMA).
@@ -40,15 +40,20 @@ def instantiate(spec):
 
 
 class SaveEvery(pl.Callback):
+    """Every `every` iterations save the teacher (the evaluated model); at the end also the student."""
+
     def __init__(self, out: Path, every: int):
         self.out, self.every = out, every
 
     def on_train_batch_end(self, trainer, module, *_):
         step = trainer.global_step
-        if step % self.every == 0 or step == trainer.max_steps:
+        final = step == trainer.max_steps
+        if step % self.every == 0 or final:
             self.out.mkdir(parents=True, exist_ok=True)
-            torch.save({"teacher": module.teacher.state_dict(), "student": module.student.state_dict(), "iter": step},
-                       self.out / f"iter{step}.pt")
+            state = {"teacher": module.teacher.state_dict(), "iter": step}
+            if final:
+                state["student"] = module.student.state_dict()
+            torch.save(state, self.out / f"iter{step}.pt")
 
 
 def peak_memory_mb(device: str) -> float | None:
@@ -72,7 +77,7 @@ def main() -> None:
     ap.add_argument("--num_workers", type=int, default=4)
     a = ap.parse_args()
     folder, src_lr, half_batch = SOURCES[a.model]
-    iters, every = (20, 10) if a.demo else (a.iters, 500)
+    iters, every = (20, 10) if a.demo else (a.iters, 1000)
     if a.demo:
         half_batch = 2
     tag = f"{a.variant}" + ("" if (a.alpha, a.q_end) == (0.99, 0.5) else f"_a{a.alpha}_q{a.q_end}") + ("_demo" if a.demo else "")

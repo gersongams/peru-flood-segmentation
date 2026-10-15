@@ -34,15 +34,23 @@ def adapt_bn(model: torch.nn.Module, spec: dict, device: str, batch: int, pool: 
     return len(bns), len(paths)
 
 
-def predict_dev(model: torch.nn.Module, spec: dict, device: str, batch: int, out: Path) -> int:
+def predict_dev_arrays(model: torch.nn.Module, spec: dict, device: str, batch: int) -> dict[str, np.ndarray]:
+    """Water logit z (float32, H × W) of every dev chip, keyed by stem. Reads images only."""
     stems = DEV_SPLIT.read_text().split()
-    out.mkdir(parents=True, exist_ok=True)
     model.eval()
+    out = {}
     with torch.no_grad():
         for i in range(0, len(stems), batch):
             part = stems[i:i + batch]
             x = torch.stack([load_image(PERU_IMAGES / f"{s}.tif", spec) for s in part]).to(device)
             o = model(x).output.float()
-            for s, z in zip(part, (o[:, 1] - o[:, 0]).cpu().numpy().astype(np.float32)):
-                np.save(out / f"{s}.npy", z)
-    return len(stems)
+            out.update(zip(part, (o[:, 1] - o[:, 0]).cpu().numpy().astype(np.float32)))
+    return out
+
+
+def predict_dev(model: torch.nn.Module, spec: dict, device: str, batch: int, out: Path) -> int:
+    out.mkdir(parents=True, exist_ok=True)
+    z = predict_dev_arrays(model, spec, device, batch)
+    for s, v in z.items():
+        np.save(out / f"{s}.npy", v)
+    return len(z)
