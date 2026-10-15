@@ -1,6 +1,6 @@
 # Next steps (handoff, 2026-10-15)
 
-Status at commit `9eb2dfa`: phase C (Peru training, failure analysis, uncertainty) is done and pushed. All RunPod pods are deleted. Results and provenance are in `docs/EXPERIMENT_LOG.md`, `docs/failure_analysis_dev.md` and `docs/uncertainty_dev.md`. Open tasks are in OpenSpec change `plan-flood-research` (`openspec/changes/plan-flood-research/tasks.md`).
+Status 2026-10-15: phase C is done; phase D is done up to the dev analysis (section 1 below). Local `main` is ahead of GitHub (not pushed). All RunPod pods are deleted. Results and provenance are in `docs/EXPERIMENT_LOG.md`, `docs/failure_analysis_dev.md` and `docs/uncertainty_dev.md`. Open tasks are in OpenSpec change `plan-flood-research` (`openspec/changes/plan-flood-research/tasks.md`).
 
 ## Order of work
 
@@ -21,10 +21,16 @@ Checkpoints: `outputs/s1f11_src_unet/`, `outputs/s1f11_src_terramind_lr5e-5/`.
 **Done 2026-10-15 (local):** section 2 (target pool + guards), 3.1 (index baselines),
 3.2 (source-only rows): `outputs/phaseD/dev_table.md`. Source-only U-Net 0.836 ± 0.022,
 TerraMind 0.703 ± 0.091 dev IoU (seed 1 at 0.598); errors are false positives.
-**Next:** 3.3 AdaBN (U-Net), 3.4 histogram matching / FDA, then section 4 (self-training).
-Prithvi source models wait for task 5.4. **Open correction:** recompute the edge stratum of
-`scripts/analyze_dev.py` without the chip frame (`border_value=1`, see METHODS_NOTES
-2026-10-15) and update `docs/failure_analysis_dev.md` if numbers move.
+**Done 2026-10-15:** 3.3 AdaBN, 3.4 part 1 (test-time HM / FDA), section 4 self-training
+(22 RunPod runs, ≈ $6.0, pod deleted), 5.1 gap-closed table. Write-up: `docs/phaseD_dev.md`.
+Best per backbone on dev: **U-Net + AdaBN 0.897 ± 0.016**, **TerraMind + test-time HM
+0.809 ± 0.006**. Self-training as pre-registered is harmful (the evaluation-time AdaBN pass
+causes most of the TerraMind drop, post-hoc diagnostic); even without it, it stays below the
+alignment baselines. The edge-distance correction is done (commit `6f1ad88`).
+**Next (authors' decisions first):** (a) any new self-training variant (on HM inputs, fixed BN
+rule) — new design, pre-register, pod ≈ $3–6; (b) training-time HM (3.4 part 2), cost
+decision; (c) Prithvi (5.4). Free, local: 5.2 stratified analysis and 5.3 calibration of
+AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)
 - ~~**6.4** per-stratum calibration, **5.4** reliability diagrams~~: done 2026-10-14

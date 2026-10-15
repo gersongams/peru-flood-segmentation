@@ -400,6 +400,6 @@ allocated, image `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, 50 GB contai
 `uv run python scripts/eval_adapted.py outputs/phaseD/self_train/<st|mic>/<model>/seed<s> --no_adabn`
 for both backbones, seeds 0–2 (12 evaluations, MPS, final teacher `iter4000.pt`) →
 `outputs/logits_dev/<st|mic>_noadabn/<model>/seed<s>/`; scored with `scripts/phaseD_dev_table.py`
-(rows labelled "post-hoc diagnostic"). Code: commit after `b2d818f` (this entry's commit).
+(rows labelled "post-hoc diagnostic"). Code: commit `ef9ec28`.
 Results and the correction they cause: METHODS_NOTES 2026-10-15 "Correction: the
 evaluation-time AdaBN pass causes most of the self-training drop".

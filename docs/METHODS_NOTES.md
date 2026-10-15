@@ -1037,7 +1037,7 @@ i.e. the water area **shrinks** slightly; with AdaBN it grew to 0.322/0.353/0.27
 **What does not change.** Even with the evaluation choice made post hoc in its favour,
 self-training does not beat the simple alignment baselines on any seed:
 - U-Net `st` no AdaBN 0.900/0.891/0.841 < AdaBN 0.905/0.907/0.878 (paired: −0.005/−0.016/−0.037);
-- TerraMind `st` no AdaBN 0.751/0.761/0.761 < HM 0.815/0.809/0.802 (−0.064/−0.048/−0.041).
+- TerraMind `st` no AdaBN 0.751/0.761/0.761 < HM 0.815/0.809/0.802 (−0.064/−0.048/−0.042).
 Paired vs source, `st` without AdaBN is positive on every U-Net seed (+0.057/+0.036/+0.030) and
 mixed for TerraMind (−0.013/+0.163/+0.014): mostly it repairs the weak seed 1 and removes the
 seed sensitivity (std 0.006), as HM does, but less. The thesis conclusion "simple statistics
