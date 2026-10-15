@@ -111,13 +111,20 @@ def _read(path, idx, mean, std, no_data) -> torch.Tensor:
     return torch.from_numpy((np.nan_to_num(x, nan=no_data) - mean) / std)
 
 
-def load_image(path: Path, spec: dict) -> torch.Tensor:
-    """One image normalized for a model, as in the pool (for evaluation scripts: no pool
-    guard, so it also reads dev/test images)."""
+def normalize(raw: np.ndarray, spec: dict) -> torch.Tensor:
+    """A raw all-band image (dataset_bands, H, W) → normalized model input, as the pool reads it."""
     idx = [spec["dataset_bands"].index(b) for b in spec["output_bands"]]
     mean = np.asarray(spec["means"], np.float32)[:, None, None]
     std = np.asarray(spec["stds"], np.float32)[:, None, None]
-    return _read(path, idx, mean, std, spec["no_data_replace"] if spec["no_data_replace"] is not None else 0)
+    no_data = spec["no_data_replace"] if spec["no_data_replace"] is not None else 0
+    return torch.from_numpy((np.nan_to_num(raw.astype(np.float32)[idx], nan=no_data) - mean) / std)
+
+
+def load_image(path: Path, spec: dict) -> torch.Tensor:
+    """One image normalized for a model, as in the pool (for evaluation scripts: no pool
+    guard, so it also reads dev/test images)."""
+    with rasterio.open(path) as src:
+        return normalize(src.read(), spec)
 
 
 def _is_label(path) -> Path | None:
