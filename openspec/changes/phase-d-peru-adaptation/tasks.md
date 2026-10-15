@@ -1,9 +1,9 @@
 ## 1. Source models (Sen1Floods11, RunPod)
 
-- [ ] 1.1 Cost estimate for sections 1 and 4 (RunPod catalog read); get the authors' go
-- [ ] 1.2 LR sweep (3 values) on Sen1Floods11 `valid`, seed 0, for U-Net and TerraMind (= plan-flood-research 3.4)
-- [ ] 1.3 Repeat one run to record seed reproducibility on the 4090 (= 3.5)
-- [ ] 1.4 Train U-Net and TerraMind × 3 seeds on Sen1Floods11 with the chosen LR (= 3.6); copy back, verify, delete the pod
+- [x] 1.1 Cost estimate for sections 1 and 4 (RunPod catalog read); get the authors' go
+- [x] 1.2 LR sweep (3 values) on Sen1Floods11 `valid`, seed 0, for U-Net and TerraMind (= plan-flood-research 3.4)
+- [x] 1.3 Repeat one run to record seed reproducibility on the 4090 (= 3.5)
+- [x] 1.4 Train U-Net and TerraMind × 3 seeds on Sen1Floods11 with the chosen LR (= 3.6); copy back, verify, delete the pod
 - [ ] 1.5 Compare `valid` IoU with published numbers (= 3.8); log runs in EXPERIMENT_LOG
 
 ## 2. Target pool and guards

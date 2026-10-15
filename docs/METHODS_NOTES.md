@@ -452,8 +452,10 @@ interpretation), Chapter VI (limitations).
   collapse to "all dry" with rare water; CE on pseudo-labels, the source Dice loss in every
   step; binary DACS mixing that pastes source water onto desert chips (the failure mode);
   LR warm-up.
-- **Masked consistency at image level** (32 px patches, ratio 0.7) for all backbones: uniform
-  for the CNN and the ViTs, and 32 px is a multiple of the 16 px ViT patch.
+- **Masked consistency at image level** (64 px patches, ratio 0.7) for all backbones: uniform
+  for the CNN and the ViTs, and 64 px is a multiple of the 16 px ViT patch. (Corrected
+  2026-10-15: this line first said 32 px; `design.md` and the defaults below use 64 px, MIC
+  Table 8 per the agent notes.)
 - **Baselines on the same backbones:** MNDWI > 0, Otsu-MNDWI on the pool, histogram matching,
   FDA, AdaBN (U-Net only, because the ViT encoders use LayerNorm).
 - **Protocol: the headline uses no Peru labels at all.** Hyperparameters are pre-registered
@@ -468,3 +470,62 @@ interpretation), Chapter VI (limitations).
   images (transductive; possible later row), Sentinel-1.
 
 **Thesis use.** Chapter IV (method), Chapter V (protocol).
+
+## 2026-10-15 — Sen1Floods11 source models: LR choice, epoch cap, reproducibility (phase-D tasks 1.1–1.4)
+
+**What and why.** Phase D adapts Sen1Floods11-trained models to Peru, and per-seed adaptation
+results need one source model per seed. So U-Net and TerraMind v1-B were retrained on
+Sen1Floods11 with a learning-rate sweep and 3 seeds (the seed-0 phase-C checkpoints had an
+untuned LR). Runs and costs: `docs/EXPERIMENT_LOG.md` (2026-10-14/15 entry).
+
+**Method.**
+- Data: official Sen1Floods11 hand-labelled splits, train 252 chips, selection on `valid` (89).
+  13 Sentinel-2 L1C bands, each model's official normalization, same Dice loss, AdamW
+  (weight decay 0.05), ReduceLROnPlateau on `val/loss` (factor 0.5, patience 5), batch and
+  augmentation as in `configs/<model>.yaml`. Early stopping on `val/IoU_Flood` with patience 20;
+  the checkpoint with the best `val/IoU_Flood` is kept.
+- LR sweep, seed 0, 100-epoch cap: U-Net {3e-5, 1e-4, 3e-4, 1e-3} (4 values), TerraMind
+  {1e-5, 2e-5, 5e-5} (3 values). Chosen by best `valid` water IoU: **U-Net 3e-4 (0.8325),
+  TerraMind 5e-5 (0.8354)**.
+- Final: 3 seeds (0, 1, 2) per model, epoch cap raised to 200. RTX 4090, 16-bit mixed precision.
+
+**Results** (`valid` water IoU, mean ± std over 3 seeds; recomputed from `metrics.csv` in
+`outputs/s1f11_src_unet/` and `outputs/s1f11_src_terramind_lr5e-5/`):
+U-Net 0.8315 ± 0.0015; TerraMind 0.8349 ± 0.0014. Both above the phase-C seed-0 models trained
+at the default LR on the Mac (U-Net 0.8188, TerraMind 0.8168).
+
+**Decisions and alternatives.**
+- *Epoch cap 200 instead of 100* (authors approved "add more epochs if that improves it"):
+  U-Net 3e-4 and TerraMind 2e-5 peaked at the last sweep epoch (95 and 99 of 100). With 200,
+  best epochs were 52–89, so the cap did not bind in the final runs; early stopping ended
+  every run.
+- *TerraMind 5e-5 is the edge of its grid.* A higher LR was not tried; the optimum may be
+  above 5e-5. Accepted because 3 seeds at 5e-5 are stable (std 0.0014) and above every other
+  value, and the remaining budget goes to adaptation.
+- *Selection bias.* LR, early stopping and the checkpoint are all chosen on `valid`, so these
+  `valid` numbers are optimistic. They only rank configurations; Sen1Floods11 `test` is not
+  used here (scored once at the end).
+
+**Checks.**
+- All runs clean commit `8a8fee4`; all copies verified file by file.
+- `run.json` shows `lr: 0.001` (an unused task field); the LR used is
+  `optimizer.init_args.lr` in each run's `config.yaml` — checked for every run.
+
+**Correction / mistake.** The TerraMind final seeds were first launched at 2e-5, chosen
+before the 5e-5 sweep run had finished (0.8141 ± 0.0151). They were rerun at 5e-5. The 2e-5
+runs are logged and not used.
+
+**Reproducibility (plan 3.5).** Rerunning U-Net seed 0 with identical settings gave 0.8161
+(best epoch 34, stopped at 54) instead of 0.8330 (best 83): 1.7 points. GPU training here is
+not deterministic (cuDNN kernels, mixed precision) and early stopping amplifies small early
+differences. **Implication:** the seed std (≈ 0.15 points) understates the run-to-run
+variation; differences between methods below ~2 points from 3 seeds should be stated with
+care. Thesis: report this tolerance next to the seed std.
+
+**Published reference (plan 3.8, not yet closed).** Prithvi-CAFE (arXiv 2601.02315) Table 1
+lists TerraMind v1-B at 82.90 water IoU on Sen1Floods11; its protocol differs (inputs,
+splits used for reporting). Re-check the table in the PDF and add the paper to Zotero before
+citing; no comparison claim beyond "same range" until then.
+
+**Thesis use.** Chapter IV (training setup, hyperparameter selection), Chapter V (source
+models of phase D, reproducibility caveat).

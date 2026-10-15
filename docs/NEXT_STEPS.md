@@ -1,4 +1,4 @@
-# Next steps (handoff, 2026-10-14)
+# Next steps (handoff, 2026-10-15)
 
 Status at commit `9eb2dfa`: phase C (Peru training, failure analysis, uncertainty) is done and pushed. All RunPod pods are deleted. Results and provenance are in `docs/EXPERIMENT_LOG.md`, `docs/failure_analysis_dev.md` and `docs/uncertainty_dev.md`. Open tasks are in OpenSpec change `plan-flood-research` (`openspec/changes/plan-flood-research/tasks.md`).
 
@@ -14,9 +14,12 @@ unlabelled Peru imagery); no Sentinel-1; v1 labels frozen plus a pre-registered
 sensitivity row; timeline unknown (plan 3–6 months).
 **6.6 done:** OpenSpec change `phase-d-peru-adaptation` (proposal, 3 specs, design, tasks;
 `openspec validate --strict` passes). Literature: `docs/literature_phaseD.md`.
-**Next:** its section 1 (Sen1Floods11 source models on RunPod: LR sweep + 3 seeds for U-Net
-and TerraMind; needs the authors' go on cost) and, locally in parallel, section 2 (target pool
-+ guards) and 3.1 (index baselines with tolerant IoU).
+**Section 1 done 2026-10-15:** Sen1Floods11 source models on RunPod, LR sweep + 3 seeds:
+U-Net (LR 3e-4) 0.8315 ± 0.0015, TerraMind (LR 5e-5) 0.8349 ± 0.0014 `valid` IoU; cost
+$4.56; pods deleted (`docs/EXPERIMENT_LOG.md`, `docs/METHODS_NOTES.md` 2026-10-15).
+Checkpoints: `outputs/s1f11_src_unet/`, `outputs/s1f11_src_terramind_lr5e-5/`.
+**Next (local, free):** section 2 (target pool + guards), 3.1 (index baselines with tolerant
+IoU), 3.2 (source-only rows on `peru-dev`). Prithvi source models wait for task 5.4.
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)
 - ~~**6.4** per-stratum calibration, **5.4** reliability diagrams~~: done 2026-10-14
@@ -28,10 +31,10 @@ and TerraMind; needs the authors' go on cost) and, locally in parallel, section 
 - ~~**6.5** decision record~~: done. **6.6** open the phase-D OpenSpec change (see step 1).
 - **5.2** MC-dropout (optional).
 
-### 3. Remaining Sen1Floods11 tasks (RunPod, about $5–8)
-- **3.4** learning-rate sweep; **3.5** repeat-run reproducibility check.
-- **3.6** 3-seed Sen1Floods11 runs; **3.8** comparison with published numbers (needed for the paper's Sen1Floods11 row).
-- Use `scripts/cloud/` (sync_data, setup_pod, run_queue, fetch_results). Delete the pod after verifying results locally.
+### 3. Remaining Sen1Floods11 tasks
+- ~~3.4 LR sweep, 3.5 reproducibility~~: done 2026-10-15. 3.6 done for U-Net + TerraMind;
+  Prithvi pending (phase-D 5.4).
+- **3.8** comparison with published numbers: re-check Prithvi-CAFE Table 1 in the PDF.
 
 ### 4. Start writing the thesis (task 8.2)
 Chapter III (data, Peru dataset, protocol) in Spanish, from `docs/peru_data_card.md`, the experiment log and the scripts. Edit in `thesis/` (separate Overleaf repo; `git pull` first); push to Overleaf only with the user's OK.

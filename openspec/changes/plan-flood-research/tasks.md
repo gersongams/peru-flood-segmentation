@@ -19,9 +19,9 @@
 - [x] 3.1 TerraTorch config for U-Net (ResNet encoder); one end-to-end run on seed 0
 - [x] 3.2 TerraTorch config for TerraMind v1-B (UNetDecoder, official normalization); one run on seed 0
 - [x] 3.3 TerraTorch config for Prithvi-EO-2.0 300M (batch 4 + grad accumulation); one run on seed 0
-- [ ] 3.4 Learning-rate sweep (3 values) per model on `valid`, seed 0; fix hyperparameters
-- [ ] 3.5 Check seed reproducibility on MPS (repeat one run) and record tolerance in the experiment log
-- [ ] 3.6 Train all models × ≥3 seeds; decide 3 vs 5 seeds from measured timing
+- [x] 3.4 Learning-rate sweep (3 values) per model on `valid`, seed 0; fix hyperparameters
+- [x] 3.5 Check seed reproducibility on MPS (repeat one run) and record tolerance in the experiment log (done on the RTX 4090, 2026-10-15: 1.7 IoU points run-to-run)
+- [ ] 3.6 Train all models × ≥3 seeds; decide 3 vs 5 seeds from measured timing (U-Net + TerraMind done 2026-10-15, 3 seeds; Prithvi pending phase-D task 5.4)
 - [x] 3.7 Verify the SOTA reference number(s) in the source PDFs (table + page) and record them in `docs/REFERENCES.md`; note which inputs each used (the official TerraMind Sen1Floods11 config uses S2L1C + S1GRD, not S2 only)
 - [ ] 3.8 Compare our `valid` results with published numbers; investigate any gap > 2 IoU before phase C
 

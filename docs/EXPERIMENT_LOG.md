@@ -261,3 +261,60 @@ CPU evaluations on existing outputs, Mac; no test split used.
 - `scripts/unosat_provenance.py` (commit `5d769fe`) on `data/unosat2023/raw/` →
   `outputs/label_qa/unosat_geometry.csv`.
 Results and interpretation: `docs/METHODS_NOTES.md` (entries of 2026-10-14).
+
+## 2026-10-14/15 — Sen1Floods11 source models for phase D (phase-D tasks 1.1–1.4; plan 3.4–3.6)
+
+RunPod, EU-RO-1, RTX 4090 Secure Cloud ($0.89/h), `16-mixed`, commit `8a8fee4` (clean on the
+pod; every `run.json` has `dirty: false`), torch 2.14.0, lightning 2.6.6, terratorch 1.2.13.
+Launched with `DATASET=s1f11 RUN_NAME=<name> bash scripts/cloud/run_queue.sh <model> <seeds>
+--optimizer.init_args.lr=<lr> [--trainer.max_epochs=200]`. Official Sen1Floods11 splits
+(train 252 / valid 89); early stopping and best checkpoint on `val/IoU_Flood` (patience 20),
+so the `valid` IoU below is the selection score, not an unbiased estimate.
+Copied back with `scripts/cloud/fetch_results.sh` → `outputs/<name>/`; every folder verified
+file by file (three transfers dropped with "rsync: unexpected end of file" and were resumed;
+all matched on the retry). Queue logs: `outputs/{setup,sweep,extra,final,tm5}.log`,
+`outputs/final_choice.txt`. Numbers below recomputed from each run's `metrics.csv`
+(max of `val/IoU_Flood`).
+
+Pods:
+- `0abbsqm79fyphu`: failed setup. Host CUDA 12.8 (driver 570), but the lockfile's torch
+  2.14.0+cu130 needs CUDA 13. Deleted; $0.28 (pod billing read). Fix for later pods: create
+  with `gpu.minCudaVersion: "13.0"`.
+- `rev6hvyw1g0fdl`: image `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, driver 580,
+  created 2026-10-14 21:50 UTC, deleted 2026-10-15 after verification; $4.28 (pod billing:
+  $1.946 on 10-14 + $2.335 on 10-15). Includes ≈ 50 min idle between the last run
+  (00:41 UTC) and the start of the copy. **Section 1 total $4.56.**
+
+LR sweep, seed 0, max 100 epochs (best `valid` water IoU, epoch of best, last epoch):
+
+| Model | LR | Folder | IoU | best ep | last ep |
+|---|---|---|---|---|---|
+| U-Net | 3e-5 | `s1f11_lr3e-5` | 0.7964 | 63 | 83 |
+| U-Net | 1e-4 | `s1f11_lr1e-4` | 0.8140 | 39 | 59 |
+| U-Net | **3e-4** | `s1f11_lr3e-4` | **0.8325** | 95 | 99 (cap) |
+| U-Net | 1e-3 | `s1f11_lr1e-3` | 0.8154 | 39 | 59 |
+| TerraMind v1-B | 1e-5 | `s1f11_lr1e-5` | 0.7504 | 38 | 58 |
+| TerraMind v1-B | 2e-5 | `s1f11_lr2e-5` | 0.8197 | 99 | 99 (cap) |
+| TerraMind v1-B | **5e-5** | `s1f11_lr5e-5` | **0.8354** | 60 | 80 |
+
+Final runs, max 200 epochs (cap raised because two sweep runs peaked at the 100-epoch cap;
+authors approved):
+
+| Model, LR | Folder | seed 0 | seed 1 | seed 2 | mean ± std |
+|---|---|---|---|---|---|
+| U-Net, 3e-4 | `s1f11_src_unet` | 0.8330 (ep 83) | 0.8300 (ep 74) | 0.8315 (ep 89) | **0.8315 ± 0.0015** |
+| TerraMind, 5e-5 | `s1f11_src_terramind_lr5e-5` | 0.8333 (ep 52) | 0.8359 (ep 88) | 0.8355 (ep 63) | **0.8349 ± 0.0014** |
+| TerraMind, 2e-5 (superseded) | `s1f11_src_terramind` | 0.8258 (ep 112) | 0.7971 (ep 47) | 0.8194 (ep 86) | 0.8141 ± 0.0151 |
+
+- **Mistake, superseded runs.** The TerraMind final runs were first queued with LR 2e-5,
+  hardcoded before the 5e-5 sweep run had finished. 5e-5 was better, so the three seeds were
+  rerun at 5e-5. The 2e-5 runs are kept and logged but not used.
+- **Reproducibility (plan 3.5).** U-Net seed 0 rerun with identical settings
+  (`s1f11_src_unet_repeat`): 0.8161 (best ep 34, stopped ep 54) vs 0.8330 (best ep 83). Run-to-run
+  difference on the 4090 = 1.7 IoU points, larger than the seed std (0.15). Not bit-reproducible
+  (cuDNN nondeterminism + mixed precision), amplified by early stopping on a noisy curve.
+- `run.json`/`hparams.yaml` show `lr: 0.001` (the task's unused `lr` field). The optimizer
+  actually used is in `config.yaml` → `optimizer.init_args.lr` (3e-4 U-Net, 5e-5 TerraMind).
+- Wall clock per run: U-Net 336–648 s, TerraMind 379–839 s.
+- Phase-D source checkpoints: `outputs/s1f11_src_unet/unet/lightning_logs/seed{0,1,2}/checkpoints/`
+  and `outputs/s1f11_src_terramind_lr5e-5/terramind_v1_base/lightning_logs/seed{0,1,2}/checkpoints/`.
