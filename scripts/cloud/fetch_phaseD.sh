@@ -14,7 +14,10 @@ SSH="ssh -p $PORT -i $HOME/.ssh/id_ed25519_runpod -o StrictHostKeyChecking=accep
 cd "$REPO"
 # One unit per run folder and per logits folder, relative to the repo.
 units=$($SSH "root@$HOST" "cd $R && ls -d outputs/phaseD/self_train/*/*/seed* && for t in \$(ls outputs/phaseD/self_train); do ls -d outputs/logits_dev/\$t/*/seed* 2>/dev/null || true; done")
-echo "$units" | xargs -P "$NP" -I{} sh -c "sleep \$((RANDOM % 4)); mkdir -p '{}'; for t in 1 2 3 4; do rsync -rlt --partial --timeout=120 -e '$SSH' 'root@$HOST:$R/{}/' '{}/' && exit 0; sleep \$((t * 5)); done; echo 'FAIL {}'"
+# The folder is passed as $1, not substituted into the script: BSD xargs -I limits a
+# substituted argument to 255 bytes.
+one="sleep \$((RANDOM % 4)); mkdir -p \"\$1\"; for t in 1 2 3 4; do rsync -rlt --partial --timeout=120 -e '$SSH' \"root@$HOST:$R/\$1/\" \"\$1/\" && exit 0; sleep \$((t * 5)); done; echo \"FAIL \$1\""
+echo "$units" | xargs -P "$NP" -I{} bash -c "$one" _ {}
 dirs=$(echo "$units" | tr '\n' ' ')
 remote=$($SSH "root@$HOST" "cd $R && find $dirs -type f -printf '%s %p\n' | LC_ALL=C sort -k2")
 local=$(find $dirs -type f ! -name '.*' -exec stat -f '%z %N' {} + | LC_ALL=C sort -k2)

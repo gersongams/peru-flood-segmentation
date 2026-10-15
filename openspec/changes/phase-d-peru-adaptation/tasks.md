@@ -26,11 +26,11 @@
 - [x] 4.2 Binary DACS mixing (paste source water onto target chips) and student-only colour jitter / blur
 - [x] 4.3 Water-fraction collapse warning (on the unlabelled pool); checkpoint every 500 iterations; run record with source checkpoint, budget, wall clock, peak memory; no Peru label read in the run
 - [x] 4.4 Local MPS demo (U-Net, few iterations) to check that losses, mixing and EMA work; unit test for the pseudo-label thresholds
-- [ ] 4.5 Cloud demo: memory and speed for TerraMind (student + teacher + masked view) at batch 8
-- [ ] 4.6 Default-config runs (pre-registered in design.md), seed 0, U-Net + TerraMind; score saved checkpoints on `peru-dev` offline
-- [ ] 4.7 Oracle-selection variant (q ∈ {20, 50, 80} × α ∈ {0.99, 0.999}, best dev checkpoint), reported only as the secondary row
-- [ ] 4.8 Masked-consistency variant (64 px patches, ratio 0.7) with the default config
-- [ ] 4.9 3 seeds of the default self-training and masked variants (and the oracle variant), U-Net + TerraMind
+- [x] 4.5 Cloud demo: memory and speed for TerraMind (student + teacher + masked view) at batch 8 (measured in the runs themselves: 4 + 4, peak 6.8 GB / `mic` 8.9 GB on an RTX 4090; EXPERIMENT_LOG pod session)
+- [x] 4.6 Default-config runs (pre-registered in design.md), seed 0, U-Net + TerraMind; score saved checkpoints on `peru-dev` offline
+- [x] 4.7 Oracle-selection variant (q ∈ {20, 50, 80} × α ∈ {0.99, 0.999}, best dev checkpoint), reported only as the secondary row (seed 0; `outputs/phaseD/oracle_selection.md`)
+- [x] 4.8 Masked-consistency variant (64 px patches, ratio 0.7) with the default config
+- [x] 4.9 3 seeds of the default self-training and masked variants (and the oracle variant), U-Net + TerraMind (default and masked done; oracle variant 3 seeds not run: for U-Net it is the default config, for TerraMind every cell is below source-only — METHODS_NOTES 2026-10-15 results entry)
 - [ ] 4.10 Optional: index-aware pseudo-labels (teacher confidence AND MNDWI vs pool-Otsu)
 
 ## 5. Analysis on peru-dev

@@ -887,3 +887,98 @@ METHODS_NOTES entries quoting near-water ECE/AUROC or edge-band IoU (2026-10-14)
 superseded by these values; they are left as written for the record.
 
 **Thesis use.** Chapter V (calibration and failure analysis): use only the corrected values.
+
+## 2026-10-15 — Self-training results on `peru-dev` (tasks 4.5–4.7): negative result
+
+**What was done.** The 22 pre-registered self-training runs (cloud-protocol entry above) were
+scored on `peru-dev` on the Mac: per backbone, `st` (teacher–student with binary DACS) and
+`mic` (+ masked consistency), pre-registered defaults, seeds 0–2, final EMA teacher after the
+AdaBN pass on the pool (the pre-registered evaluated model); and the seed-0 oracle grid
+α ∈ {0.99, 0.999} × final q ∈ {20, 50, 80} % at iterations 1,000–4,000. Pixels: all 174 dev
+chips pooled, as every phase-D row. Sources: `outputs/phaseD/dev_table.md`,
+`dev_table_runs.csv`, `oracle_selection.md`, `paired_deltas.csv`, `water_frac_trajectory.csv`.
+
+**Headline (water IoU, mean ± std over 3 seeds; gap closed = (IoU − source)/(upper − source)):**
+
+| Row | U-Net | TerraMind |
+|---|---|---|
+| Source-only | 0.8364 ± 0.0224 | 0.7027 ± 0.0913 |
+| AdaBN (U-Net all BN; TerraMind decoder BN) | 0.8969 ± 0.0161 (58 %) | 0.6563 ± 0.1019 (−21 %) |
+| Test-time histogram matching | 0.8734 ± 0.0052 (35 %) | 0.8089 ± 0.0064 (47 %) |
+| Self-training `st` | 0.8184 ± 0.1102 (−17 %) | 0.4841 ± 0.0273 (−98 %) |
+| Self-training `mic` | 0.8186 ± 0.0927 (−17 %) | 0.5149 ± 0.0302 (−84 %) |
+| Peru-trained upper bound | 0.9415 ± 0.0019 | 0.9265 ± 0.0025 |
+
+Precision/recall: `st` TerraMind 0.486 / 0.992, `mic` TerraMind 0.516 / 0.995 (source-only
+0.714 / 0.979). For comparison, MNDWI > 0 is 0.487 / 0.996 (IoU 0.4858): TerraMind after
+self-training is no better than the zero-threshold index.
+
+**Paired per-seed deltas vs the same source seed** (IoU points; the means hide them):
+- U-Net `st`: +0.071 / −0.011 / −0.114 (seeds 0/1/2); `mic`: +0.016 / +0.030 / −0.099.
+  AdaBN: +0.062 / +0.053 / +0.067 (every seed). HM: +0.032 / +0.013 / +0.066.
+- TerraMind `st`: −0.294 / −0.131 / −0.231; `mic`: −0.282 / −0.058 / −0.223. HM: +0.051 / +0.211 / +0.056.
+Self-training is either harmful or seed-dependent on both backbones; no seed of either
+backbone beats AdaBN (U-Net) or HM (TerraMind) from the same source seed, except U-Net seed 0
+`st` (0.914 vs AdaBN 0.905).
+
+**Oracle selection (task 4.7; uses dev labels, optimistic by construction, reported only next
+to the dev-tuned MNDWI threshold 0.9251).** Best (configuration, checkpoint) over the seed-0 grid:
+- U-Net: α 0.99, final q 50 %, iteration 4,000 — i.e. the default seed-0 run — IoU 0.9138
+  (tolerant 0.9653). Same seed AdaBN: 0.9052. The whole U-Net grid at 4,000 iterations lies in
+  0.890–0.914, so on seed 0 the hyperparameters barely matter; seeds 1–2 show that the
+  default can also lose 0.01–0.11.
+- TerraMind: α 0.999, final q 80 %, iteration 1,000, IoU 0.6353, below its own source-only seed
+  0 (0.7639). Every TerraMind grid cell at every checkpoint is below source-only
+  (0.42–0.64): no setting in the grid rescues it, and the damage happens by iteration 1,000.
+  A slower teacher (α 0.999) degrades more slowly (0.63 → 0.44–0.57).
+
+**Mechanism: confirmation bias toward false-positive water.** The source models' Peru error
+is false positives on bright desert/coast surfaces (recall ≈ 0.98, precision 0.71–0.85;
+2026-10-15 starting-point entry). Self-training turns the teacher's confident false positives
+into pseudo-labels, so the student learns them and the teacher's water area grows:
+- teacher water fraction on pool batches (`target/water_frac_ema`, smoothed 0.98; from
+  `metrics.csv`), iteration 100 → 4,000: TerraMind `st` 0.147/0.131/0.104 → 0.175/0.194/0.131,
+  `mic` 0.167/0.148/0.119 → 0.232/0.217/0.213; U-Net stays at ≈ 0.04–0.07 throughout;
+- predicted water fraction on dev (final model, all dev pixels): dev labels 0.107; TerraMind
+  source 0.229/0.270/0.205 → `st` 0.322/0.353/0.271; U-Net source 0.132/0.131/0.137 → `st`
+  0.116/0.129/0.162 (seed 2, the seed that lost 0.11 IoU, is the one that grew);
+- recall rises to ≈ 0.99 while precision falls (table above).
+U-Net starts with fewer false positives (precision 0.85), so the loop has less to amplify,
+and the outcome depends on the seed. TerraMind starts at precision 0.71 (seed 1: 0.60) and
+diverges on every seed. Per-class top-q selection does not protect against this: the
+false positives are among the most confident water pixels.
+
+**Checks.** All 22 runs exit 0, 4,000 iterations, commit `e8a5841` clean; transfer verified
+file by file (4,048 files); every scored folder has 174 dev logit files (asserted by the
+table script); the Peru-label guard was active in every fit, and the pod held no label file.
+
+**Caveats.**
+- **The collapse watch was one-sided.** It warns only if the teacher's target water fraction
+  falls below half its initial value (pre-registered); the failure observed is the opposite
+  (expansion). "0 collapse events" therefore says nothing about stability. For a later
+  design: a two-sided band, or a precision proxy that needs no labels (e.g. agreement with
+  an MNDWI threshold).
+- The AdaBN pass before evaluation (pre-registered) is known to hurt TerraMind source-only
+  (decoder AdaBN −0.047 mean). It cannot explain the drop by itself (every TerraMind
+  checkpoint is below source-only and the training-time teacher, which never got the AdaBN
+  pass, already shows the growing water fraction), but a no-AdaBN evaluation is a post-hoc
+  diagnostic (separate entry if run); the headline rows stay as pre-registered.
+- The oracle grid is seed 0 only; the 3-seed follow-up of the oracle configuration (4.7 part
+  2) is not run. For U-Net the oracle configuration is the default, so the 3 headline seeds
+  already are that follow-up.
+- Gap closed on means is misleading when the source mean is driven by a weak seed
+  (TerraMind seed 1); the paired deltas are the primary comparison.
+
+**Alternatives not taken.** No new configuration was tried after seeing dev results (e.g.
+self-training on histogram-matched inputs, a lower LR, fewer iterations): any of those
+would be selected on dev and is a new design decision for the authors, to be pre-registered
+first if done.
+
+**Conclusion for the thesis.** On Peru, simple statistics alignment beats teacher–student
+self-training: AdaBN for the BN-based U-Net (+0.06 on every seed, 58 % of the gap) and test-time
+histogram matching for TerraMind (+0.05 to +0.21 on every seed, 47 % of the gap, and removes
+its seed sensitivity). Self-training, as specified a priori from the DACS/DAFormer/MIC
+recipe, amplifies the source model's dominant error (desert false positives) instead of
+correcting it. Feeds: thesis chapter 5 (results, unsupervised adaptation) and 6
+(discussion: why self-training fails when the source error is confident and systematic);
+paper section "Adapting without Peru labels".

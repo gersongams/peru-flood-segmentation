@@ -373,3 +373,24 @@ allocated, image `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, 50 GB contai
 - Queues started 13:43 UTC: `scripts/cloud/run_phaseD.sh scripts/cloud/jobs_phaseD_<model>.txt`,
   U-Net and TerraMind in parallel on the GPU. Early speed (shared GPU): TerraMind ≈ 4 it/s,
   U-Net ≈ 2.7 it/s (input-bound; GPU utilization 40 %).
+- **Queues finished** (`outputs/phaseD/pod_logs/queue_*.log`, all 22 runs exit 0): TerraMind
+  17:50 UTC, U-Net 19:34 UTC. All runs at commit `e8a5841` (clean), 4,000 iterations,
+  16-mixed precision, 0 collapse events (see the METHODS_NOTES caveat: the watch only detects
+  a *shrinking* water fraction). Wall clock under shared GPU load: TerraMind `st` 890–1,025 s,
+  `mic` 1,112–1,286 s; U-Net `st` 1,391–1,693 s, `mic` 1,871–1,989 s. Peak memory (CUDA, per
+  process): TerraMind 6.8 GB (`mic` 8.9 GB), U-Net 4.5 GB (`mic` 6.1 GB).
+- **Fetch:** `scripts/cloud/fetch_phaseD.sh 157.157.221.29 30398 10` failed first (BSD
+  `xargs -I` limits a substituted argument to 255 bytes: "command line cannot be assembled,
+  too long"); fixed by passing the folder as `$1` to `bash -c`. Re-run: "verified: 4048 files
+  match" (same file list and sizes on pod and Mac). Local: `outputs/phaseD/self_train/<tag>/<model>/seed<s>/`
+  (run.json, metrics.csv, train/eval logs, packed dev predictions iter 1,000–3,000, final
+  teacher + student `iter4000.pt`), `outputs/logits_dev/<tag>/<model>/seed<s>/` (final dev logits).
+- **Pod deleted** 19:41 UTC (`list-pods` empty afterwards). Billing read at ≈ 19:42 UTC
+  (`list-pod-billing`, podId `otv36sv0k42lyh`): $5.34 (GPU $5.249 + disk $0.089). Expected
+  ≈ $6.0 from uptime × rate (12:55–19:41 UTC ≈ 6.8 h × $0.89/h); the billing record lags,
+  re-read before quoting a final cost.
+- **Scoring (Mac):** `uv run python scripts/phaseD_dev_table.py` → `outputs/phaseD/dev_table.md`,
+  `dev_table_runs.csv`; `uv run python scripts/phaseD_oracle.py` → `outputs/phaseD/oracle_selection.{csv,md}`;
+  paired per-seed deltas → `outputs/phaseD/paired_deltas.csv`; teacher water fraction on pool
+  batches from `metrics.csv` → `outputs/phaseD/water_frac_trajectory.csv`. Results:
+  METHODS_NOTES 2026-10-15 "Self-training results on `peru-dev`".
