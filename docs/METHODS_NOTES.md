@@ -719,3 +719,44 @@ Written before any of these rows was scored.
    pool re-estimates the BN statistics (same recipe as `scripts/adabn.py`). The comparison
    row for self-training is therefore "AdaBN alone", and the self-training gain is reported
    against it as well as against source-only.
+
+## 2026-10-15 — Self-training details fixed before implementation (phase-D tasks 4.1–4.3)
+
+Details the design left open, fixed before any self-training run (they are part of the
+pre-registered default configuration; nothing here is tuned on dev):
+- **Batches.** Each step: half a batch of labelled Sen1Floods11 `train` chips (the source
+  config's D4 augmentation and normalization) and half a batch of pool images (D4
+  augmentation). U-Net 8 + 8, TerraMind 4 + 4 (design: batch 16 / 8).
+- **Source loss:** the source task's own criterion (TerraTorch multiclass Dice, ignore −1).
+- **Pseudo-labels:** teacher softmax on the un-augmented-by-colour target images; per
+  predicted class, keep the top q % most confident pixels of that class in the batch, others
+  ignored. q rises linearly from 20 % to 50 % over the run. The two per-class confidence cut-offs
+  are logged every step (spec: separate, recorded thresholds).
+- **Mixing (binary DACS):** for each target image, a random source image of the batch; its
+  labelled water pixels (with label 1) are pasted onto the target; the other pixels keep the
+  pseudo-label. Loss: pixel cross-entropy with ignore, mean over non-ignored pixels.
+- **Student-only augmentation on the mixed image** (in normalized units, all bands alike):
+  with p = 0.8, brightness shift U(−0.2, 0.2) and contrast factor U(0.8, 1.2) per image;
+  with p = 0.5, Gaussian blur with σ ~ U(0.1, 1.0) (kernel 5). No colour jitter per band
+  (would change band ratios, i.e. the water signal itself).
+- **Masked variant (MIC):** an extra loss term, weight 1: the target image with random
+  64 × 64 patches set to 0 (the normalized mean) at ratio 0.7, CE against the same
+  pseudo-labels.
+- **Forward passes:** source and mixed (and masked) batches go through the student in
+  separate forward passes (as DACS/DAFormer code), so BN batch statistics are per domain.
+- **EMA teacher:** α_t = min(1 − 1/(t + 1), 0.99) (the DACS/DAFormer ramp, so the teacher
+  follows the student at the start); BN buffers copied from the student each step (rule of
+  the earlier entry).
+- **Optimizer:** AdamW, weight decay 0.05 (as source), LR = 0.1 × source LR (U-Net 3e-5,
+  TerraMind 5e-6), linear warm-up from 0 over the first 400 of 4,000 iterations, then
+  constant. No decay: one fewer choice, and the final checkpoint is the headline.
+- **Model evaluated:** the **EMA teacher** at the final iteration, after the AdaBN pass on the
+  pool (earlier entry). The teacher averages over iterations, so the unselected final
+  checkpoint is less noisy than the student. Student weights are saved too.
+- **Collapse watch:** the teacher's predicted water fraction on target batches, smoothed
+  (EMA 0.98); floor = 0.5 × its mean over the first 50 iterations. Falling below logs a warning
+  and records the iteration in the run record; the run continues.
+- **Run record:** source checkpoint path and its commit (from the source `run.json`), seed,
+  method, full config, iterations, wall clock, peak memory, collapse events, the pool
+  manifest name, and the label-guard status (the whole fit runs inside
+  `forbid_peru_labels()`; DataLoader workers use `guard_worker_init`).

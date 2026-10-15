@@ -24,13 +24,16 @@ with an Otsu threshold computed on the unlabelled target pool, using no labels.
 
 ### Requirement: Input-alignment baselines
 The system SHALL provide input alignment of source images to the target pool (per-band
-histogram matching, and low-frequency amplitude transfer per band) applied during supervised
-source training, for every backbone. For the U-Net, it SHALL also provide re-estimation of
-batch-normalization statistics on the target pool.
+histogram matching, and low-frequency amplitude transfer per band). Both SHALL be available as
+a test-time transform of target images towards the source distribution, applied to the
+unchanged source models (paired with source-only, so no training noise), and MAY be run
+during supervised source training for every backbone (then with ≥ 3 seeds per transform).
+It SHALL also provide re-estimation of batch-normalization statistics on the target pool:
+all BN layers for the U-Net, the decoder and neck BN layers for TerraMind.
 
 #### Scenario: Alignment uses target images only
 - **WHEN** alignment statistics or amplitude spectra are computed
-- **THEN** they come from target-pool images, never from dev or test images
+- **THEN** they come from target-pool images and Sen1Floods11 `train` images, never from dev or test images
 
 ### Requirement: Self-training adaptation
 The system SHALL provide teacher–student self-training in which:
