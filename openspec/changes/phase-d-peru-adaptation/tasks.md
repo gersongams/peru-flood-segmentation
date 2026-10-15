@@ -36,8 +36,8 @@
 ## 5. Analysis on peru-dev
 
 - [x] 5.1 Gap-closed table: source-only → each method → Peru-trained upper bound, mean ± std, plain + tolerant IoU, precision, recall (`outputs/phaseD/dev_table.md`, `docs/phaseD_dev.md`)
-- [ ] 5.2 Stratified analysis of the best method (edge, NDWI band, water-body size) with the phase-C scripts
-- [ ] 5.3 Calibration of adapted models (ECE near water, reliability) with `scripts/calibration_dev.py`
+- [x] 5.2 Stratified analysis of the best method (edge, NDWI band, water-body size) with the phase-C scripts (U-Net AdaBN, TerraMind HM: `scripts/phaseD_analysis.py`, `docs/phaseD_dev.md`; Prithvi rows after pod session 2)
+- [x] 5.3 Calibration of adapted models (ECE near water, reliability) with `scripts/calibration_dev.py` (U-Net AdaBN, TerraMind HM: `scripts/phaseD_analysis.py`, `docs/phaseD_dev.md`; Prithvi rows after pod session 2)
 - [ ] 5.4 Decision on Prithvi (time and cost), then run its source models + best method if yes
 
 ## 6. Final evaluation (once)

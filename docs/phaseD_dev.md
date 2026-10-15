@@ -73,6 +73,25 @@ Gap-closed values for the diagnostic rows come from the same table script.
    on bright desert and coastal surfaces (`docs/failure_analysis_dev.md`). Alignment methods
    raise precision: AdaBN takes U-Net from 0.848 to 0.919, HM takes TerraMind from 0.714 to 0.853.
 
+## Where the best methods still fail, and calibration (tasks 5.2, 5.3)
+
+Source: `outputs/phaseD/analysis/` (`scripts/phaseD_analysis.py`); full numbers and definitions
+in METHODS_NOTES 2026-10-15 "Where the best label-free methods still fail".
+
+- **What alignment fixes:** false positives on bare desert, which holds 33.5 M of the 40 M
+  labelled pixels. FPR on bare/sparse land falls from 0.026 to 0.012 for U-Net + AdaBN and
+  from 0.063 to 0.024 for TerraMind + HM (Peru-trained: 0.003 and 0.004).
+- **What it does not fix:** the label edge (≤ 1 px IoU: U-Net 0.611, TerraMind 0.580, vs 0.740
+  and 0.667 Peru-trained), small water bodies (< 1 ha) and low-contrast water (NDWI < 0.1).
+- **HM trades one error for another (TerraMind):** faint water is pushed to dry (recall 0.02–0.32
+  for NDWI < 0.1), and mid-NDWI dry land is pushed to water (FPR 0.51 for NDWI 0.1–0.3, vs 0.18
+  for source-only).
+- **Calibration without Peru labels is possible:** with a temperature fitted on Sen1Floods11
+  `valid` plus the 3-seed ensemble, near-water ECE is U-Net 5.33 % and TerraMind 6.62 %. The
+  Peru-trained single models reach 5.42 % and 6.17 %.
+- **The remaining errors are confident:** TerraMind + HM error AUROC over all pixels is 0.52,
+  near chance, so its uncertainty cannot flag its mistakes.
+
 ## Caveats
 
 - Dev results only. The test splits will be evaluated once, after the methods are frozen.
@@ -100,5 +119,5 @@ models (section 1): $4.56.
   (≈ $3–6).
 - Training-time histogram matching (task 3.4, part 2): cost decision.
 - Prithvi source models and the best method (task 5.4).
-- Stratified analysis (5.2) and calibration (5.3) of the best method per backbone: AdaBN
-  U-Net and HM TerraMind. These run locally and cost nothing.
+- Stratified analysis (5.2) and calibration (5.3): done for U-Net and TerraMind; Prithvi
+  rows after pod session 2.
