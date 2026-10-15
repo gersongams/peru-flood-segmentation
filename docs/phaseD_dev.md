@@ -32,7 +32,7 @@ Gap closed = (IoU − source) / (upper − source), on means.
 | Self-training `mic`, pre-registered (teacher + AdaBN) | 0.8186 ± 0.0927 (−17 %) | 0.5149 ± 0.0302 (−84 %) |
 | *`st` without AdaBN (post-hoc diagnostic)* | *0.8774 ± 0.0319 (39 %)* | *0.7576 ± 0.0058 (25 %)* |
 | *`mic` without AdaBN (post-hoc diagnostic)* | *0.8435 ± 0.0424 (7 %)* | *0.6648 ± 0.0432 (−17 %)* |
-| Self-training, oracle selection (seed 0 only, dev labels) | 0.9138 | 0.6353 (with AdaBN) |
+| Self-training, oracle selection (seed 0 only, dev labels) | 0.9138 | 0.6353 with AdaBN; *0.7955 without (post-hoc)* |
 | Peru-trained (upper bound) | 0.9415 ± 0.0019 | 0.9265 ± 0.0025 |
 
 Gap-closed values for the diagnostic rows come from the same table script.
@@ -64,8 +64,11 @@ Gap-closed values for the diagnostic rows come from the same table script.
    and both collapse for TerraMind.
 4. **Oracle selection does not rescue self-training.** With dev labels choosing the
    configuration and checkpoint, U-Net reaches 0.914, which is the default seed-0 run and only
-   +0.009 over AdaBN on that seed. Every TerraMind grid cell (all evaluated with AdaBN) is below
-   source-only. The dev-tuned MNDWI threshold (0.925), which uses the same labels, beats both.
+   +0.009 over AdaBN on that seed. The TerraMind grid with AdaBN is uninformative because the
+   AdaBN pass depresses every cell. Without AdaBN (post-hoc, final checkpoints), the best
+   TerraMind cell is 0.796 (α 0.999, final q 20 %). That is still below HM on the same seed
+   (0.815), and fewer pseudo-labels are better throughout. The dev-tuned MNDWI threshold
+   (0.925), which uses the same labels, beats all of them.
 5. **The source models' Peru error is false positives** (recall ≈ 0.98, precision 0.71–0.85),
    on bright desert and coastal surfaces (`docs/failure_analysis_dev.md`). Alignment methods
    raise precision: AdaBN takes U-Net from 0.848 to 0.919, HM takes TerraMind from 0.714 to 0.853.
@@ -78,8 +81,9 @@ Gap-closed values for the diagnostic rows come from the same table script.
   pod runs. METHODS_NOTES records this as a missed warning.
 - The collapse watch was one-sided: it detects only a shrinking water area. "0 collapse
   events" is not evidence of stability.
-- The oracle grid is seed 0 only and was evaluated with AdaBN; its intermediate weights were
-  deleted on the pod, so it cannot be re-evaluated without AdaBN.
+- The oracle grid is seed 0 only. Its intermediate checkpoints (1,000–3,000) exist only as
+  AdaBN-evaluated predictions because the weights were deleted on the pod. Only the final
+  checkpoints were re-evaluated without AdaBN (`outputs/phaseD/oracle_grid_noadabn.md`).
 - Gap closed on means is distorted by TerraMind's weak seed 1. Use the paired deltas.
 - Prithvi has no source models yet (task 5.4).
 

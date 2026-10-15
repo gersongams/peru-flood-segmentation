@@ -30,7 +30,7 @@
 - [x] 4.6 Default-config runs (pre-registered in design.md), seed 0, U-Net + TerraMind; score saved checkpoints on `peru-dev` offline
 - [x] 4.7 Oracle-selection variant (q ∈ {20, 50, 80} × α ∈ {0.99, 0.999}, best dev checkpoint), reported only as the secondary row (seed 0; `outputs/phaseD/oracle_selection.md`)
 - [x] 4.8 Masked-consistency variant (64 px patches, ratio 0.7) with the default config
-- [x] 4.9 3 seeds of the default self-training and masked variants (and the oracle variant), U-Net + TerraMind (default and masked done; oracle variant 3 seeds not run: for U-Net it is the default config, for TerraMind every cell is below source-only — METHODS_NOTES 2026-10-15 results entry)
+- [x] 4.9 3 seeds of the default self-training and masked variants (and the oracle variant), U-Net + TerraMind (default and masked done; oracle variant 3 seeds not run: for U-Net the oracle cell is the default config; for TerraMind no grid cell, even without AdaBN (post-hoc), reaches test-time HM on seed 0 — METHODS_NOTES 2026-10-15 correction entry and addendum)
 - [ ] 4.10 Optional: index-aware pseudo-labels (teacher confidence AND MNDWI vs pool-Otsu)
 
 ## 5. Analysis on peru-dev

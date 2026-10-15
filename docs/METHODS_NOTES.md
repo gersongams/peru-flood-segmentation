@@ -893,7 +893,10 @@ superseded by these values; they are left as written for the record.
 > **Partly corrected the same day** (next entry, "Correction: the evaluation-time AdaBN pass
 > causes most of the self-training drop"). The numbers below stand; the *mechanism* paragraph
 > and the AdaBN caveat were wrong: without the AdaBN pass, TerraMind `st` scores 0.758 ± 0.006,
-> and its predicted water area does not grow.
+> and its predicted water area does not grow. The TerraMind **oracle-grid** conclusions below
+> (damage by iteration 1,000, no setting rescues it, slower teacher degrades more slowly) were
+> also drawn from AdaBN-evaluated predictions and are uninformative about self-training itself;
+> the grid's final checkpoints without AdaBN are in the correction entry.
 
 **What was done.** The 22 pre-registered self-training runs (cloud-protocol entry above) were
 scored on `peru-dev` on the Mac: per backbone, `st` (teacher–student with binary DACS) and
@@ -997,8 +1000,9 @@ teacher had at the end of training (copied from the student every step: running 
 momentum 0.1, over the separate source, mixed and — for `mic` — masked forward passes).
 `scripts/eval_adapted.py --no_adabn` (new flag), regimes `st_noadabn`, `mic_noadabn` in
 `outputs/logits_dev/` and in `outputs/phaseD/dev_table.md` (labelled "post-hoc diagnostic").
-Both backbones, all 3 seeds, final checkpoint only (intermediate weights were deleted on the
-pod after their AdaBN-evaluated predictions, so the oracle grid cannot be re-evaluated).
+Both backbones, all 3 seeds, final checkpoint only (the intermediate weights of all runs were deleted on the
+pod after their AdaBN-evaluated predictions; the final teachers of the oracle grid are re-evaluated
+in the addendum below).
 **This is post-hoc**: chosen after seeing dev results; not a headline row.
 
 **Results (water IoU, seeds 0/1/2; mean ± std):**
@@ -1009,7 +1013,9 @@ pod after their AdaBN-evaluated predictions, so the oracle grid cannot be re-eva
 | TerraMind | 0.764/0.598/0.746 | 0.733/0.541/0.695 | 0.815/0.809/0.802 | 0.470/0.467/0.516 | 0.751/0.761/0.761 (0.7576 ± 0.0058) | 0.482/0.540/0.523 | 0.619/0.704/0.672 (0.6648 ± 0.0432) |
 
 TerraMind `st` without AdaBN: precision 0.771 ± 0.004, recall 0.978 (source 0.714 / 0.979);
-predicted dev water fraction 0.205/0.239/0.167 vs source 0.229/0.270/0.205 (labels 0.107),
+predicted dev water fraction 0.205/0.239/0.167 vs source 0.229/0.270/0.205 (labels 0.107; all
+fractions over every dev pixel, ignore pixels (−1) counted as non-water, same denominator for
+all; the primary evidence is the higher precision at the same recall),
 i.e. the water area **shrinks** slightly; with AdaBN it grew to 0.322/0.353/0.271.
 `mic` without AdaBN: 0.277/0.262/0.256 (grows); U-Net `st` no AdaBN 0.112/0.120/0.131.
 
@@ -1048,7 +1054,8 @@ destroys TerraMind and destabilizes U-Net".
 
 **Reporting rule.** Headline rows stay as pre-registered (with AdaBN). The no-AdaBN rows are
 reported as a post-hoc diagnostic, with the reason above; the oracle grid (all with AdaBN) is
-reported with this caveat, since its TerraMind cells are depressed by the same pass.
+reported with this caveat, since its TerraMind cells are depressed by the same pass; only the
+iteration-4,000 column can be re-run without AdaBN (addendum).
 
 **Checks.** 174 dev logit files per folder (asserted); run.json of each diagnostic folder
 records `adabn_bn_layers: 0`; same weights file (`iter4000.pt`, teacher) as the headline rows.
@@ -1056,3 +1063,26 @@ records `adabn_bn_layers: 0`; same weights file (`iter4000.pt`, teacher) as the 
 Feeds: thesis chapter 5 (results; the diagnostic row) and 6 (discussion: BN statistics and
 self-training; pre-registration caught an evaluation rule that was wrong, and the honest
 report keeps it); paper section "Adapting without Peru labels".
+
+**Addendum (same day): oracle grid, final teachers without AdaBN (post-hoc).** The 5 extra
+seed-0 grid runs per backbone re-evaluated at iteration 4,000 with `--no_adabn`
+(`outputs/phaseD/oracle_grid_noadabn.md`; logits in `outputs/logits_dev/st_a*_noadabn/`).
+Water IoU (precision), seed 0:
+
+| α, final q | U-Net | TerraMind |
+|---|---|---|
+| 0.99, 20 % | 0.9009 (0.940) | 0.7917 (0.813) |
+| 0.99, 50 % (default) | 0.9002 (0.947) | 0.7510 (0.766) |
+| 0.99, 80 % | 0.9028 (0.939) | 0.6873 (0.701) |
+| 0.999, 20 % | 0.8875 (0.930) | **0.7955** (0.806) |
+| 0.999, 50 % | 0.8967 (0.946) | 0.7840 (0.793) |
+| 0.999, 80 % | 0.8884 (0.950) | 0.6841 (0.689) |
+| reference, seed 0: source / AdaBN / HM | 0.8433 / 0.9052 / 0.8748 | 0.7639 / 0.7333 / 0.8152 |
+
+For TerraMind, fewer pseudo-labels are better (final q 20 % > 50 % > 80 % at both α): the
+more of the teacher's predictions are trusted, the worse, which is consistent with
+confirmation bias at high q. The best cell (0.7955), chosen with dev labels, is +0.032 over
+source-only but still below test-time HM on the same seed (0.8152), which needs no training. For
+U-Net no cell reaches AdaBN on seed 0 (0.9052). So even oracle-selected self-training, with the
+evaluation choice made post hoc in its favour, does not beat the simple alignment baselines on
+seed 0. This weakens the case for a further self-training session on the current recipe.

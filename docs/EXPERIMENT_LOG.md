@@ -403,3 +403,7 @@ for both backbones, seeds 0–2 (12 evaluations, MPS, final teacher `iter4000.pt
 (rows labelled "post-hoc diagnostic"). Code: commit `ef9ec28`.
 Results and the correction they cause: METHODS_NOTES 2026-10-15 "Correction: the
 evaluation-time AdaBN pass causes most of the self-training drop".
+
+Addendum: the 10 seed-0 oracle-grid runs (5 per backbone) were also evaluated with `--no_adabn`
+(final teacher) → `outputs/logits_dev/st_a*_noadabn/<model>/seed0/`; scored inline (pooled
+counts with `floodseg.metrics`, 174 files asserted) → `outputs/phaseD/oracle_grid_noadabn.md`.
