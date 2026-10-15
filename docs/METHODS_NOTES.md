@@ -642,3 +642,45 @@ also contains the frame; its per-stratum numbers are not yet recomputed (open; s
 **Thesis use.** Chapter V (phase-D baselines and starting point), Chapter IV (metric
 definitions). Finding 2 is a result in itself for the discussion: in-domain validation does
 not predict out-of-domain behaviour of the foundation model.
+
+## 2026-10-15 — AdaBN baseline for the U-Net (phase-D task 3.3)
+
+**What and why.** The cheapest adaptation: keep every weight of the Sen1Floods11 U-Net and
+replace the BatchNorm statistics by Peru statistics (AdaBN, Li et al. 2016; not yet in
+Zotero, add before citing). Only the U-Net has BatchNorm in its encoder; TerraMind and Prithvi
+encoders use LayerNorm, so AdaBN is a U-Net-only row (design decision 7).
+
+**Method** (`scripts/adabn.py`, commit `d48fc3f`). Source = the three phase-D U-Net
+checkpoints (best `valid`). All 46 `BatchNorm2d` layers (encoder and decoder) reset, set to
+an exact cumulative average (`momentum=None`) and re-estimated in one pass over the 753
+unlabelled pool images (`configs/pools/peru-train.csv`), batch 16, no augmentation, no
+gradients, under the Peru-label guard; all other modules in eval mode (the U-Net has no
+dropout). Then eval mode; `peru-dev` logits saved (`outputs/logits_dev/adabn/unet/seed<s>/`,
+with `run.json`) and scored offline by `scripts/phaseD_dev_table.py`. No hyperparameter was
+tuned (one pass, all layers: the original recipe). MPS, 43–66 s per seed.
+
+**Check.** The checkpoint loaded outside the TerraTorch CLI reproduces the saved source-only
+dev logits exactly (max |Δz| = 0 on 4 chips), so the AdaBN gain is not an artefact of a
+different inference path.
+
+**Results** (`outputs/phaseD/dev_table.md`, mean ± std over 3 seeds):
+
+| U-Net | IoU | tolerant IoU | precision | recall | gap closed |
+|---|---|---|---|---|---|
+| Source-only | 0.8364 ± 0.0224 | 0.8815 ± 0.0240 | 0.8475 ± 0.0242 | 0.9847 ± 0.0017 | — |
+| AdaBN | 0.8969 ± 0.0161 | 0.9491 ± 0.0172 | 0.9189 ± 0.0204 | 0.9741 ± 0.0041 | 58 % |
+| Peru-trained | 0.9415 ± 0.0019 | 0.9721 ± 0.0006 | 0.9735 ± 0.0029 | 0.9662 ± 0.0012 | 100 % |
+
+Per seed: 0.8433 → 0.9052, 0.8545 → 0.9071, 0.8114 → 0.8783. Every seed improves; the gain
+comes from precision (fewer desert false positives) at a small recall cost.
+
+**Interpretation.** Much of the U-Net's shift is first-order feature statistics: re-centring
+the features on Peru removes most desert false positives. This sets a strong bar for
+self-training on the U-Net: it must beat 0.897, not 0.836. It also suggests that a
+statistics-alignment step for the LayerNorm models (TerraMind) is worth a look; not planned
+(LayerNorm normalizes per token, so there are no stored statistics to replace).
+
+**Caveat.** The pool holds both 2023 dates, like `peru-dev`; whether pool statistics from a
+different date or area transfer is not tested here (relevant to the `peru-2017-test` event).
+
+**Thesis use.** Chapter V (phase-D baselines).

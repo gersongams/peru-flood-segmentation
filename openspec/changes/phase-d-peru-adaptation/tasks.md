@@ -17,7 +17,7 @@
 
 - [x] 3.1 MNDWI > 0 and Otsu-on-pool baselines (label-free) plus the dev-tuned MNDWI threshold (oracle row) on `peru-dev`; extend `scripts/index_baseline.py` with tolerant IoU, precision, recall
 - [x] 3.2 Source-only rows: the 3-seed source models of 1.4 evaluated on `peru-dev` (plain and tolerant IoU, precision, recall)
-- [ ] 3.3 AdaBN for the U-Net (BN statistics re-estimated on the pool); `peru-dev` scores
+- [x] 3.3 AdaBN for the U-Net (BN statistics re-estimated on the pool); `peru-dev` scores
 - [ ] 3.4 Per-band histogram matching and FDA transforms; source training with each, U-Net + TerraMind, seed 0 on dev; 3 seeds for the better one
 
 ## 4. Self-training

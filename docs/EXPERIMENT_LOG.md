@@ -334,3 +334,11 @@ Mac MPS fp32, commit `b846843` (clean). Logits of the phase-D Sen1Floods11 sourc
 Table: `scripts/phaseD_dev_table.py` (new `src/floodseg/metrics.py`) → `outputs/phaseD/dev_table.md`,
 `outputs/phaseD/dev_table_runs.csv`. The script's IoU equals the TerraTorch logs to 4 decimals.
 Interpretation: `docs/METHODS_NOTES.md` (2026-10-15).
+
+## 2026-10-15 — AdaBN, U-Net, 3 seeds (task 3.3)
+
+`uv run python scripts/adabn.py`, commit `d48fc3f` (clean), Mac MPS. Sources:
+`outputs/s1f11_src_unet/unet/lightning_logs/seed{0,1,2}` (best `valid` checkpoints). Pool
+`peru-train` (753 images). Output `outputs/logits_dev/adabn/unet/seed<s>/` (+ `run.json`).
+Dev water IoU (`scripts/phaseD_dev_table.py`): 0.9052 / 0.9071 / 0.8783, mean 0.8969 ± 0.0161
+(source-only 0.8364 ± 0.0224). 43–66 s per seed.
