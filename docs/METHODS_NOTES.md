@@ -1159,3 +1159,83 @@ so the pod watcher also checks that logs keep growing.
 
 Feeds: thesis chapter 5 (Prithvi rows; input alignment at training vs test time), paper section
 "Adapting without Peru labels".
+
+## 2026-10-15 — Where the best label-free methods still fail, and their calibration (tasks 5.2, 5.3)
+
+**What was done and why.** For the two best label-free methods (U-Net + AdaBN, TerraMind +
+test-time histogram matching, HM), compared with their source-only models and the Peru-trained
+upper bound: (1) errors per stratum, to see which part of the Peru gap alignment closes and
+which remains; (2) calibration, to see whether the uncertainty stays usable after adaptation,
+and whether a temperature can be fitted **without Peru labels**. `scripts/phaseD_analysis.py`
+(definitions in its docstring) → `outputs/phaseD/analysis/{strata.csv, strata_runs.csv,
+calibration.csv, calibration_runs.csv, temperatures.json}`. Both alignment methods were run
+for both backbones; only the best one per backbone is discussed below.
+
+**Method.** 174 dev chips, labelled pixels only (label ≠ −1), 3 seeds per regime.
+- Strata: the phase-C strata (`scripts/analyze_dev.strata_for`, edge distance after the
+  chip-frame fix). TP/FP/FN/TN per seed and stratum value → IoU, recall, false-positive rate (FPR),
+  mean over seeds. For water-only strata (water NDWI, water-body size) IoU equals recall.
+- Calibration: ECE (15 bins) and error AUROC of −|z| on every 7th pixel ("all") and all pixels
+  ≤ 10 px from a label water edge ("near"), as `scripts/uncertainty_dev.py`. Temperatures:
+  `temp_s1f` = T fitted by NLL on Sen1Floods11 `valid` (all 89 chips, labelled pixels) for the
+  same source model and seed. This is **label-free with respect to Peru**: AdaBN and HM do not
+  change the model's `valid` behaviour, so the source model's `valid` T is used (U-Net
+  2.12/2.11/2.02, ensemble 1.94; TerraMind 1.13/1.36/1.23, ensemble 1.16). `temp_dev` = 2-fold-by-
+  chip T on dev labels (the phase-C method; reference only, since it uses Peru labels).
+  `valid` logits come from `scripts/phaseD_valid_logits.py`, which reproduces each source run's
+  logged best `val/IoU_Flood` exactly (6/6).
+- Check: the Peru-trained U-Net near-water ECE (5.42 %) and the dev IoUs equal the corrected
+  phase-C numbers and the dev table.
+
+**Results — strata (IoU or recall/FPR, seed means; source → method → Peru-trained):**
+- *Edges.* Neither method fixes the label edge. U-Net edge (≤ 1 px) IoU 0.593 → 0.611 → 0.740;
+  TerraMind 0.571 → 0.580 → 0.667. Far from edges (> 10 px) U-Net goes 0.890 → 0.959 (Peru-trained 0.984).
+- *Desert false positives are what alignment fixes.* FPR on bare/sparse land: U-Net 0.026 →
+  0.012 (Peru-trained 0.003); TerraMind 0.063 → 0.024 (0.004). This stratum holds 33.5 M of the
+  40 M labelled pixels, so it drives the IoU gain.
+- *Low-contrast and small water is lost.* Recall of water with NDWI < 0.1: U-Net AdaBN 0.28–0.75
+  (it keeps more of it than the Peru-trained model in 0–0.1: 0.747 vs 0.608). TerraMind HM
+  collapses: 0.02 (NDWI < −0.1), 0.08 (−0.1–0), 0.32 (0–0.1), vs source 0.38/0.82/0.81. Water
+  bodies < 1 ha: U-Net 0.601 → 0.486 (0.580); TerraMind 0.558 → 0.334 (0.460).
+- *HM creates a new error for TerraMind:* dry pixels with NDWI 0.1–0.3 have FPR 0.511 under HM
+  vs 0.176 source and 0.071 Peru-trained, and IoU > 10 px from edges is 0.810 vs 0.979. HM
+  sharpens the index contrast: ambiguous mid-NDWI land is pushed to water, and faint water is
+  pushed to dry. The net is positive only because bare desert dominates the pixel count.
+- *Dry pixels with NDWI > 0.3* (43 k pixels): every model calls most of them water (FPR
+  0.65–0.93). These are probably label omissions or wet soil; the Peru-trained models learned
+  the label convention (0.649 / 0.695), the label-free ones cannot.
+
+**Results — calibration (near-water ECE %, mean ± std over seeds; error AUROC near water):**
+
+| | source single | method single | method + T(S1F11 valid) | method ens + T(valid) | method + T(dev), reference | Peru-trained single |
+|---|---|---|---|---|---|---|
+| U-Net, AdaBN | 12.98 ± 1.18 | 9.49 ± 0.39 | 7.64 ± 0.42 | 5.33 | 7.71 ± 0.29 | 5.42 ± 0.18 |
+| TerraMind, HM | 11.91 ± 1.12 | 7.96 ± 0.27 | 7.04 ± 0.06 | 6.62 | 5.60 ± 0.04 | 6.17 ± 0.32 |
+
+AUROC near water: U-Net AdaBN 0.755 ± 0.014 (Peru-trained 0.814); TerraMind HM 0.785 ± 0.005 (0.815).
+AUROC over all pixels: U-Net AdaBN 0.645, TerraMind HM **0.522 ± 0.015** (≈ chance; source 0.770).
+- Alignment itself improves calibration near water (ECE −3.5 and −4.0 points).
+- A label-free temperature (from Sen1Floods11 `valid`) helps further and, combined with the
+  3-seed ensemble, brings near-water ECE to the Peru-trained single-model level (U-Net 5.33 vs
+  5.42; TerraMind 6.62 vs 6.17). For U-Net the `valid` temperature is as good as one fitted on
+  Peru dev labels (7.64 vs 7.71).
+- But **the remaining errors are confident**: over all pixels the uncertainty of TerraMind + HM
+  does not rank errors above correct pixels (AUROC 0.52). Most of its remaining errors are
+  the confident mid-NDWI false positives above, far from water edges. Calibration is fine on
+  average (ECE all 0.84 % with T), while the uncertainty is uninformative for these errors.
+
+**Caveats.** Dev only; strata are those of phase C (WorldCover, Copernicus DEM, cloud mask);
+NDWI bins use (B03 − B08)/(B03 + B08) as stored in the strata (×100 in the code bins); water-only
+strata say nothing about false positives. `temp_s1f` assumes the model's `valid` behaviour is
+unchanged by the method — true by construction for HM (input transform only on Peru) and for
+AdaBN (BN statistics re-estimated only on the pool; on `valid` the source statistics apply).
+The ensemble rows reuse the same 3 seeds (no extra training).
+
+**For the thesis.** Label-free alignment closes the Peru gap mainly by removing desert false
+positives. Label edges, small water bodies and low-contrast water stay as they were, or get
+worse (TerraMind + HM). A Sen1Floods11-fitted temperature with a 3-seed ensemble gives
+near-water calibration at the Peru-trained level without Peru labels, but the remaining errors
+of TerraMind + HM are confident, so uncertainty cannot be used to flag them. Feeds chapter 5
+(stratified results, calibration) and chapter 6 (limits of label-free adaptation; why
+histogram matching trades one error for another); paper sections "Where adaptation fails" and
+"Uncertainty under shift".

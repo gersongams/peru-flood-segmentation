@@ -413,3 +413,29 @@ counts with `floodseg.metrics`, 174 files asserted) → `outputs/phaseD/oracle_g
 `uv run python scripts/phaseD_diagnostics.py` (after `scripts/phaseD_dev_table.py`) →
 `outputs/phaseD/{paired_deltas.csv, water_frac_trajectory.csv, dev_water_fraction.csv, oracle_grid_noadabn.md}`;
 reproduces the inline results of the earlier phase-D entries (METHODS_NOTES 2026-10-15, reproducibility entry).
+
+## 2026-10-15/16 — Pod session 2 (Prithvi source models, training-time HM/FDA): launch
+
+Pre-registration: METHODS_NOTES 2026-10-15 "Pod session 2". Pod `dkck0ayqh3cylh`
+("peru-flood-phaseD2-prithvi-align"), Secure RTX 4090, $0.89/h, EUR-IS-2 (availability read:
+LOW stock in EU-CZ-1, EU-RO-1, EUR-IS-1, EUR-IS-2), CUDA 13.2 host, 18 vCPU, image
+`runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, 50 GB container disk, 60 GB `/workspace`.
+Code commit `e8001a4`; `scripts/cloud/sync_phaseD2.sh` (repo bundle + `train_params.npz`,
+sha256 checked; no Peru data on the pod, checked); Sen1Floods11 downloaded on the pod (446 S2Hand chips).
+- **Launch problems:** (1) the pod had only the official split CSVs; the `.txt` lists TerraTorch
+  reads are written by `floodseg.sen1floods11.write_split_lists`, which neither the setup nor the
+  download script runs. The first launch was stopped before any epoch; lists written (252/89/90)
+  and both queues relaunched clean at 23:13 UTC (pod clock). For later: run `write_split_lists`
+  in setup. (2) `pkill -f queue_phaseD2.sh` inside the SSH command matched the SSH command line
+  itself and killed the session; processes are now stopped by PID from a script file.
+- Queues: `bash scripts/cloud/queue_phaseD2.sh A` (Prithvi sweep → finals) and `... B`
+  (train-time HM/FDA). At start: 13.4 GB of 24 GB GPU memory with Prithvi + U-Net running together.
+
+## 2026-10-15 — Phase-D analysis of the best label-free methods (tasks 5.2, 5.3; Mac, no training)
+
+`uv run python scripts/phaseD_valid_logits.py` (Sen1Floods11 `valid` logits of the 6 phase-D
+source models → `outputs/logits_valid/s1f11_src/`; pooled valid IoU equals each run's logged best
+`val/IoU_Flood`: U-Net 0.8330/0.8300/0.8315, TerraMind 0.8333/0.8359/0.8355), then
+`uv run python scripts/phaseD_analysis.py` (log `outputs/phaseD/analysis_run.log`) →
+`outputs/phaseD/analysis/`. Commit: see this entry's commit. Results: METHODS_NOTES 2026-10-15
+"Where the best label-free methods still fail".
