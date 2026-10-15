@@ -568,3 +568,77 @@ GDAL directly, or geopandas on the raw shapefiles) is not intercepted. Adaptatio
 use the pool dataset; the run record lists every file it opened from `data/` (task 4.3).
 
 **Thesis use.** Chapter IV (adaptation protocol: what data the method may see).
+
+## 2026-10-15 — Rule fixed before a diagnostic: source checkpoints are chosen on `valid` only
+
+Written before the superseded TerraMind 2e-5 source runs were scored on `peru-dev`. Those dev
+scores are a **diagnostic** (does the source LR change transfer to Peru?). Whatever they
+show, the phase-D source models stay the ones selected on Sen1Floods11 `valid`
+(U-Net 3e-4, TerraMind 5e-5, best-`valid` checkpoint per seed). Choosing the source LR or seed
+by `peru-dev` would put Peru-label information into the "no-label" headline; if that is ever
+done, it is an "oracle selection" row (spec `adaptation-evaluation`).
+
+## 2026-10-15 — Phase-D starting point on `peru-dev`: index baselines, source-only models, metric module (tasks 3.1, 3.2)
+
+**What and why.** The first rows of the phase-D table: what is reached without Peru labels
+before any adaptation, and the Peru-trained ceiling, all scored by one metric function.
+
+**Method.**
+- `src/floodseg/metrics.py`: pooled water IoU, precision, recall over labelled pixels
+  (label ≠ −1); tolerant versions leave out labelled pixels within 1 px (Euclidean distance
+  < 1.5) of a label water/not-water edge (spec `adaptation-evaluation`). Unit tests
+  `tests/test_metrics.py`.
+- `scripts/phaseD_dev_table.py`: index rows from MNDWI = (B03 − B11)/(B03 + B11):
+  MNDWI > 0; MNDWI > Otsu threshold of the unlabelled pool (753 `peru-train` images from the
+  manifest, every 50th pixel with a non-zero band, read under the label guard); MNDWI > t
+  tuned on `peru-dev` (t ∈ [−0.30, 0.60], step 0.01, best plain IoU; oracle row). Model rows
+  from saved logits (water if z > 0), mean ± std over seeds.
+
+**Results** (`outputs/phaseD/dev_table.md`; water IoU / tolerant IoU / precision / recall):
+
+| Row | IoU | tolerant | precision | recall |
+|---|---|---|---|---|
+| MNDWI > 0 | 0.4858 | 0.4763 | 0.4869 | 0.9955 |
+| MNDWI > 0.0391 (Otsu on pool) | 0.5718 | 0.5692 | 0.5740 | 0.9933 |
+| MNDWI > +0.27 (tuned on dev, oracle) | 0.9251 | 0.9581 | 0.9681 | 0.9542 |
+| Source-only U-Net (3 seeds) | 0.8364 ± 0.0224 | 0.8815 ± 0.0240 | 0.8475 ± 0.0242 | 0.9847 ± 0.0017 |
+| Source-only TerraMind (3 seeds) | 0.7027 ± 0.0913 | 0.7243 ± 0.1070 | 0.7139 ± 0.0951 | 0.9789 ± 0.0033 |
+| Peru-trained U-Net (upper bound) | 0.9415 ± 0.0019 | 0.9721 ± 0.0006 | 0.9735 ± 0.0029 | 0.9662 ± 0.0012 |
+| Peru-trained TerraMind (upper bound) | 0.9265 ± 0.0025 | 0.9682 ± 0.0015 | 0.9651 ± 0.0018 | 0.9586 ± 0.0021 |
+
+**Findings.**
+1. **Source-only models over-predict water in Peru.** Recall stays ≥ 0.98 for every
+   source-only run; precision is what drops (0.60–0.90). This matches the domain-shift
+   finding (bright desert background read as water) and is what self-training must fix: the
+   errors are false positives, not misses.
+2. **TerraMind's transfer to Peru depends strongly on the seed; its `valid` score does not
+   show it.** On `valid` the three seeds differ by 0.0026 IoU (std 0.0014); on `peru-dev` by
+   0.17 (0.598–0.764). Seed 1 is the worst at both LRs (5e-5: 0.598; superseded 2e-5:
+   0.579), and the LR changes the mean little (0.703 vs 0.692). So it is not the LR choice;
+   something fixed by the seed (decoder initialization, data order) decides how the model
+   treats desert. U-Net varies less (0.811–0.854).
+3. The phase-C seed-0 TerraMind (Mac, LR 2e-5) scored 0.7951; the cloud seed-0 run at the
+   same LR 0.7314. Together with the 1.7-point `valid` repeat difference, single runs say
+   little about Peru transfer.
+4. The label-free index baselines stay far below the source models (0.49–0.57); the
+   dev-tuned threshold (0.925) matches the Peru-trained models, as found before
+   (0.924 at the coarser 0.05 step; now t = +0.27 at step 0.01).
+
+**Implications for phase D.** The adaptation gap is large (U-Net 0.84 → 0.94, TerraMind
+0.70 → 0.93) and per-seed source quality varies, so adaptation results must be reported per
+seed and as gap closed per seed, not only as means. With TerraMind's spread, 3 seeds may
+be too few for tight claims; decide 3 vs 5 after the first self-training results (cost).
+Source checkpoints stay fixed by `valid` (rule recorded before the diagnostic).
+
+**Correction (edge definition).** `scipy.ndimage.binary_erosion` treats outside the chip as
+background by default, so `scripts/edge_tolerance.py` and `scripts/analyze_dev.py` counted
+the 1-px chip frame as label edge (with 1-px tolerance a 2-px frame was excluded: 590,398
+dev pixels, 1.55 % of tolerant pixels). `floodseg.metrics` uses `border_value=1`, so only
+real water edges count. Recomputed for all 18 phase-C Peru runs: tolerant IoU changes by
+≤ 0.0001 (e.g. Peru-only U-Net 0.9722 → 0.9721), so the edge-tolerance conclusions stand.
+The **edge stratum of the failure analysis** (`analyze_dev.py`, `docs/failure_analysis_dev.md`)
+also contains the frame; its per-stratum numbers are not yet recomputed (open; see NEXT_STEPS).
+
+**Thesis use.** Chapter V (phase-D baselines and starting point), Chapter IV (metric
+definitions). Finding 2 is a result in itself for the discussion: in-domain validation does
+not predict out-of-domain behaviour of the foundation model.

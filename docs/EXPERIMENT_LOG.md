@@ -318,3 +318,19 @@ authors approved):
 - Wall clock per run: U-Net 336–648 s, TerraMind 379–839 s.
 - Phase-D source checkpoints: `outputs/s1f11_src_unet/unet/lightning_logs/seed{0,1,2}/checkpoints/`
   and `outputs/s1f11_src_terramind_lr5e-5/terramind_v1_base/lightning_logs/seed{0,1,2}/checkpoints/`.
+
+## 2026-10-15 — Phase-D source-only models and index baselines on `peru-dev` (tasks 3.1, 3.2)
+
+Mac MPS fp32, commit `b846843` (clean). Logits of the phase-D Sen1Floods11 source models on
+`peru-dev`: `terratorch validate -c configs/<m>.yaml -c configs/datasets/peru_unosat.yaml
+-c configs/trainer/mps.yaml --trainer.callbacks+=floodseg.callbacks.SaveValPredictions
+--trainer.callbacks.out_dir=outputs/logits_dev/<regime>/<m>/seed<s> --ckpt_path <best ckpt>`.
+- `s1f11_src`: U-Net (`outputs/s1f11_src_unet`) and TerraMind LR 5e-5
+  (`outputs/s1f11_src_terramind_lr5e-5`), seeds 0–2. Dev water IoU (TerraTorch log):
+  U-Net 0.8433 / 0.8545 / 0.8114; TerraMind 0.7639 / 0.5978 / 0.7464.
+- `s1f11_src_lr2e-5`: the superseded TerraMind LR 2e-5 runs (`outputs/s1f11_src_terramind`),
+  diagnostic only: 0.7314 / 0.5788 / 0.7660.
+- Logs `outputs/logits_dev/log_s1f11_src*_seed<s>.txt`; 174 logit files per run.
+Table: `scripts/phaseD_dev_table.py` (new `src/floodseg/metrics.py`) → `outputs/phaseD/dev_table.md`,
+`outputs/phaseD/dev_table_runs.csv`. The script's IoU equals the TerraTorch logs to 4 decimals.
+Interpretation: `docs/METHODS_NOTES.md` (2026-10-15).

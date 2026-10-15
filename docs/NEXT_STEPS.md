@@ -18,8 +18,13 @@ sensitivity row; timeline unknown (plan 3–6 months).
 U-Net (LR 3e-4) 0.8315 ± 0.0015, TerraMind (LR 5e-5) 0.8349 ± 0.0014 `valid` IoU; cost
 $4.56; pods deleted (`docs/EXPERIMENT_LOG.md`, `docs/METHODS_NOTES.md` 2026-10-15).
 Checkpoints: `outputs/s1f11_src_unet/`, `outputs/s1f11_src_terramind_lr5e-5/`.
-**Next (local, free):** section 2 (target pool + guards), 3.1 (index baselines with tolerant
-IoU), 3.2 (source-only rows on `peru-dev`). Prithvi source models wait for task 5.4.
+**Done 2026-10-15 (local):** section 2 (target pool + guards), 3.1 (index baselines),
+3.2 (source-only rows): `outputs/phaseD/dev_table.md`. Source-only U-Net 0.836 ± 0.022,
+TerraMind 0.703 ± 0.091 dev IoU (seed 1 at 0.598); errors are false positives.
+**Next:** 3.3 AdaBN (U-Net), 3.4 histogram matching / FDA, then section 4 (self-training).
+Prithvi source models wait for task 5.4. **Open correction:** recompute the edge stratum of
+`scripts/analyze_dev.py` without the chip frame (`border_value=1`, see METHODS_NOTES
+2026-10-15) and update `docs/failure_analysis_dev.md` if numbers move.
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)
 - ~~**6.4** per-stratum calibration, **5.4** reliability diagrams~~: done 2026-10-14
