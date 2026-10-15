@@ -12,8 +12,9 @@ recall; pooled over the 174 dev chips):
   `s1f11_src` = phase-D Sen1Floods11 source models (3 seeds, source-only),
   `peru` = Peru-trained models (upper bound),
   `s1f11` = phase-C seed-0 Sen1Floods11 models (reference only),
-  `s1f11_src_lr2e-5` = superseded TerraMind source runs at LR 2e-5 (diagnostic only; not used).
-- Gap closed (adaptation rows only; none yet) vs source-only and the Peru-trained upper bound of the same
+  `s1f11_src_lr2e-5` = superseded TerraMind source runs at LR 2e-5 (diagnostic only; not used),
+  `adabn` = U-Net source models after AdaBN (scripts/adabn.py).
+- Gap closed (adaptation rows only) vs source-only and the Peru-trained upper bound of the same
   backbone: (IoU − IoU_source) / (IoU_upper − IoU_source).
 MNDWI = (B03 − B11)/(B03 + B11), as in scripts/index_baseline.py.
 
@@ -38,7 +39,9 @@ LOGITS = REPO / "outputs" / "logits_dev"
 OUT = REPO / "outputs" / "phaseD"
 REGIMES = {"s1f11_src": "Sen1Floods11 source-only (phase D)", "peru": "Peru-trained (upper bound)",
            "s1f11": "Sen1Floods11 seed 0 (phase C, Mac, config LRs; reference)",
-           "s1f11_src_lr2e-5": "Sen1Floods11 TerraMind LR 2e-5 (superseded, diagnostic)"}
+           "s1f11_src_lr2e-5": "Sen1Floods11 TerraMind LR 2e-5 (superseded, diagnostic)",
+           "adabn": "AdaBN on the pool (source-only + BN statistics)"}
+NOT_METHODS = {"s1f11_src", "peru", "s1f11", "s1f11_src_lr2e-5"}  # no gap-closed value
 MODELS = {"unet": "U-Net", "terramind_v1_base": "TerraMind", "prithvi_eo_v2_300": "Prithvi"}
 T_SWEEP = np.round(np.arange(-0.30, 0.601, 0.01), 2)
 
@@ -101,7 +104,7 @@ def main() -> None:
             cells = [f"{g.loc[(reg, m), (c, 'mean')]:.4f}" + (f" ± {g.loc[(reg, m), (c, 'std')]:.4f}" if n[(reg, m)] > 1 else "")
                      for c in cols]
             gap = "—"
-            if reg not in REGIMES and ("s1f11_src", m) in g.index and ("peru", m) in g.index:
+            if reg not in NOT_METHODS and ("s1f11_src", m) in g.index and ("peru", m) in g.index:
                 src, up = g.loc[("s1f11_src", m), ("iou", "mean")], g.loc[("peru", m), ("iou", "mean")]
                 gap = f"{(g.loc[(reg, m), ('iou', 'mean')] - src) / (up - src):.0%}"
             lines.append(f"| {rn} | {mn} | {n[(reg, m)]} | " + " | ".join(cells) + f" | {gap} |")

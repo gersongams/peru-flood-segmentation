@@ -101,11 +101,23 @@ class TargetPoolDataset(Dataset):
         return len(self.paths)
 
     def __getitem__(self, i: int) -> dict:
-        with rasterio.open(self.paths[i]) as src:
-            x = src.read().astype(np.float32)[self.idx]
-        x = np.nan_to_num(x, nan=self.no_data)
-        x = torch.from_numpy((x - self.mean) / self.std)
+        x = _read(self.paths[i], self.idx, self.mean, self.std, self.no_data)
         return {"image": self.transform(x) if self.transform else x}
+
+
+def _read(path, idx, mean, std, no_data) -> torch.Tensor:
+    with rasterio.open(path) as src:
+        x = src.read().astype(np.float32)[idx]
+    return torch.from_numpy((np.nan_to_num(x, nan=no_data) - mean) / std)
+
+
+def load_image(path: Path, spec: dict) -> torch.Tensor:
+    """One image normalized for a model, as in the pool (for evaluation scripts: no pool
+    guard, so it also reads dev/test images)."""
+    idx = [spec["dataset_bands"].index(b) for b in spec["output_bands"]]
+    mean = np.asarray(spec["means"], np.float32)[:, None, None]
+    std = np.asarray(spec["stds"], np.float32)[:, None, None]
+    return _read(path, idx, mean, std, spec["no_data_replace"] if spec["no_data_replace"] is not None else 0)
 
 
 def _is_label(path) -> Path | None:
