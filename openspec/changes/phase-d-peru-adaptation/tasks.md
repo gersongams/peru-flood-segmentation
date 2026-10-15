@@ -8,9 +8,9 @@
 
 ## 2. Target pool and guards
 
-- [ ] 2.1 Target-pool datamodule: `peru-train` images only, no label paths, per-model normalization
-- [ ] 2.2 Guard: refuse dev/test/buffer/2017 chips and any Peru label read during adaptation; unit tests
-- [ ] 2.3 Pool manifest with checksums (default pool = `peru-train` images)
+- [x] 2.1 Target-pool datamodule: `peru-train` images only, no label paths, per-model normalization
+- [x] 2.2 Guard: refuse dev/test/buffer/2017 chips and any Peru label read during adaptation; unit tests
+- [x] 2.3 Pool manifest with checksums (default pool = `peru-train` images)
 - [ ] 2.4 Optional, decided after 4.x: extra unlabelled 2023 imagery outside held-out blocks (spatial check)
 
 ## 3. Label-free baselines and input alignment

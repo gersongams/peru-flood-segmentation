@@ -529,3 +529,42 @@ citing; no comparison claim beyond "same range" until then.
 
 **Thesis use.** Chapter IV (training setup, hyperparameter selection), Chapter V (source
 models of phase D, reproducibility caveat).
+
+## 2026-10-15 — Phase-D target pool and label guards (phase-D tasks 2.1–2.3)
+
+**What and why.** Phase D may use Peru *images* but no Peru *labels*. The pool and its
+guards make that a property of the code, not only of intent (spec `peru-target-pool`).
+
+**Method.**
+- Pool = the Sentinel-2 images of all `peru-train` chips of Peru set v1: 753 images
+  (2023-03-22: 392, 2023-04-01: 361). Manifest `configs/pools/peru-train.csv` (stem, sha256),
+  written by `scripts/build_target_pool.py`; every sha256 equals the `s2_sha256` of the Peru v1
+  data manifest. Versioned in git so a run can name the exact pool.
+- `src/floodseg/target_pool.py`:
+  - `TargetPoolDataset` knows only image paths and returns only `{"image"}`. It reads
+    `dataset_bands`, selects `output_bands`, float32, NaN → `no_data_replace`, and normalizes
+    with each model config's means/stds.
+  - `check_pool` refuses any `peru-dev`, `peru-test`, buffer or `peru-2017-test` chip, and any
+    chip outside the Peru v1 split (extra imagery would first need the spatial check of task
+    2.4). Called when a manifest is read and when the dataset is built.
+  - `forbid_peru_labels()` / `guard_worker_init`: while active, any `rasterio.open` of a
+    file under a Peru label root (`data/peru/{unosat2023,emsr2017}/label`, raw
+    `data/unosat2023`, `data/emsr199`) raises an error naming the file. rioxarray and TerraTorch
+    go through `rasterio.open`, so their reads are caught too. Spawned DataLoader workers do
+    not inherit the patch, hence the `worker_init_fn`.
+
+**Alternatives rejected.** Reusing TerraTorch's `GenericNonGeoSegmentationDataset` for the
+pool: it requires label paths and reads masks, the opposite of the guarantee. Using dev/test
+images unlabelled: transductive (design decision 1).
+
+**Checks** (`tests/test_target_pool.py`, 13 tests, all pass): held-out and unknown chips
+refused, naming the chips; the default pool equals `peru-train` (753); for U-Net, TerraMind
+and Prithvi a pool image equals TerraTorch's normalized model input for the same chip to
+1e-5; the guard stops TerraTorch's own mask read and works in a spawned DataLoader worker;
+the guard is removed after the block.
+
+**Caveat.** The guard covers `rasterio.open` only; code that reads labels another way (e.g.
+GDAL directly, or geopandas on the raw shapefiles) is not intercepted. Adaptation code must
+use the pool dataset; the run record lists every file it opened from `data/` (task 4.3).
+
+**Thesis use.** Chapter IV (adaptation protocol: what data the method may see).
