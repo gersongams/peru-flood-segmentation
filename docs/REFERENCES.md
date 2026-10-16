@@ -67,20 +67,21 @@ Read from the PDFs in `sources/papers/`. Page = PDF page. Water IoU unless state
 |---|---|---|---|
 | U-Net Base | (see Li et al. 2023, Prithvi-CAFE ref. [19]) | **84.03** (highest in the table) | Prithvi-CAFE Table 1, p. 6, quoting [19] |
 | U-Net | — | 80.69 | Prithvi-CAFE Table 1, p. 6, quoting [16] |
-| Prithvi-CAFE | S2 (6 HLS bands) | 83.41 | Prithvi-CAFE Table 1, p. 6 |
+| Prithvi-CAFE | S2: 6 HLS bands to Prithvi plus the remaining channels to a CNN branch (band list not stated) | 83.41 | Prithvi-CAFE Table 1, p. 6 |
 | TerraMind v1-B | not stated; **no source cited** in the row | 82.90 | Prithvi-CAFE Table 1, p. 6 |
 | Prithvi-EO-2.0-300M | S2, 6 HLS bands | 82.2 (std 0.6) | Prithvi-EO-2.0 Table IV, p. 12 (also quoted in Prithvi-CAFE Table 1) |
 | Prithvi-EO-2.0-600M | S2, 6 HLS bands | 82.5 (std 1.0) | Prithvi-EO-2.0 Table IV, p. 12 |
 | Prithvi-EO-2.0-600M-TL | S2, temporal + location embeddings | 83.1 (std 0.5) | Prithvi-EO-2.0 Table IV, p. 12 |
-| TerraMind v1-B-single, fine-tuned | S2 L1C | 76.32 | TerraMind Table 12, p. 18 |
+| TerraMind v1-B-single, fine-tuned | S2 L1C | 76.32 | TerraMind Table 12, p. 18 (a different model: v1-B-single) |
+| TerraMind v1-B, full fine-tuning | S-2 (level and split not stated) | 82.26 (mIoU 89.70) | TerraMind Table 8, p. 8 (checked in the PDF 2026-10-16) |
 | TerraMind, late fusion | S2 / S1+S2 | 72.70 / 73.83 | TerraMind Table 2 (left), p. 6 |
 
 Bolivia (not used by us, for context): Prithvi-CAFE 81.37 vs U-Net Base 70.57 (+10.80), Prithvi-CAFE Table 1, p. 6.
 
 Notes for phase A (reproduction):
-- ⚠️ The 82.90 for TerraMind v1-B in Prithvi-CAFE has no citation and is much higher than TerraMind's own S2 L1C fine-tuning result (76.32, Table 12). Their setups differ; do not quote 82.90 as "TerraMind's result" without finding its source. The official TerraMind Sen1Floods11 config (IBM/terramind) feeds S2L1C + S1GRD; our phase A uses S2L1C only.
+- ⚠️ The 82.90 / 90.60 for TerraMind v1-B in Prithvi-CAFE has no citation; neither number appears in the TerraMind paper. TerraMind's own S-2 full fine-tuning result is 82.26 / 89.70 (Table 8); 76.32 (Table 12) is v1-B-single, a different model (corrected 2026-10-16, `docs/published_comparison.md`). Do not quote 82.90 as "TerraMind's result". The official TerraMind Sen1Floods11 config (IBM/terramind) feeds S2L1C + S1GRD; our phase A uses S2L1C only.
 - The best in-distribution number in Prithvi-CAFE's table is a **U-Net (84.03)**, so in-distribution SOTA is a CNN. Find and read Li et al. 2023 (ref. [19]) for its setup before claiming reproduction.
-- Reproduction targets for our S2-only runs: Prithvi-EO-2.0-300M ≈ 82.2 (same 6 bands, official config); TerraMind v1-B S2 L1C ≈ 76.3 (TerraMind's own number); U-Net 80.7–84.0 depending on the setup.
+- Reproduction targets for our S2-only runs: Prithvi-EO-2.0-300M ≈ 82.2 (same 6 bands, official config); TerraMind v1-B ≈ 82.26 (TerraMind Table 8, S-2 full fine-tuning; corrected 2026-10-16: the 76.3 first written here is v1-B-single, a different model); U-Net 80.7–84.0 depending on the setup.
 
 ## Phase D: domain adaptation (added 2026-10-14)
 

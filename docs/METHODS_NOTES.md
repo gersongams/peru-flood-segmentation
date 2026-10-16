@@ -1752,3 +1752,153 @@ freeze deferred for disk space. The groups and hashes are unchanged from `config
 - `outputs/logits_test/s1f11_ft/`, `outputs/logits_2017/s1f11_ft/`, `outputs/logits_s1f11_test/`.
 - Scores in `outputs/phaseD/test/{peru-test,peru-2017-test,test}*`. The Peru splits are
   rescored with the extra rows; the existing rows' numbers must not change (check).
+
+## 2026-10-16 — Test calibration of the frozen phase-D rows: results
+
+Method as fixed in the entry above (commit `f2ad639`); run
+`uv run python scripts/calibration_frozen.py` → `outputs/phaseD/test/calibration{.md,.csv,_runs.csv,_temperatures_dev.json}`.
+ECE in %, mean over 3 seeds (ensemble rows: one value). "all" = every 7th labelled pixel;
+"near" = labelled pixels ≤ 10 px from a label water edge.
+
+**`peru-test` (172 chips), ECE all / near**
+
+| Row | single | temp_s1f | ens+temp_s1f | ens+temp_dev (uses dev labels) | dev ens+temp_s1f (all / near) |
+|---|---|---|---|---|---|
+| U-Net trHM | 1.96 / 16.88 | 0.48 / 14.09 | 0.60 / 12.81 | 1.14 / 13.68 | 0.67 / 4.06 |
+| U-Net AdaBN | 3.06 / 17.29 | 1.39 / 14.56 | 0.94 / 11.46 | 1.34 / 12.03 | 0.80 / 5.33 |
+| TerraMind trFDA | 2.11 / 23.36 | 0.73 / 21.22 | 0.78 / 20.17 | 1.27 / 20.91 | 0.96 / 9.80 |
+| TerraMind trHM | 2.31 / 20.63 | 1.35 / 19.47 | 1.34 / 18.57 | 1.16 / 18.35 | 0.38 / 6.60 |
+| TerraMind HM | 2.55 / 19.32 | 1.60 / 18.20 | 1.53 / 17.47 | 1.09 / 15.81 | 0.71 / 6.62 |
+| Prithvi source | 3.09 / 23.35 | 1.59 / 19.06 | 1.09 / 15.12 | 1.19 / 15.74 | 1.07 / 7.97 |
+| U-Net source | 6.67 / 27.82 | 4.54 / 24.52 | 3.17 / 20.90 | 3.69 / 21.40 | 0.70 / 8.22 |
+| TerraMind source | 3.45 / 18.30 | 2.34 / 17.14 | 1.73 / 15.74 | 1.56 / 15.48 | 0.93 / 9.91 |
+| Peru-trained U-Net / TerraMind / Prithvi | 1.77 / 14.22, 1.77 / 14.11, 1.82 / 14.90 | — | — | 1.08 / 11.18, 1.07 / 12.13, 1.01 / 11.23 | (ens+temp_dev) 0.11 / 3.14, 0.25 / 4.52, 0.22 / 3.76 |
+
+Error-detection AUROC of −|z| on `peru-test`, all pixels, single → ensemble:
+- U-Net trHM 0.712 → 0.809;
+- U-Net AdaBN 0.730 → 0.850;
+- Prithvi source 0.783 → 0.902;
+- Peru-trained U-Net / TerraMind / Prithvi 0.618 / 0.632 / **0.439** → 0.704 / 0.685 / **0.456**.
+
+**Findings.**
+1. **Every row is less calibrated on test than on dev, most of all near water edges.** Near-edge
+   ECE rises 1.6–3.6× for every row (ens+temp, dev → test), Peru-trained included (U-Net ens+temp_dev 3.14 → 11.18 %). This
+   matches the IoU drop: the test areas are harder for every model.
+2. **The label-free temperature transfers.** T fitted on Sen1Floods11 `valid` (`temp_s1f`) is as
+   good as or better than T fitted on Peru dev labels for most rows (U-Net trHM ens: 0.60 vs
+   1.14 % all, 12.81 vs 13.68 % near). Temperature scaling and ensembling lower ECE for every
+   label-free row, as on dev.
+3. **The dev claim "U-Net trHM is the best-calibrated label-free row" holds only for the "all"
+   pixel set on test.**
+   - U-Net trHM is lowest on "all": temp_s1f 0.48 %, ens+temp_s1f 0.60 %.
+   - Near edges, AdaBN U-Net is lower (11.46 vs 12.81 %, ens+temp_s1f).
+   - The best label-free near-edge ECE (11.46 %) is within 0.3 points of the Peru-trained
+     U-Net's (11.18 %, which uses dev labels for T).
+   - The thesis must state the claim per pixel set.
+4. **Peru-trained Prithvi's confidence does not flag its errors on test.** Its AUROC is below 0.5
+   (0.439 single, 0.456 ensemble): its errors are more confident than its correct pixels. On dev
+   it was 0.723.
+   - Its near-edge AUROC is 0.706: the bad ranking comes from confident errors away from edges,
+     consistent with confidently wrong regions (e.g. label gaps or doubtful areas).
+   - It is reported as found. It is not investigated on test, because that would be test-driven
+     analysis.
+
+**`peru-2017-test`.**
+- On the 101-chip subset, source-only rows are best calibrated: ens+temp_s1f ECE all 0.21–0.85 %,
+  near 9.5–11.0 %. Aligned and Peru-trained rows sit at 2.2–3.9 % and 20–26 %.
+- This mirrors the IoU reversal: the 2017 labels contain only clear water and clear dry, so the
+  aligned rows' lost faint-water confidence shows up as confident misses.
+- The caveat fixed in advance applies: 2017 calibration covers only the clear population.
+
+**Caveats.** ECE depends on the pixel set and on label quality. On 2023, the doubtful-label
+chips are included ("full", as declared). There is no bootstrap on calibration.
+
+**Thesis use.** Chapter V (calibration of the label-free methods on the held-out sets; RQ3);
+corrects the dev-only calibration claim.
+
+## 2026-10-16 — Section-7 pass: results
+
+Run as fixed in the entry "Section-7 pass" above (commits `d42c861` for `peru-test`, `78844bb` for
+`peru-2017-test` and `test`; every run.json `git_dirty: false`). Scores:
+`outputs/phaseD/test/{peru-test,peru-2017-test,test}{.md,_groups.csv,_runs.csv}`. CIs:
+`bootstrap_{groups,diffs}.csv`.
+
+**Checks.**
+- The rescored `peru-test` / `peru-2017-test` tables reproduce all 55 earlier group rows exactly
+  (max |Δ| 0.0).
+- The extended bootstrap reproduces all 44 earlier group CIs and all 28 paired differences
+  exactly. Chip weights are drawn per subset, before any group.
+- `score_frozen.py` now also writes two-class mIoU (commit `78844bb`, before scoring). Water IoU
+  is unchanged.
+
+**Sen1Floods11 → Peru fine-tuning vs Peru-only training (paired, seed means, 95 % CI)**
+
+| | `peru-test` IoU, ft / Peru-only | ft − Peru | 2017 (101 chips) ft − Peru |
+|---|---|---|---|
+| U-Net | 0.8291 / 0.8280 | +0.0010 [−0.0031, 0.0054] | −0.0154 [−0.0331, −0.0014] |
+| TerraMind | 0.8138 / 0.8149 | −0.0011 [−0.0062, 0.0034] | −0.0059 [−0.0137, 0.0001] |
+| Prithvi | 0.8226 / 0.8244 | −0.0018 [−0.0062, 0.0018] | +0.0019 [0.0003, 0.0036] |
+
+- On 2023 test, Sen1Floods11 pretraining before Peru fine-tuning changes nothing. All CIs contain
+  0 and span less than 0.01. This confirms the dev finding (≤ 0.4 points) behind training on Peru
+  only.
+- On 2017, the differences are within 0.016 and of mixed sign.
+
+**Sen1Floods11 `test` (90 chips), source-only models**
+
+| Model | water IoU (95 % CI) | mIoU | precision | recall | `valid` IoU (selection) |
+|---|---|---|---|---|---|
+| U-Net | 0.8331 ± 0.0049 (0.760–0.889) | 0.9042 | 0.940 | 0.880 | 0.8315 |
+| Prithvi | 0.8203 ± 0.0115 (0.751–0.873) | 0.8966 | 0.924 | 0.880 | 0.8315 |
+| TerraMind | 0.8185 ± 0.0136 (0.754–0.869) | 0.8954 | 0.910 | 0.890 | 0.8349 |
+
+- U-Net − Prithvi +0.013 [−0.022, 0.062]; U-Net − TerraMind +0.015 [−0.019, 0.051]. The three
+  are not separable in-domain (RQ1: no meaningful gap in-distribution, as hypothesised).
+- Peru-2023 test vs Sen1Floods11 test, source-only: U-Net 0.833 → 0.576, TerraMind 0.819 →
+  0.626, Prithvi 0.820 → 0.741. Prithvi loses the least, so "foundation models lose less on Peru"
+  holds for Prithvi only.
+
+**Deviation from plan 7.3.** Peru-trained and `s1f11_ft` models were not evaluated on
+Sen1Floods11 `test` (not frozen for it). Neither were `trhm` / `trfda` (scope entry above).
+
+**Thesis use.** Chapter V (RQ1 on test; fine-tuning vs Peru-only on test); the published-number
+comparison (next entry).
+
+## 2026-10-16 — Published-number comparison on Sen1Floods11 (plan 3.8, phase-D 1.5)
+
+**What and why.** Task 3.8: check our Sen1Floods11 results against published numbers and
+investigate any gap > 2 IoU. Write-up: `docs/published_comparison.md`. The `valid` part was
+drafted read-only from the PDFs in `sources/papers/`. The test-vs-test part was added after the
+section-7 pass.
+
+**Method.**
+- Published numbers come from tables, with page numbers. TerraMind Table 8 (p. 8: v1-B, S-2,
+  IoU_water 82.26, mIoU 89.70) was re-checked in the PDF.
+- Metric definitions were matched: pooled water IoU and two-class mIoU, the same as TerraTorch
+  logs and the papers report. F1 was left out: ours is macro F1, Prithvi-EO-2.0 reports micro
+  F1. Bonafilia et al. average IoU per chip on S1, so they are not comparable.
+
+**Results (`test` vs `test`, ours vs published, water IoU / mIoU).**
+- Prithvi 300M: 82.03 / 89.66 vs 82.2 / 89.7 (Prithvi-EO-2.0 Table IV): −0.17 / −0.04.
+- TerraMind v1-B: 81.85 / 89.54 vs 82.26 / 89.70 (TerraMind Table 8): −0.41 / −0.16.
+- U-Net: 83.31 / 90.42 vs the two secondary quotes in Prithvi-CAFE Table 1: 84.03 ([19],
+  −0.72) and 80.69 ([16], +2.62).
+- No like-for-like gap is above 2. The only gap above 2 is against a secondary U-Net quote with
+  an unknown setup.
+- Plan 3.8 and phase-D 1.5 are closed.
+
+**Corrections found (also fixed in `docs/REFERENCES.md`).**
+- The phase-A reproduction target for TerraMind was 76.3. That number is v1-B-single (Table 12),
+  a different model; the setup-matched target is Table 8 (82.26).
+- Prithvi-CAFE Table 1 pairs Prithvi 600M's non-TL IoU (82.5) with the TL mIoU (90.30;
+  Prithvi-EO-2.0 Table IV gives 89.9 for non-TL).
+- Prithvi-CAFE's TerraMind row (82.90 / 90.60) has no source.
+- Prithvi-CAFE feeds more than the 6 HLS bands (its CNN branch takes the remaining channels).
+
+**Caveats.**
+- TerraMind Table 8 states neither the split nor the S2 processing level.
+- The U-Net references [16] and [19] were not read; their setups are unverified.
+- Our training recipes differ: UNet decoder and dice loss, versus UPerNet and cross-entropy in
+  Prithvi-EO-2.0.
+
+**Thesis use.** Chapter IV (reproduction of SOTA, phase A); cite tables, not abstracts.

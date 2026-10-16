@@ -23,7 +23,7 @@
 - [x] 3.5 Check seed reproducibility on MPS (repeat one run) and record tolerance in the experiment log (done on the RTX 4090, 2026-10-15: 1.7 IoU points run-to-run)
 - [x] 3.6 Train all models × ≥3 seeds; decide 3 vs 5 seeds from measured timing (U-Net + TerraMind done 2026-10-15, 3 seeds; Prithvi 2026-10-16, 3 seeds at LR 1e-4)
 - [x] 3.7 Verify the SOTA reference number(s) in the source PDFs (table + page) and record them in `docs/REFERENCES.md`; note which inputs each used (the official TerraMind Sen1Floods11 config uses S2L1C + S1GRD, not S2 only)
-- [ ] 3.8 Compare our `valid` results with published numbers; investigate any gap > 2 IoU before phase C
+- [x] 3.8 Compare our `valid` results with published numbers; investigate any gap > 2 IoU before phase C (done 2026-10-16 on `valid` and frozen `test`: `docs/published_comparison.md`)
 
 ## 4. Peru dataset (no manual labelling)
 
@@ -62,8 +62,8 @@
 
 - [x] 7.1 Implement the evaluate script with split-level + per-chip metrics and the `frozen.yaml` gate
 - [x] 7.2 Freeze configurations and checkpoints in `configs/frozen.yaml`
-- [ ] 7.3 Evaluate once on `test`, `peru-test` and `peru-2017-test` v1 for all models, all training regimes (Peru-only, Sen1Floods11-only, Sen1Floods11 → Peru) and uncertainty variants
-- [ ] 7.4 Generate tables (mean ± std, test vs Peru, drop) and bootstrap CIs for `peru-test`
+- [x] 7.3 Evaluate once on `test`, `peru-test` and `peru-2017-test` v1 for all models, all training regimes (Peru-only, Sen1Floods11-only, Sen1Floods11 → Peru) and uncertainty variants (done 2026-10-16 as frozen; deviation: `test` only for the Sen1Floods11-only rows, METHODS_NOTES "Section-7 pass")
+- [x] 7.4 Generate tables (mean ± std, test vs Peru, drop) and bootstrap CIs for `peru-test` (`outputs/phaseD/test/`, `docs/phaseD_test.md`)
 - [ ] 7.5 Generate figures: reliability diagrams, Peru prediction + uncertainty maps, failure cases
 
 ## 8. Thesis and paper

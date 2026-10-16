@@ -63,9 +63,64 @@ changed after test); both are reported.
 Gap closed is undefined here (Peru-trained ≤ source-only for every backbone). The recall-by-MNDWI
 columns are a post-hoc diagnostic declared before it was run.
 
-## Not yet done
+## Calibration on test
 
-- Calibration and error-detection AUROC on test (frozen temperatures; saved logits, no refit). Until
-  then, "U-Net trHM is the best-calibrated label-free model" is a dev-only result.
-- Section-7 pass: Sen1Floods11 → Peru fine-tuned models on the Peru test sets, and the Sen1Floods11
-  `test` split (frozen, not run).
+Method fixed before running (METHODS_NOTES 2026-10-16 "Test calibration of the frozen phase-D
+rows"). Full tables: `outputs/phaseD/test/calibration.md`. ECE % with ensemble + Sen1Floods11
+`valid` temperature (label-free), "all" / "near" (≤ 10 px from water edge):
+
+| Row | `peru-test` | dev (same method) |
+|---|---|---|
+| U-Net trHM | 0.60 / 12.81 | 0.67 / 4.06 |
+| U-Net AdaBN | 0.94 / 11.46 | 0.80 / 5.33 |
+| TerraMind trFDA | 0.78 / 20.17 | 0.96 / 9.80 |
+| Prithvi source-only | 1.09 / 15.12 | 1.07 / 7.97 |
+| Peru-trained U-Net (T from dev labels) | 1.08 / 11.18 | 0.11 / 3.14 |
+
+- **Near-edge calibration degrades on test for every row** (1.6–3.6×), Peru-trained included,
+  in line with the harder test areas.
+- **The label-free temperature transfers.** T fitted on Sen1Floods11 `valid` is as good as T fitted
+  on Peru dev labels for most rows.
+- **The dev claim holds only partly.** U-Net trHM has the lowest overall ECE of the label-free
+  rows, but near water edges AdaBN U-Net is lower (11.46 vs 12.81 %). That AdaBN figure is within
+  0.3 points of the Peru-trained U-Net.
+- **Peru-trained Prithvi's confidence does not flag its errors on test** (error AUROC 0.44
+  single, 0.46 ensemble; 0.72 on dev). Reported as found, not investigated on test.
+- **2017:** source-only rows are the best calibrated, mirroring the IoU reversal. These labels
+  cover only clear water and clear dry, so calibration there is measured on the easy cases only.
+
+## Section-7 pass (deferred frozen rows)
+
+METHODS_NOTES 2026-10-16 "Section-7 pass: results"; earlier rows reproduced exactly.
+
+- **Sen1Floods11 → Peru fine-tuning = Peru-only training on test.**
+
+  | Model | Fine-tuned − Peru-only on `peru-test` | 95 % CI |
+  |---|---|---|
+  | U-Net | +0.001 | −0.003 to 0.005 |
+  | TerraMind | −0.001 | −0.006 to 0.003 |
+  | Prithvi | −0.002 | −0.006 to 0.002 |
+
+  This confirms on test the dev finding behind "train on Peru only".
+- **Sen1Floods11 `test`, source-only:**
+
+  | Model | water IoU | mIoU |
+  |---|---|---|
+  | U-Net | 0.833 ± 0.005 | 0.904 |
+  | Prithvi | 0.820 ± 0.012 | 0.897 |
+  | TerraMind | 0.819 ± 0.014 | 0.895 |
+
+  - The three are not separable: U-Net − Prithvi +0.013 [−0.022, 0.062].
+  - Prithvi and TerraMind reproduce their papers' `test` numbers within 0.5 IoU
+    (`docs/published_comparison.md`).
+- **The drop from Sen1Floods11 `test` to `peru-test`** (source-only):
+
+  | Model | Drop |
+  |---|---|
+  | U-Net | −0.257 |
+  | TerraMind | −0.192 |
+  | Prithvi | −0.080 |
+
+  Only Prithvi "loses less".
+- Not evaluated (not frozen for it): Peru-trained, fine-tuned and training-time-aligned models on
+  Sen1Floods11 `test`.

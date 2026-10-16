@@ -6,6 +6,8 @@ paired); per group, the pooled water IoU of each seed is computed on the resampl
 averaged over the 3 seeds (the seed-mean the tables report). 2,000 replicates, seed 0;
 percentile intervals. Seed variation is not resampled: the CI covers chip sampling only.
 
+Sen1Floods11 `test` and the section-7 diffs were added 2026-10-16 after the section-7 pass (the
+replicates of the earlier rows are unchanged: chip weights are drawn per subset before any group).
 Paired differences (A − B) for the comparisons the write-up makes; "P(A ≤ B)" is the share of
 replicates in which A does not beat B.
 
@@ -21,13 +23,18 @@ import pandas as pd
 REPO = Path(__file__).resolve().parents[1]
 T = REPO / "outputs" / "phaseD" / "test"
 N_BOOT = 2000
-SUBSETS = {"peru-test": ["full", "excl_doubtful"], "peru-2017-test": ["no_2023_train_overlap", "all"]}
+SUBSETS = {"peru-test": ["full", "excl_doubtful"], "peru-2017-test": ["no_2023_train_overlap", "all"], "test": ["full"]}
 DIFFS = [("trhm/unet", "peru/unet"), ("trhm/unet", "s1f11_src/prithvi_eo_v2_300"), ("trhm/unet", "adabn/unet"),
          ("trhm/unet", "s1f11_src/unet"), ("trhm/terramind_v1_base", "trfda/terramind_v1_base"),
          ("trfda/terramind_v1_base", "s1f11_src/terramind_v1_base"), ("s1f11_src/prithvi_eo_v2_300", "peru/prithvi_eo_v2_300")]
+# section-7 pass (added 2026-10-16): Sen1Floods11 pretraining before Peru fine-tuning; in-domain ranking on `test`
+DIFFS += [(f"s1f11_ft/{m}", f"peru/{m}") for m in ("unet", "terramind_v1_base", "prithvi_eo_v2_300")]
+DIFFS += [("s1f11_src/unet", "s1f11_src/prithvi_eo_v2_300"), ("s1f11_src/unet", "s1f11_src/terramind_v1_base")]
 
 
 def subset_chips(split: str, sub: str, chips: list[str]) -> list[str]:
+    if split == "test":
+        return chips
     if split == "peru-2017-test":
         m = pd.read_csv(REPO / "data" / "peru" / "emsr2017" / "manifest.csv")
         return chips if sub == "all" else sorted(set(m.chip[~m.touches_2023_train]))

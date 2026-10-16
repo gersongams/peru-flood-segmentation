@@ -536,3 +536,28 @@ no test split read) → `outputs/feature_engineering/{results_runs,results,auroc
 → `notebooks/feature_engineering.ipynb` (executed). Results: METHODS_NOTES 2026-10-16 "Feature
 engineering for a pixel classifier". Commit: see this entry's commit (script first committed in
 the previous commit on the branch, unchanged since).
+
+## 2026-10-16 — Test calibration of the frozen phase-D rows
+
+`uv run python scripts/calibration_frozen.py`, commit `f2ad639` (method fixed in METHODS_NOTES
+before running). Reads the logits of the one-time pass, the frozen `valid` temperatures (sha256
+checked) and `outputs/logits_dev` for the dev-label reference. Output:
+`outputs/phaseD/test/calibration{.md,.csv,_runs.csv,_temperatures_dev.json}`, log
+`calibration.log`. Results: METHODS_NOTES 2026-10-16 "Test calibration … results".
+
+## 2026-10-16 — Section-7 pass (one-time test evaluation of the deferred frozen rows)
+
+- `uv run python scripts/evaluate_frozen.py peru-test --pass section7` (commit `d42c861`) → 9 runs
+  `s1f11_ft` × 3 models, `outputs/logits_test/s1f11_ft/`.
+- Then `peru-2017-test --pass section7` (`78844bb`) → `outputs/logits_2017/s1f11_ft/`.
+- Then `test` (`78844bb`) → 9 runs `s1f11_src` × 3 models on Sen1Floods11 `test` (90 chips),
+  `outputs/logits_s1f11_test/`.
+- Mac MPS fp32; all `git_dirty: false`; logs `outputs/phaseD/test/eval_section7_*.log`,
+  `eval_s1f11_test.log`.
+- Scoring: `scripts/score_frozen.py {peru-test,peru-2017-test,test}`. The earlier rows were
+  reproduced exactly.
+- Bootstrap: `scripts/bootstrap_frozen.py` (extended to `test` and the `s1f11_ft` diffs; earlier
+  CIs reproduced exactly).
+- Results: METHODS_NOTES 2026-10-16 "Section-7 pass: results", `docs/published_comparison.md`.
+
+Commit: see this entry's commit.

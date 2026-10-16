@@ -54,7 +54,12 @@ AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
    (disk space).
    **6.2 done 2026-10-16:** `docs/phaseD_test.md`. 2023: U-Net trHM 0.799 (Peru-trained 0.828,
    source 0.576). 2017: order reverses (source-only best; labels score only clear-water recall).
-   Next: test calibration (6.3), section-7 pass (`--pass section7`, ≈ 3.4 GB; 13 GB free), then writing.
+   **Done 2026-10-16:** test calibration (frozen temperatures; near-edge ECE degrades on test for
+   every row; the label-free T transfers; "U-Net trHM best calibrated" holds for all pixels, not
+   near edges) and the section-7 pass (fine-tuned = Peru-only on test; Sen1Floods11 `test` U-Net
+   0.833 / Prithvi 0.820 / TerraMind 0.819, papers reproduced within 0.5 IoU,
+   `docs/published_comparison.md`). Plan 3.8, 7.3, 7.4 closed. Every test set has now been used
+   once; no further test evaluation is planned. Next: writing.
 4. **Start writing:** Chapter III (data, Peru dataset, protocol) and the phase-D results, in Spanish.
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)
@@ -70,11 +75,11 @@ AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
 ### 3. Remaining Sen1Floods11 tasks
 - ~~3.4 LR sweep, 3.5 reproducibility~~: done 2026-10-15. 3.6 done for U-Net + TerraMind;
   Prithvi pending (phase-D 5.4).
-- **3.8** comparison with published numbers: re-check Prithvi-CAFE Table 1 in the PDF.
+- ~~**3.8** comparison with published numbers~~: done 2026-10-16 (`docs/published_comparison.md`).
 
 ### 4. Start writing the thesis (task 8.2)
 Chapter III (data, Peru dataset, protocol) in Spanish, from `docs/peru_data_card.md`, the experiment log and the scripts. Edit in `thesis/` (separate Overleaf repo; `git pull` first); push to Overleaf only with the user's OK.
 
 ### Later
-- **Section 7** final test evaluation (`test`, `peru-test`, `peru-2017-test`): only once, after phase D.
+- ~~**Section 7** final test evaluation~~: done 2026-10-16 (frozen pass; `docs/phaseD_test.md`).
 - **8.x** remaining chapters and the paper.
