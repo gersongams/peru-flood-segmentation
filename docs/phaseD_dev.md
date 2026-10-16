@@ -114,6 +114,22 @@ in METHODS_NOTES 2026-10-15 "Where the best label-free methods still fail".
 - **The remaining errors are confident:** TerraMind + HM error AUROC over all pixels is 0.52,
   near chance, so its uncertainty cannot flag its mistakes.
 
+**Extension to pod session 2 (2026-10-16; METHODS_NOTES addendum of that date).** Temperatures
+for the training-time rows come from each model's own transformed `valid`.
+- **U-Net + training-time HM** removes the desert false positives almost completely (bare FPR
+  0.005, Peru-trained 0.003) and is the best-calibrated label-free model: near-water ECE 4.06 %
+  with ensemble + T, below every Peru-trained single model; error AUROC 0.805 over all pixels.
+  Like test-time HM, it loses faint water (recall 0.23–0.39 for NDWI < 0.1) and small water
+  (< 1 ha IoU 0.349). Edges are unchanged (0.613).
+- **TerraMind + training-time FDA** (the pre-registered choice) has the best interior and the
+  fewest false positives, but the worst edges (≤ 1 px IoU 0.426) and the worst calibration (near
+  ECE 9.8 % with ensemble + T). TerraMind + training-time HM has better edges and calibration
+  (6.6 %), with HM's faint-water loss.
+- **Prithvi source-only** keeps faint and small water (< 1 ha IoU 0.565, above its Peru-trained
+  model) and has the most rankable errors (AUROC 0.791 single, 0.883 ensemble). It loses on
+  false positives and edges.
+- In every row, the alignment that removes desert false positives also loses faint water.
+
 ## Caveats
 
 - Dev results only. The test splits will be evaluated once, after the methods are frozen.
@@ -144,7 +160,8 @@ the authors' instruction to use the added credit was applied at ≈ $8.2 with tw
 - **Which method per backbone to freeze for the test evaluation (section 6).** Recommendation:
   U-Net + training-time HM (best label-free row; also its pre-registered train-time choice);
   TerraMind + training-time FDA (the pre-registered choice; HM's higher mean is within its seed
-  spread, FDA is far more stable); Prithvi source-only (no method improved it). AdaBN (U-Net) and
+  spread, FDA is far more stable; but FDA has the worst edges and calibration, see above, so
+  TerraMind + training-time HM should be reported on test as the secondary row); Prithvi source-only (no method improved it). AdaBN (U-Net) and
   test-time HM (TerraMind) are reported on test as secondary rows. All choices use dev only.
 - Whether to try self-training on histogram-matched inputs, or with a fixed BN rule: not
   recommended (no pod credit planned; training-time alignment already beats it).

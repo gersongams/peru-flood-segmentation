@@ -1321,3 +1321,72 @@ for the authors; recommendation in `docs/phaseD_dev.md`.
 
 Feeds: thesis chapter 5 (phase-D results table, Prithvi column; training- vs test-time alignment),
 paper section "Adapting without Peru labels".
+
+## 2026-10-16 — Strata and calibration extended to Prithvi and the training-time rows (tasks 5.2, 5.3, addendum)
+
+**What and why.** The 2026-10-15 analysis covered the then-best label-free rows (U-Net AdaBN,
+TerraMind test-time HM). Pod session 2 changed the best rows, and the pre-registration promised
+Prithvi rows, so `scripts/phaseD_analysis.py` now covers regimes s1f11_src, adabn, hm, peru, trhm,
+trfda × U-Net, TerraMind, Prithvi (17 combinations; trfda not run for Prithvi). Strata, metrics,
+pixels and methods are unchanged from the 2026-10-15 entry.
+
+**Temperature for the train-time rows.** The label-free `temp_s1f` must come from the same
+model: for trhm/trfda, the train-time checkpoint's own Sen1Floods11 `valid` logits on the
+transformed `valid` it was selected on (model config + its `configs/phaseD/train_*.yaml` overlay;
+`scripts/phaseD2_valid_logits.sh` → `outputs/logits_valid/<trhm|trfda>/`). Using the source
+model's T would have silently calibrated one model with another's temperature. Check: each
+validate pass reproduces the run's logged best `val/IoU_Flood` within 2e-5 (Mac fp32 vs pod
+16-mixed), all 15 runs (`outputs/phaseD/pod2/valid_logits.txt`). The adabn/hm rows keep the source
+model's T (their weights are the source weights). `temperatures.json` is now keyed by logit folder
+then model. Temperatures (seeds 0/1/2, ensemble): Prithvi source 2.80/2.88/3.23, 2.62; trHM U-Net
+1.91/2.22/1.88, 1.82; trHM TerraMind 1.15/1.47/1.18, 1.15; trHM Prithvi 2.92/2.85/3.12, 2.68;
+trFDA TerraMind 1.38/1.52/1.24, 1.24. Check: the 2026-10-15 U-Net/TerraMind numbers reproduce
+exactly (e.g. U-Net AdaBN near ECE 9.49, ens+T 5.33; TerraMind HM all-pixel AUROC 0.522).
+
+**Results** (`outputs/phaseD/analysis/strata.csv`, `calibration.csv`; means over seeds):
+
+| | U-Net trHM | U-Net AdaBN | TerraMind trFDA | TerraMind trHM | TerraMind HM | Prithvi source | Prithvi trHM |
+|---|---|---|---|---|---|---|---|
+| dev IoU | 0.912 | 0.897 | 0.837 | 0.844 | 0.809 | 0.870 | 0.860 |
+| bare/sparse FPR (Peru: U 0.003, T 0.004, P 0.005) | **0.005** | 0.012 | 0.007 | 0.016 | 0.024 | 0.018 | 0.016 |
+| edge ≤ 1 px IoU (Peru: 0.740, 0.667, 0.631) | 0.613 | 0.611 | **0.426** | 0.566 | 0.580 | 0.558 | 0.595 |
+| 2–3 px IoU (Peru: 0.922, 0.923, 0.917) | 0.882 | 0.875 | 0.695 | 0.848 | 0.859 | 0.787 | 0.875 |
+| water < 1 ha IoU (Peru: 0.580, 0.460, 0.449) | 0.349 | 0.486 | 0.233 | 0.350 | 0.334 | **0.565** | 0.435 |
+| water recall, NDWI −0.1–0 / 0–0.1 (Peru U 0.58/0.61) | 0.23 / 0.39 | 0.66 / 0.75 | 0.54 / 0.31 | 0.06 / 0.30 | 0.08 / 0.32 | 0.69 / 0.83 | 0.23 / 0.56 |
+| dry FPR, NDWI 0.1–0.3 (Peru U 0.058) | 0.103 | 0.174 | 0.081 | 0.357 | 0.511 | 0.163 | 0.315 |
+| near ECE %, single | 7.62 | 9.49 | 13.49 | 8.32 | 7.96 | 13.44 | 9.47 |
+| near ECE %, ens + T_valid | **4.06** | 5.33 | 9.80 | 6.60 | 6.62 | 7.97 | 5.36 |
+| error AUROC all pixels, single / ens | 0.805 / 0.858 | 0.645 / 0.733 | 0.751 / 0.806 | 0.606 / 0.728 | 0.522 / 0.591 | 0.791 / 0.883 | 0.655 / 0.740 |
+
+Peru-trained single models, near ECE: U-Net 5.42, TerraMind 6.17, Prithvi 7.60.
+
+**Findings.**
+1. **U-Net trHM removes the desert false positives almost completely** (bare FPR 0.005 vs 0.003
+   Peru-trained) and keeps mid-NDWI dry land dry (FPR 0.103). That explains its IoU gain over
+   AdaBN. Like test-time HM, it pays on faint water: recall 0.23 / 0.39 for NDWI −0.1–0 / 0–0.1
+   (AdaBN 0.66 / 0.75), and small water bodies (< 1 ha IoU 0.349 vs 0.486). Edges unchanged (0.613).
+2. **U-Net trHM is also the best-calibrated label-free model**: with T from its own transformed
+   `valid` and the 3-seed ensemble, near-water ECE is 4.06 %, below every Peru-trained single
+   model. Its errors are rankable (all-pixel AUROC 0.805 single, 0.858 ensemble).
+3. **TerraMind trFDA (the pre-registered choice) is stable but has a boundary problem.** It has
+   the best TerraMind interior (> 10 px IoU 0.946) and the fewest false positives, but the worst
+   edges (≤ 1 px 0.426, 2–3 px 0.695), the lowest small-water IoU (0.233), and missed water even at
+   high NDWI (recall 0.950 for NDWI > 0.3; every other row 0.996–1.000). Its calibration is poor
+   (near ECE 13.5 % single, 9.8 % ens + T). TerraMind trHM has better edges and calibration
+   (6.60 %) but HM's faint-water trade-off (recall 0.06 / 0.30). This is relevant to the
+   freezing decision; the pre-registered rule (task 3.4) stands as recorded.
+4. **Prithvi source-only keeps faint and small water** (recall 0.69 / 0.83; < 1 ha IoU 0.565,
+   above its Peru-trained model's 0.449) and has the most rankable errors of all rows (all-pixel
+   AUROC 0.791 single, 0.883 ensemble). Its loss is false positives (bare FPR 0.018, mid-NDWI 0.163)
+   and edges (0.558). Training-time HM moves it the HM way (fewer false positives, faint water
+   lost), which nets −0.010 IoU.
+5. Across all rows, every alignment that removes desert false positives loses faint water; no
+   label-free row matches the Peru-trained models at the edge (≤ 1 px).
+
+**Caveats.** The faint-water and small-water strata are where the UNOSAT labels are least
+certain (`docs/failure_analysis_dev.md`, label QA), so part of the "lost" recall may be label
+noise; dry pixels with NDWI > 0.3 have FPR 0.54–0.93 for every model, consistent with label
+omissions. Dev only.
+
+Feeds: thesis chapter 5 (where adapted models still fail; calibration of adapted models), paper
+section "Adapting without Peru labels".
