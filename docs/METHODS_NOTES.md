@@ -1667,3 +1667,49 @@ SHAP.
 **Thesis use.** Chapter III (justifies raw-reflectance inputs; dry-land shift as the
 bottleneck); Chapter V discussion (label-free index baseline, exploratory). Course write-up:
 `docs/feature_engineering.md`, `notebooks/feature_engineering.ipynb` (Spanish).
+
+## 2026-10-16 — Test calibration of the frozen phase-D rows: method fixed before running (task 6.2 calibration part; plan 7.4)
+
+**What and why.** The dev calibration claims ("U-Net trHM best calibrated label-free", entry
+2026-10-16 "Strata and calibration extended") are dev-only until checked on the held-out sets.
+This entry fixes the method **before** any calibration number on a test split is computed. It
+uses only the logits already written by the one-time pass (`outputs/logits_test`,
+`outputs/logits_2017`); no model is rerun and nothing is refitted on test.
+
+**Method** (`scripts/calibration_frozen.py`). The same definitions as `scripts/phaseD_analysis.py`
+on dev (`scripts/uncertainty_dev.py` helpers):
+- **Metrics:**
+  - ECE: 15 equal-width confidence bins on [0.5, 1].
+  - Error-detection AUROC of −|z|.
+  - IoU on the same pixels, as a sanity check.
+- **Pixel sets:**
+  - "all": every 7th labelled pixel;
+  - "near": all labelled pixels ≤ 10 px from a label water edge.
+- **Rows:** the 11 phase-D groups of `configs/frozen.yaml` × 3 seeds.
+- **Splits:**
+  - `peru-test` (172 chips);
+  - `peru-2017-test` on `no_2023_train_overlap` (101, the main 2017 number) and `all` (204).
+- **Label-free methods:**
+  - `single`: raw logits.
+  - `temp_s1f`: z / T, with T from the frozen `outputs/phaseD/analysis/temperatures.json`
+    (Sen1Floods11 `valid` NLL fit per model and seed; sha256 checked against frozen.yaml). The
+    T source is the same as on dev: `s1f11_src` temperatures for s1f11_src / adabn / hm, and the
+    row's own for trhm / trfda. Not defined for `peru`.
+  - `ensemble`: mean probability of the 3 seeds.
+  - `ens+temp_s1f`: the ensemble with the frozen ensemble T.
+- **Reference that uses Peru labels:**
+  - `temp_dev` / `ens+temp_dev`: one T per run, fitted by NLL on every 7th labelled `peru-dev`
+    pixel of that run's dev logits (`outputs/logits_dev`), then applied to test.
+  - On dev this was a 2-fold-by-chip fit. For test, the whole of dev is the fitting set, which
+    is the natural held-out version.
+  - It is a reference for what Peru-labelled calibration reaches, not a label-free method.
+- **AUROC** is reported for `single` and `ensemble` only, because a global T is monotone.
+
+**Caveats fixed in advance.**
+- `peru-2017-test` labels call a pixel dry only where MNDWI ≤ 0, and most faint water is
+  missing from the labelled set. Calibration there measures the clear-water / clear-dry
+  population, not the hard cases. Its "near" set is therefore not comparable to 2023's.
+- The AdaBN U-Net dev logits of seeds 0 and 2 differ slightly from today's reproduction
+  (freeze entry). `temp_dev` uses the stored `outputs/logits_dev`, the ones behind the dev table.
+
+**Outputs.** `outputs/phaseD/test/calibration_runs.csv`, `calibration.csv`, `calibration.md`.
