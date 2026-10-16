@@ -452,10 +452,10 @@ sha256 checked; no Peru data on the pod, checked); Sen1Floods11 downloaded on th
 - **Checkpoints.** The three sweep checkpoints stay on the pod (selection uses metrics only). The
   Prithvi final checkpoints are stripped of optimizer/scheduler state (`best-*.ckpt` 3.7 GB →
   1.24 GB; every `state_dict` tensor checked equal before replacing) to fit the Mac's free disk.
-- **Done.** Queue B: Prithvi HM finished 09:57 UTC, TerraMind FDA 10:38 UTC; all 24 runs exit 0
+- **Done.** Queue B: Prithvi HM finished 09:57 UTC, TerraMind FDA 10:38 UTC; all 21 runs exit 0 (3 sweep + 3 Prithvi finals + 9 trHM + 6 trFDA; the trHM U-Net attempt stopped at epoch 1 before the 8-worker restart is not counted)
   (`outputs/<run>/queue.txt`). Copied with `scripts/cloud/fetch_phaseD2.sh` (verified: 186 files
   match), pod deleted 2026-10-16 ≈ 10:45 UTC (`list-pods` empty). Billing (pod-billing read after
-  deletion): $9.68 = GPU $9.51 + disk $0.16. Session 1 (`otv36sv0k42lyh`) settled at $6.19.
+  deletion): $9.68 = GPU $9.51 + disk $0.16. Session 1 (`otv36sv0k42lyh`) billing read $6.19 (2026-10-16); the earlier balance drop implied ≈ $6.98, not reconciled.
 - Run folders (best `val/IoU_Flood` @ best epoch / last epoch, seeds 0/1/2):
   `outputs/s1f11_prithvi_lr{3e-5,1e-4,3e-4}` (seed 0, 100-epoch cap; checkpoints left on the pod):
   0.8247@74/94, 0.8257@74/94, 0.8170@64/84;
@@ -482,7 +482,7 @@ Commits `3eb2092` (scripts) and `7e872ff` (table regimes); MPS fp32.
   Prithvi source 0.8691 / 0.8699 / 0.8712, AdaBN 0.8744 / 0.8566 / 0.8709, HM 0.8088 / 0.8295 / 0.8174,
   FDA ≈ 0.008; trHM U-Net 0.9148 / 0.9098 / 0.9108, TerraMind 0.8170 / 0.8415 / 0.8736, Prithvi
   0.8687 / 0.8610 / 0.8493; trFDA U-Net 0.7251 / 0.5009 / 0.6193, TerraMind 0.8353 / 0.8373 / 0.8368.
-  Table IoU equals the TerraTorch-logged dev IoU for every new run. Paired deltas:
+  Table IoU equals the TerraTorch-logged dev IoU for the 18 `terratorch validate` runs (max |diff| 2.7e-8, compared by a one-off check). Paired deltas:
   `phaseD_diagnostics.py` → `outputs/phaseD/paired_deltas.csv`. Results and interpretation:
   METHODS_NOTES 2026-10-16.
 

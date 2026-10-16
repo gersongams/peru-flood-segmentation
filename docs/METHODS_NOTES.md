@@ -1243,7 +1243,7 @@ histogram matching trades one error for another); paper sections "Where adaptati
 ## 2026-10-16 — Pod session 2 results: Prithvi source models and training-time input alignment on `peru-dev` (tasks 5.4, 3.4 part 2)
 
 **What was run** (protocol: entry "Pod session 2, pre-registered"; runs and deviations: EXPERIMENT_LOG
-2026-10-15/16 "Pod session 2"). All 24 runs exited 0; copy-back verified file by file (186 files);
+2026-10-15/16 "Pod session 2"). All 21 runs exited 0 (3 sweep, 3 Prithvi finals, 9 trHM, 6 trFDA); copy-back verified file by file (186 files);
 pod deleted. Dev logits on **unchanged** Peru images with each model's base config and its best
 `valid` checkpoint (`scripts/phaseD2_dev_logits.sh`, the procedure of the phase-D source rows);
 scored by `scripts/phaseD_dev_table.py` → `outputs/phaseD/dev_table.md`, `dev_table_runs.csv`;
@@ -1300,8 +1300,9 @@ is harmful (0.615, high variance), as expected.
    Sentinel-2 L1C intensity shift that HM corrects. This is a hypothesis, not tested.
 4. **No label-free method reaches the Peru-trained models** (best: U-Net trHM 0.912 vs 0.942).
 
-**Checks.** Dev logits: 174 files per run; table IoU = TerraTorch-logged dev IoU (the script
-prints both; equal to 4 decimals for every new run). Source-run reproducibility check of
+**Checks.** Dev logits: 174 files per run; table IoU = TerraTorch-logged dev IoU for the 18
+`terratorch validate` runs (max |diff| 2.7e-8; one-off comparison of the logs with
+`dev_table_runs.csv`, not part of the script; the Prithvi AdaBN/HM/FDA rows have no TerraTorch log). Source-run reproducibility check of
 Prithvi `valid` logits passed (above).
 
 **Caveats.** Dev only; test splits untouched. The train-time rows' `valid` IoUs (U-Net HM
@@ -1313,8 +1314,8 @@ may still rise slightly) against the pre-registered $9 ceiling. The estimate (3.
 seed). At 08:20 UTC (≈ $8.2) the authors' instruction to use the added credit was taken to
 override the conservative ceiling; the full priority list was then completed, nothing was cut,
 and no result had been looked at. Prithvi HM was started early, in parallel with TerraMind FDA,
-with 4 DataLoader workers instead of queue B's 8 (speed only). Session 1 billing settled at
-$6.19. Remaining balance ≈ $16.4 − $9.68 ≈ $6.7 (not read from the account).
+with 4 DataLoader workers instead of queue B's 8 (speed only). Session 1 billing read $6.19
+(2026-10-16; the earlier balance drop implied ≈ $6.98, not reconciled). Remaining balance ≈ $16.4 − $9.68 ≈ $6.7 (not read from the account).
 
 **Which method per backbone is frozen for the test evaluation (section 6) is a separate decision**
 for the authors; recommendation in `docs/phaseD_dev.md`.
@@ -1358,7 +1359,7 @@ exactly (e.g. U-Net AdaBN near ECE 9.49, ens+T 5.33; TerraMind HM all-pixel AURO
 | near ECE %, ens + T_valid | **4.06** | 5.33 | 9.80 | 6.60 | 6.62 | 7.97 | 5.36 |
 | error AUROC all pixels, single / ens | 0.805 / 0.858 | 0.645 / 0.733 | 0.751 / 0.806 | 0.606 / 0.728 | 0.522 / 0.591 | 0.791 / 0.883 | 0.655 / 0.740 |
 
-Peru-trained single models, near ECE: U-Net 5.42, TerraMind 6.17, Prithvi 7.60.
+Peru-trained, near ECE single / 3-seed ensemble: U-Net 5.42 / 4.42, TerraMind 6.17 / 5.36, Prithvi 7.60 / 6.33 (ens + dev-label T: 3.14 / 4.52 / 3.76, reference only).
 
 **Findings.**
 1. **U-Net trHM removes the desert false positives almost completely** (bare FPR 0.005 vs 0.003
@@ -1366,7 +1367,7 @@ Peru-trained single models, near ECE: U-Net 5.42, TerraMind 6.17, Prithvi 7.60.
    AdaBN. Like test-time HM, it pays on faint water: recall 0.23 / 0.39 for NDWI −0.1–0 / 0–0.1
    (AdaBN 0.66 / 0.75), and small water bodies (< 1 ha IoU 0.349 vs 0.486). Edges unchanged (0.613).
 2. **U-Net trHM is also the best-calibrated label-free model**: with T from its own transformed
-   `valid` and the 3-seed ensemble, near-water ECE is 4.06 %, below every Peru-trained single
+   `valid` and the 3-seed ensemble, near-water ECE is 4.06 %, below the Peru-trained U-Net 3-seed ensemble without T (4.42 %; with a dev-label T 3.14 %, reference only) and every Peru-trained single
    model. Its errors are rankable (all-pixel AUROC 0.805 single, 0.858 ensemble).
 3. **TerraMind trFDA (the pre-registered choice) is stable but has a boundary problem.** It has
    the best TerraMind interior (> 10 px IoU 0.946) and the fewest false positives, but the worst

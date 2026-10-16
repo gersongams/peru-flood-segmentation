@@ -118,7 +118,7 @@ in METHODS_NOTES 2026-10-15 "Where the best label-free methods still fail".
 for the training-time rows come from each model's own transformed `valid`.
 - **U-Net + training-time HM** removes the desert false positives almost completely (bare FPR
   0.005, Peru-trained 0.003) and is the best-calibrated label-free model: near-water ECE 4.06 %
-  with ensemble + T, below every Peru-trained single model; error AUROC 0.805 over all pixels.
+  with ensemble + T, below the Peru-trained U-Net 3-seed ensemble (4.42 %; 3.14 % with a dev-label T, reference only); error AUROC 0.805 over all pixels.
   Like test-time HM, it loses faint water (recall 0.23–0.39 for NDWI < 0.1) and small water
   (< 1 ha IoU 0.349). Edges are unchanged (0.613).
 - **TerraMind + training-time FDA** (the pre-registered choice) has the best interior and the
@@ -150,8 +150,8 @@ for the training-time rows come from each model's own transformed `valid`.
 
 Self-training session: RunPod RTX 4090, 22 runs, pod up 12:55–19:41 UTC on 2026-10-15
 (≈ 6.8 h × $0.89/h ≈ $6.0; billing reads $5.34, then $5.72 after deletion, still catching up). Source
-models (section 1): $4.56. Self-training session final billing: $6.19. Pod session 2 (Prithvi
-source models + LR sweep, training-time HM/FDA, 24 runs, 2026-10-15 23:08 – 2026-10-16 10:45 UTC):
+models (section 1): $4.56. Self-training session billing read $6.19 (2026-10-16; the earlier balance drop implied ≈ $6.98, not reconciled). Pod session 2 (Prithvi
+source models + LR sweep, training-time HM/FDA, 21 runs, 2026-10-15 23:08 – 2026-10-16 10:45 UTC):
 $9.68 (GPU $9.51 + disk $0.16, billing read after deletion), above the pre-registered $9 ceiling;
 the authors' instruction to use the added credit was applied at ≈ $8.2 with two runs left.
 
