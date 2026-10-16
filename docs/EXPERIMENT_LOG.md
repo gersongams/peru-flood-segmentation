@@ -430,6 +430,28 @@ sha256 checked; no Peru data on the pod, checked); Sen1Floods11 downloaded on th
   itself and killed the session; processes are now stopped by PID from a script file.
 - Queues: `bash scripts/cloud/queue_phaseD2.sh A` (Prithvi sweep → finals) and `... B`
   (train-time HM/FDA). At start: 13.4 GB of 24 GB GPU memory with Prithvi + U-Net running together.
+- **Queue B restarted with 8 DataLoader workers (23:21 UTC).** U-Net + HM ran ~25 s/epoch vs 5.8 s
+  without the transform: input-bound with the config's 4 workers (HM 0.11 s/chip, FDA 0.26
+  s/chip on CPU). Queue B was stopped by PID at epoch 1 of `s1f11_trhm_unet` seed 0, its outputs and
+  log deleted, and restarted from `/workspace/queueB8.sh` (copy in `outputs/phaseD/pod2/`): the same runs
+  and settings plus `--data.init_args.num_workers=8` (recorded in each run's `config.yaml`). Queue A untouched.
+- **Queue A done (01:54 UTC).** Sweep, max `val/IoU_Flood` (seed 0, 100 epochs): 3e-5 0.8247,
+  1e-4 0.8257, 3e-4 0.8170 → LR 1e-4 (interior: no edge run); finals seeds 0–2 at 1e-4.
+- **Watcher failure.** The local watcher never worked: in zsh, `$S` holding the ssh command was
+  not word-split, so every poll failed ("no such file or directory: ssh -n ...") and it ran
+  to its 540-min limit without reporting. Pod checked by hand at 08:20 UTC; replaced by a script-file watcher.
+- **Budget ceiling raised; Prithvi HM started in parallel (08:22 UTC).** At 08:20, ≈ 9.2 h × $0.89
+  ≈ $8.2 spent vs the pre-registered $9 ceiling, with TerraMind + FDA seed 1 at epoch 101 (FDA is
+  CPU-bound: ~1¾ h per TerraMind seed, GPU mostly idle) and seed 2 and Prithvi HM still to run.
+  The $9 was a conservative guard set by us; the user had asked to "run all you can" with the
+  ≈ $16.4 balance, so the remaining runs are completed (projected total ≈ $11). To save wall time,
+  the outer loop of queue B was stopped by PID (its running `run_queue.sh` for TerraMind FDA
+  continues) and `/workspace/queueBp.sh` (copy in `outputs/phaseD/pod2/`) started the Prithvi HM runs
+  now, on the idle GPU, with the same settings as queue B except `num_workers` left at the
+  config's 4 (HM on 6 bands is cheap; the CPUs are busy with FDA). No result had been looked at.
+- **Checkpoints.** The three sweep checkpoints stay on the pod (selection uses metrics only). The
+  Prithvi final checkpoints are stripped of optimizer/scheduler state (`best-*.ckpt` 3.7 GB →
+  1.24 GB; every `state_dict` tensor checked equal before replacing) to fit the Mac's free disk.
 
 ## 2026-10-15 — Phase-D analysis of the best label-free methods (tasks 5.2, 5.3; Mac, no training)
 

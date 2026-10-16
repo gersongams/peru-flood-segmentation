@@ -27,9 +27,10 @@ from terratorch.tasks import SemanticSegmentationTask
 from floodseg.adapt_eval import DEV_SPLIT, adapt_bn, predict_dev
 from floodseg.target_pool import REPO, model_input_spec
 
-SOURCES = {"unet": "s1f11_src_unet", "terramind_v1_base": "s1f11_src_terramind_lr5e-5"}
+SOURCES = {"unet": "s1f11_src_unet", "terramind_v1_base": "s1f11_src_terramind_lr5e-5",
+           "prithvi_eo_v2_300": "s1f11_src_prithvi"}
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
-BATCHES = {"unet": 16, "terramind_v1_base": 8}  # TerraMind fits batch 8 on the Mac
+BATCHES = {"unet": 16, "terramind_v1_base": 8, "prithvi_eo_v2_300": 4}  # TerraMind fits batch 8 on the Mac
 
 
 def main(model: str = "unet") -> None:

@@ -8,12 +8,13 @@ outputs/logits_valid/s1f11_src/<model>/seed<s>/<id>_S2Hand.npy with run.json.
 Check: pooled water IoU from these logits vs the best `val/IoU_water`-type value in the run's
 metrics.csv (printed side by side).
 
-    uv run python scripts/phaseD_valid_logits.py
+    uv run python scripts/phaseD_valid_logits.py [model ...]   # default: all models
 """
 
 import glob
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -26,15 +27,18 @@ from floodseg.metrics import counts, scores
 from floodseg.sen1floods11 import CHIP_DIR, official_ids
 from floodseg.target_pool import REPO, load_image, model_input_spec
 
-SOURCES = {"unet": "s1f11_src_unet", "terramind_v1_base": "s1f11_src_terramind_lr5e-5"}
-BATCH = 8
+SOURCES = {"unet": "s1f11_src_unet", "terramind_v1_base": "s1f11_src_terramind_lr5e-5",
+           "prithvi_eo_v2_300": "s1f11_src_prithvi"}
+BATCHES = {"unet": 8, "terramind_v1_base": 8, "prithvi_eo_v2_300": 4}  # Prithvi-300M fits batch 4 on the Mac
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 
 
-def main() -> None:
+def main(*models: str) -> None:
     ids = official_ids("valid")
     commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO).stdout.strip()
     for model, folder in SOURCES.items():
+        if models and model not in models:
+            continue
         spec = model_input_spec(REPO / "configs" / f"{model}.yaml")
         for seed in (0, 1, 2):
             run = REPO / "outputs" / folder / model / "lightning_logs" / f"seed{seed}"
@@ -44,8 +48,8 @@ def main() -> None:
             out.mkdir(parents=True, exist_ok=True)
             c = np.zeros((2, 3), np.int64)
             with torch.no_grad():
-                for i in range(0, len(ids), BATCH):
-                    part = ids[i:i + BATCH]
+                for i in range(0, len(ids), BATCHES[model]):
+                    part = ids[i:i + BATCHES[model]]
                     x = torch.stack([load_image(CHIP_DIR / "S2Hand" / f"{s}_S2Hand.tif", spec) for s in part]).to(DEVICE)
                     o = net(x).output.float()
                     for s, z in zip(part, (o[:, 1] - o[:, 0]).cpu().numpy().astype(np.float32)):
@@ -63,4 +67,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(*sys.argv[1:])

@@ -12,12 +12,13 @@ only and cached in outputs/phaseD/alignment/. Logits go to
 outputs/logits_dev/<hm|fda>/<model>/seed<s>/ with run.json; scoring is offline
 (scripts/phaseD_dev_table.py).
 
-    uv run python scripts/input_alignment_dev.py
+    uv run python scripts/input_alignment_dev.py [model ...]   # default: all models
 """
 
 import glob
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -29,8 +30,9 @@ from floodseg.input_alignment import fda, hist_match, mean_amplitude, quantiles,
 from floodseg.sen1floods11 import CHIP_DIR, official_ids
 from floodseg.target_pool import PERU_IMAGES, REPO, forbid_peru_labels, model_input_spec, normalize, read_manifest
 
-SOURCES = {"unet": "s1f11_src_unet", "terramind_v1_base": "s1f11_src_terramind_lr5e-5"}
-BATCHES = {"unet": 16, "terramind_v1_base": 8}
+SOURCES = {"unet": "s1f11_src_unet", "terramind_v1_base": "s1f11_src_terramind_lr5e-5",
+           "prithvi_eo_v2_300": "s1f11_src_prithvi"}
+BATCHES = {"unet": 16, "terramind_v1_base": 8, "prithvi_eo_v2_300": 4}
 CACHE = REPO / "outputs" / "phaseD" / "alignment"
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 BETA = 0.01
@@ -49,7 +51,7 @@ def fit() -> dict:
     return p
 
 
-def main() -> None:
+def main(*models: str) -> None:
     p = fit()
     transforms = {"hm": lambda x: hist_match(x, p["q_pool"], p["q_s1f"]),
                   "fda": lambda x: fda(x, p["amp_s1f"], BETA)}
@@ -57,6 +59,8 @@ def main() -> None:
     dirty = bool(subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, cwd=REPO).stdout.strip())
     stems = (REPO / "data" / "peru" / "unosat2023" / "splits" / "dev.txt").read_text().split()
     for model, folder in SOURCES.items():
+        if models and model not in models:
+            continue
         spec = model_input_spec(REPO / "configs" / f"{model}.yaml")
         for seed in (0, 1, 2):
             ckpt = Path(glob.glob(str(REPO / "outputs" / folder / model / "lightning_logs" / f"seed{seed}" / "checkpoints" / "best-*.ckpt"))[0])
@@ -83,4 +87,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(*sys.argv[1:])
