@@ -1,7 +1,8 @@
 """Score the logits of scripts/evaluate_frozen.py (phase-D task 6.2; spec `adaptation-evaluation`).
 
 Per run and chip: plain and boundary-tolerant [tp, fp, fn] (floodseg.metrics.counts, water if
-z > 0), kept for bootstrap CIs. Pooled per subset, then mean ± std over the 3 seeds per group,
+z > 0), kept for bootstrap CIs. Pooled per subset, then mean ± std over the 3 seeds per group (CSV outputs also carry the
+two-class mIoU, mean of water and not-water IoU, the metric most papers report; added 2026-10-16),
 and gap closed = (IoU − IoU_source) / (IoU_Peru − IoU_source) against the same backbone's
 `s1f11_src` and `peru` groups on the same subset; undefined ("n/a") when IoU_Peru ≤ IoU_source
 (no gap to close; happens on peru-2017-test, fixed 2026-10-16 after the first scoring printed
@@ -84,7 +85,7 @@ def main() -> None:
                 d = root / g["regime"] / g["model"] / seed
                 z = np.load(d / f"{s}.npy")
                 c = counts(z > 0, y)
-                rows.append(dict(group=g["id"], seed=seed, chip=s, **{f"{k}{t}": c[i, j] for i, t in enumerate(("", "_tol"))
+                rows.append(dict(group=g["id"], seed=seed, chip=s, n=int((y != -1).sum()), **{f"{k}{t}": c[i, j] for i, t in enumerate(("", "_tol"))
                                                                        for j, k in enumerate(("tp", "fp", "fn"))}))
                 if a.compare:
                     z0 = np.load(REPO / "outputs" / "logits_dev" / g["regime"] / g["model"] / seed / f"{s}.npy")
@@ -100,12 +101,14 @@ def main() -> None:
         part = cc[cc.chip.isin(keep)]
         for (gid, seed), p in part.groupby(["group", "seed"]):
             c = np.array([[p.tp.sum(), p.fp.sum(), p.fn.sum()], [p.tp_tol.sum(), p.fp_tol.sum(), p.fn_tol.sum()]])
-            runs.append(dict(subset=sub, chips=len(keep), group=gid, seed=seed, **scores(c)))
+            tn = p.n.sum() - c[0].sum()  # labelled pixels that are neither tp, fp nor fn
+            miou = (c[0, 0] / c[0].sum() + tn / (tn + c[0, 1] + c[0, 2])) / 2  # two-class mIoU (papers' metric)
+            runs.append(dict(subset=sub, chips=len(keep), group=gid, seed=seed, **scores(c), miou=miou))
     runs = pd.DataFrame(runs)
     runs.to_csv(OUT / f"{tag}_runs.csv", index=False)
 
     cols = ["iou", "iou_tol", "precision", "recall"]
-    gs = runs.groupby(["subset", "group"])[cols].agg(["mean", "std"])
+    gs = runs.groupby(["subset", "group"])[cols + ["miou"]].agg(["mean", "std"])
     meta = {g["id"]: g for g in groups}
     out, lines = [], [f"# Frozen evaluation on `{a.split}`\n"]
     for sub, keep in subsets.items():
@@ -123,7 +126,7 @@ def main() -> None:
                     den = gs.loc[up, ("iou", "mean")] - gs.loc[src, ("iou", "mean")]
                     undefined = den <= 0  # Peru-trained not above source-only: no gap to close
                     gap = np.nan if undefined else (r[("iou", "mean")] - gs.loc[src, ("iou", "mean")]) / den
-                out.append(dict(subset=sub, group=gid, role=role, **{f"{c}_{s}": r[(c, s)] for c in cols for s in ("mean", "std")}, gap_closed=gap))
+                out.append(dict(subset=sub, group=gid, role=role, **{f"{c}_{s}": r[(c, s)] for c in cols + ["miou"] for s in ("mean", "std")}, gap_closed=gap))
                 cells = " | ".join(f"{r[(c, 'mean')]:.4f} ± {r[(c, 'std')]:.4f}" for c in cols)
                 lines.append(f"| {role} | {MODELS[g['model']]} | {g['regime']} | {cells} | {'n/a (upper ≤ source)' if undefined else '—' if np.isnan(gap) else f'{gap:.0%}'} |")
     pd.DataFrame(out).to_csv(OUT / f"{tag}_groups.csv", index=False)
