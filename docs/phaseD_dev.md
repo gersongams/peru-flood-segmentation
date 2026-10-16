@@ -155,13 +155,13 @@ source models + LR sweep, training-time HM/FDA, 21 runs, 2026-10-15 23:08 – 20
 $9.68 (GPU $9.51 + disk $0.16, billing read after deletion), above the pre-registered $9 ceiling;
 the authors' instruction to use the added credit was applied at ≈ $8.2 with two runs left.
 
-## Open decisions (authors)
+## Decided (authors, 2026-10-16)
 
-- **Which method per backbone to freeze for the test evaluation (section 6).** Recommendation:
+- **Which method per backbone to freeze for the test evaluation (section 6): approved as recommended** (record: `docs/METHODS_NOTES.md` 2026-10-16 "Phase-D freeze"; `configs/frozen.yaml`). Recommendation as approved:
   U-Net + training-time HM (best label-free row; also its pre-registered train-time choice);
   TerraMind + training-time FDA (the pre-registered choice; HM's higher mean is within its seed
   spread, FDA is far more stable; but FDA has the worst edges and calibration, see above, so
   TerraMind + training-time HM should be reported on test as the secondary row); Prithvi source-only (no method improved it). AdaBN (U-Net) and
   test-time HM (TerraMind) are reported on test as secondary rows. All choices use dev only.
 - Whether to try self-training on histogram-matched inputs, or with a fixed BN rule: not
-  recommended (no pod credit planned; training-time alignment already beats it).
+  pursued (no pod credit planned; training-time alignment already beats it).

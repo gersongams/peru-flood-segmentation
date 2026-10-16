@@ -42,6 +42,6 @@
 
 ## 6. Final evaluation (once)
 
-- [ ] 6.1 Freeze phase-D configs in `configs/frozen.yaml`
+- [x] 6.1 Freeze phase-D configs in `configs/frozen.yaml`
 - [ ] 6.2 Evaluate all frozen phase-D models once on `peru-test` (full + both doubtful-excluded variants) and `peru-2017-test`
 - [ ] 6.3 Tables and figures for the thesis (Chapters IV–V) and paper 2; METHODS_NOTES and EXPERIMENT_LOG entries

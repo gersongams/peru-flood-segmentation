@@ -44,9 +44,14 @@ AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
    $9.68; ≈ $6.7 credit left). Training-time HM is the best label-free U-Net (0.912); TerraMind's
    pre-registered train-time row is FDA (0.837); Prithvi is best source-only (0.870), no method
    helped it. Strata/calibration (5.2/5.3) extended to Prithvi and the train-time rows.
-   **Open (authors):** which method per backbone to freeze for section 6; recommendation in
-   `docs/phaseD_dev.md` "Open decisions". No further pod session recommended.
+   **Decided 2026-10-16 (authors):** freeze as recommended (`docs/phaseD_dev.md` "Decided";
+   METHODS_NOTES "Phase-D freeze"). No further pod session recommended.
 3. **Freeze the phase-D methods and evaluate the test sets once (section 6).** Closes phase D.
+   6.1 freeze: `configs/frozen.yaml` (`scripts/build_frozen.py`), 14 groups / 42 runs with sha256;
+   gated evaluation `scripts/evaluate_frozen.py` + scoring `scripts/score_frozen.py`, checked on
+   `peru-dev` first. Phase-D pass: 30 runs on `peru-test` and `peru-2017-test`. Section-7 pass
+   (Sen1Floods11 → Peru fine-tuned on the Peru tests, Sen1Floods11 `test`) is frozen, run later
+   (disk space; back up `outputs/` first).
 4. **Start writing:** Chapter III (data, Peru dataset, protocol) and the phase-D results, in Spanish.
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)

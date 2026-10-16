@@ -494,3 +494,15 @@ source models → `outputs/logits_valid/s1f11_src/`; pooled valid IoU equals eac
 `uv run python scripts/phaseD_analysis.py` (log `outputs/phaseD/analysis_run.log`) →
 `outputs/phaseD/analysis/`. Commit: see this entry's commit. Results: METHODS_NOTES 2026-10-15
 "Where the best label-free methods still fail".
+
+## 2026-10-16 — Freeze (phase-D 6.1, plan 7.1/7.2) and pre-test check on `peru-dev`
+
+`uv run python scripts/build_frozen.py` → `configs/frozen.yaml` (14 groups, 42 checkpoints with
+sha256 and training commits; artifacts: pool manifest, test-time HM map, temperatures, label-QA
+table). Decision: METHODS_NOTES 2026-10-16 "Phase-D freeze". Check, Mac MPS fp32, uncommitted
+tree on `c3eb94b`: `uv run python scripts/evaluate_frozen.py peru-dev` (log
+`outputs/frozen_check_dev.log`; 30 runs) then `uv run python scripts/score_frozen.py peru-dev
+--logits_root outputs/frozen_check/logits_dev --compare` → `outputs/phaseD/test/peru-dev_check*`
+(`_compare.csv`: 28/30 runs bit-identical to `outputs/logits_dev`; AdaBN U-Net seeds 0 and 2
+differ, IoU +0.0004 / +0.0069, cause not identified, see METHODS_NOTES). Check logits deleted
+afterwards (5.6 GB; regenerable with the same command). Freeze commit: see this entry's commit.

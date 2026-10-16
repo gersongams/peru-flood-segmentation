@@ -60,8 +60,8 @@
 
 ## 7. Final evaluation of baselines
 
-- [ ] 7.1 Implement the evaluate script with split-level + per-chip metrics and the `frozen.yaml` gate
-- [ ] 7.2 Freeze configurations and checkpoints in `configs/frozen.yaml`
+- [x] 7.1 Implement the evaluate script with split-level + per-chip metrics and the `frozen.yaml` gate
+- [x] 7.2 Freeze configurations and checkpoints in `configs/frozen.yaml`
 - [ ] 7.3 Evaluate once on `test`, `peru-test` and `peru-2017-test` v1 for all models, all training regimes (Peru-only, Sen1Floods11-only, Sen1Floods11 → Peru) and uncertainty variants
 - [ ] 7.4 Generate tables (mean ± std, test vs Peru, drop) and bootstrap CIs for `peru-test`
 - [ ] 7.5 Generate figures: reliability diagrams, Peru prediction + uncertainty maps, failure cases

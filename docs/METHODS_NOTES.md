@@ -1391,3 +1391,101 @@ omissions. Dev only.
 
 Feeds: thesis chapter 5 (where adapted models still fail; calibration of adapted models), paper
 section "Adapting without Peru labels".
+
+## 2026-10-16 — Phase-D freeze for the one-time test evaluation (task 6.1; authors' decision)
+
+**Decision.** The authors approved the recommendation in `docs/phaseD_dev.md` ("Open
+decisions", now "Decided") on 2026-10-16. All choices use `peru-dev` (and Sen1Floods11 `valid`
+for checkpoints and temperatures) only; no test file had been read for any phase-D model. The
+freeze is the commit that adds `configs/frozen.yaml`; that hash is the evidence that every choice
+below predates the test evaluation.
+
+| Role | Backbone | Row (logit folder) | Dev water IoU (3 seeds) | Why |
+|---|---|---|---|---|
+| primary | U-Net | training-time HM (`trhm`) | 0.9118 ± 0.0026 | best label-free row; also U-Net's pre-registered train-time choice (seed-0 dev HM 0.9148 vs FDA 0.7251) |
+| primary | TerraMind | training-time FDA (`trfda`) | 0.8365 ± 0.0010 | pre-registered choice (seed-0 dev FDA 0.8353 vs HM 0.8170) |
+| primary | Prithvi | source-only (`s1f11_src`) | 0.8701 ± 0.0011 | no method improved it on dev |
+| secondary | TerraMind | training-time HM (`trhm`) | 0.8440 ± 0.0284 | higher mean than FDA within its seed spread; better edges and calibration than FDA (strata/calibration addendum above) |
+| secondary | U-Net | AdaBN (`adabn`) | 0.8969 ± 0.0161 | best test-time row for U-Net |
+| secondary | TerraMind | test-time HM (`hm`) | 0.8089 ± 0.0064 | best test-time row for TerraMind |
+| reference | U-Net, TerraMind | source-only (`s1f11_src`) | 0.8364, 0.7027 | gap-closed denominator |
+| reference | all three | Peru-trained (`peru`) | 0.9415, 0.9265, 0.9218 | upper bound, gap-closed denominator |
+
+**Scope of the freeze (procedural, follows from the spec).** The gap-closed column on test needs
+the source-only and Peru-trained rows on `peru-test` too, and those are section-7 baselines of
+`plan-flood-research`. Freezing phase-D rows now and baselines later would freeze baselines after
+the test set had been seen, so `configs/frozen.yaml` lists the baselines as well:
+- evaluated in the phase-D pass: the 10 groups above (30 runs) on `peru-test` and
+  `peru-2017-test`;
+- frozen now, evaluated in the section-7 pass: Sen1Floods11 → Peru fine-tuned models
+  (`s1f11_ft`, 9 runs; dev 0.938 / 0.928 / 0.924) on the Peru test sets, and the Sen1Floods11
+  `test` split for the Sen1Floods11-trained rows. Deferred only for disk space (below); their
+  checkpoints and hashes are fixed now.
+- not frozen (not reported on test): self-training rows (harmful on dev), test-time FDA (fails,
+  dev IoU ~0.01), U-Net training-time FDA, Prithvi AdaBN / test-time HM / training-time HM (all
+  below Prithvi source on dev), phase-C seed-0 Sen1Floods11 models (superseded by the 3-seed
+  phase-D source models), TerraMind LR 2e-5 source runs (superseded).
+
+**Frozen recipe (each entry of `configs/frozen.yaml`).** Checkpoint path and sha256 (the
+optimizer-stripped files for the Prithvi source runs, since those are what load; state-dict
+equality was checked when stripping); seed; the training run's commit from its run record.
+Prediction: water if the water logit z = logit_water − logit_other > 0, no threshold tuning.
+Fitted artifacts, none fitted on a test split:
+- AdaBN: BN statistics re-estimated on the 753 `peru-train` pool images
+  (`configs/pools/peru-train.csv`, sha256 in the file), exact cumulative average, batch 16, as on dev.
+  Deterministic given the pool, so the statistics are recomputed, not stored.
+- Test-time HM: the global per-band map pool → Sen1Floods11 `train` in
+  `outputs/phaseD/alignment/params.npz` (sha256 in the file), fitted on the 2023 pool images. It is
+  applied unchanged to `peru-2017-test` images as well (the 2017 event has no pool of its own; a
+  2017-specific fit would use test images).
+- Training-time HM/FDA: no test-time transform (Peru images unchanged), as on dev.
+- Temperatures for calibration: `outputs/phaseD/analysis/temperatures.json` (Sen1Floods11 `valid`
+  NLL fits, per model, seed and ensemble; sha256 in the file).
+
+**Test sets and scores (spec `adaptation-evaluation`).** `peru-test`: 172 UNOSAT 2023 chips (Yaku
+event), full set and the two doubtful-excluded variants from `scripts/label_qa.py`
+(`outputs/label_qa/chips.csv`, built in task 4.4 from labels and MNDWI, no model; test counts
+doubtful 6 all blobs / 3 without near-cloud blobs). `peru-2017-test`: EMSR199 2017 event, main
+number on the 101 chips that do not touch any 2023 `peru-train` location, all 204 alongside
+(`docs/peru_data_card.md`). Metrics as on dev: pooled plain and boundary-tolerant water IoU,
+precision, recall (`floodseg.metrics`), mean ± std over seeds, gap closed against the same
+backbone's test-set source and Peru-trained rows. Per-chip counts are kept for bootstrap CIs.
+
+**Gate.** `scripts/evaluate_frozen.py` refuses `peru-test` / `peru-2017-test` for any run not in
+the committed `configs/frozen.yaml`, if the checkpoint hash differs, if the working tree is
+dirty, or if the run's test logits already exist. Before the test pass it runs on `peru-dev`
+through the same code and must reproduce the dev table logits.
+
+**Disk.** Float32 logits are 1.0 MB per chip; the phase-D pass writes 30 runs × 376 chips ≈ 11.3 GB
+with 21 GB free. The section-7 rows are deferred to keep ≥ 8 GB free until `outputs/` is backed up.
+
+**Alternatives rejected.** TerraMind trHM as the primary row: it would switch the pre-registered
+rule after seeing its consequences; it is reported as a secondary row instead, so both are on
+test. Freezing only the phase-D rows: rejected for the gap-closed reason above.
+
+**After the test pass.** No model choice changes. An evaluation-code bug found later is fixed,
+rerun and logged as a correction with its reason.
+
+Feeds: thesis chapter 3 (protocol: freeze before test), chapters 4–5 (test results), paper
+section "Evaluation protocol".
+
+**Pre-test check on `peru-dev` (done before the freeze commit).** `scripts/evaluate_frozen.py
+peru-dev` ran all 30 phase-D runs through the gated code path (Mac MPS fp32) into
+`outputs/frozen_check/logits_dev/`; `scripts/score_frozen.py peru-dev --compare` compared them with
+the dev-table logits (`outputs/phaseD/test/peru-dev_check_compare.csv`). **28 of 30 runs are
+bit-identical** (max |Δz| = 0, IoU equal), including the runs whose dev logits came from
+`terratorch validate` (source, Peru-trained, trHM, trFDA) and the test-time HM runs.
+**Two AdaBN U-Net runs differ**: seed 0 max |Δz| 2.2, 8,286 pixels change sign, IoU 0.9056 vs
+0.9052; seed 2 max |Δz| 14.3, 71,405 pixels, IoU 0.8852 vs 0.8783; seed 1 identical.
+Investigation: same checkpoint (unchanged since 14 Oct 17:59–18:20, before the AdaBN run), same
+pool manifest (sha256-verified on read), same algorithm (`adapt_bn` is a refactor of the
+`d48fc3f` code), no dependency change since `d48fc3f`. Today the AdaBN pass is deterministic:
+two MPS passes give identical BN statistics, and CPU agrees within 3.8e-6 (means) / 7.7e-7
+(relative variance) (scratch script, seed 2). The smallest re-estimated running variance is
+8.7e-13, so a BN channel with near-zero target variance amplifies any accumulation-order
+difference; this is a plausible mechanism for the 14 Oct difference but not proven. **Cause
+not identified.** Consequence: the AdaBN U-Net dev row becomes 0.8993 ± 0.0122 (gap closed 60 %)
+with today's reproducible recomputation, vs 0.8969 ± 0.0161 (58 %) as reported; no freeze choice
+depends on it (it is a secondary row, below U-Net trHM 0.9118 either way). The test pass uses
+the frozen recipe (recompute on the pool), i.e. today's statistics; tables that show the AdaBN
+dev row next to its test row use 0.8993 and footnote the original value.
