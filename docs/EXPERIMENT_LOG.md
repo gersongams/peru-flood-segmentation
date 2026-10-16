@@ -501,8 +501,28 @@ source models → `outputs/logits_valid/s1f11_src/`; pooled valid IoU equals eac
 sha256 and training commits; artifacts: pool manifest, test-time HM map, temperatures, label-QA
 table). Decision: METHODS_NOTES 2026-10-16 "Phase-D freeze". Check, Mac MPS fp32, uncommitted
 tree on `c3eb94b`: `uv run python scripts/evaluate_frozen.py peru-dev` (log
-`outputs/frozen_check_dev.log`; 30 runs) then `uv run python scripts/score_frozen.py peru-dev
+`outputs/frozen_check_dev.log`; 33 runs) then `uv run python scripts/score_frozen.py peru-dev
 --logits_root outputs/frozen_check/logits_dev --compare` → `outputs/phaseD/test/peru-dev_check*`
-(`_compare.csv`: 28/30 runs bit-identical to `outputs/logits_dev`; AdaBN U-Net seeds 0 and 2
+(`_compare.csv`: 31/33 runs bit-identical (first written as 28/30, a miscount, corrected 2026-10-16) to `outputs/logits_dev`; AdaBN U-Net seeds 0 and 2
 differ, IoU +0.0004 / +0.0069, cause not identified, see METHODS_NOTES). Check logits deleted
 afterwards (5.6 GB; regenerable with the same command). Freeze commit: see this entry's commit.
+
+## 2026-10-16 — Disk cleanup (authors' request)
+
+Deleted `outputs/phaseD/upload/` (1.4 GB; slim upload copies of the phase-D source checkpoints,
+regenerable with `scripts/cloud/stage_phaseD.py`; the originals are kept) and the arrays in
+`outputs/preds_dev/{peru,s1f11,s1f11_ft}/` (float16 probabilities superseded by the float32 logits
+on 2026-10-14; the `log_*.txt` files are kept). Consequence: `scripts/float16_diagnostic.py` can no
+longer be rerun; its result stays as recorded in METHODS_NOTES 2026-10-14.
+
+## 2026-10-16 — One-time test evaluation, phase-D pass (task 6.2)
+
+`uv run python scripts/evaluate_frozen.py peru-test` then `peru-2017-test`, commit `f1f61d6`
+(clean, frozen), Mac MPS fp32; 33 runs each (11 groups × 3 seeds) → `outputs/logits_test/`,
+`outputs/logits_2017/` (float32, 172 / 204 files per run, run.json each); logs
+`outputs/phaseD/test/eval_{peru-test,peru-2017-test}.log`. Scoring:
+`uv run python scripts/score_frozen.py peru-test` / `peru-2017-test` →
+`outputs/phaseD/test/<split>{.md,_groups.csv,_runs.csv,_chip_counts.csv}` (rescored once after the
+gap-closed fix, same logits); `uv run python scripts/bootstrap_frozen.py` →
+`outputs/phaseD/test/bootstrap_{groups,diffs}.csv`. Results: METHODS_NOTES 2026-10-16 "One-time
+test evaluation". Commit: see this entry's commit.

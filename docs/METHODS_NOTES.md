@@ -1415,7 +1415,7 @@ below predates the test evaluation.
 the source-only and Peru-trained rows on `peru-test` too, and those are section-7 baselines of
 `plan-flood-research`. Freezing phase-D rows now and baselines later would freeze baselines after
 the test set had been seen, so `configs/frozen.yaml` lists the baselines as well:
-- evaluated in the phase-D pass: the 10 groups above (30 runs) on `peru-test` and
+- evaluated in the phase-D pass: the 11 groups above (33 runs; first written as 10 groups / 30 runs, a miscount, corrected 2026-10-16) on `peru-test` and
   `peru-2017-test`;
 - frozen now, evaluated in the section-7 pass: Sen1Floods11 → Peru fine-tuned models
   (`s1f11_ft`, 9 runs; dev 0.938 / 0.928 / 0.924) on the Peru test sets, and the Sen1Floods11
@@ -1456,7 +1456,7 @@ the committed `configs/frozen.yaml`, if the checkpoint hash differs, if the work
 dirty, or if the run's test logits already exist. Before the test pass it runs on `peru-dev`
 through the same code and must reproduce the dev table logits.
 
-**Disk.** Float32 logits are 1.0 MB per chip; the phase-D pass writes 30 runs × 376 chips ≈ 11.3 GB
+**Disk.** Float32 logits are 1.0 MB per chip; the phase-D pass writes 33 runs × 376 chips ≈ 12.4 GB
 with 21 GB free. The section-7 rows are deferred to keep ≥ 8 GB free until `outputs/` is backed up.
 
 **Alternatives rejected.** TerraMind trHM as the primary row: it would switch the pre-registered
@@ -1470,10 +1470,10 @@ Feeds: thesis chapter 3 (protocol: freeze before test), chapters 4–5 (test res
 section "Evaluation protocol".
 
 **Pre-test check on `peru-dev` (done before the freeze commit).** `scripts/evaluate_frozen.py
-peru-dev` ran all 30 phase-D runs through the gated code path (Mac MPS fp32) into
+peru-dev` ran all 33 phase-D runs through the gated code path (Mac MPS fp32) into
 `outputs/frozen_check/logits_dev/`; `scripts/score_frozen.py peru-dev --compare` compared them with
-the dev-table logits (`outputs/phaseD/test/peru-dev_check_compare.csv`). **28 of 30 runs are
-bit-identical** (max |Δz| = 0, IoU equal), including the runs whose dev logits came from
+the dev-table logits (`outputs/phaseD/test/peru-dev_check_compare.csv`). **31 of 33 runs are
+bit-identical** (first written as 28 of 30, a miscount) (max |Δz| = 0, IoU equal), including the runs whose dev logits came from
 `terratorch validate` (source, Peru-trained, trHM, trFDA) and the test-time HM runs.
 **Two AdaBN U-Net runs differ**: seed 0 max |Δz| 2.2, 8,286 pixels change sign, IoU 0.9056 vs
 0.9052; seed 2 max |Δz| 14.3, 71,405 pixels, IoU 0.8852 vs 0.8783; seed 1 identical.
@@ -1489,3 +1489,77 @@ with today's reproducible recomputation, vs 0.8969 ± 0.0161 (58 %) as reported;
 depends on it (it is a secondary row, below U-Net trHM 0.9118 either way). The test pass uses
 the frozen recipe (recompute on the pool), i.e. today's statistics; tables that show the AdaBN
 dev row next to its test row use 0.8993 and footnote the original value.
+
+## 2026-10-16 — One-time test evaluation of the frozen configurations (task 6.2)
+
+**What.** After the freeze commit `f1f61d6` (pushed), `scripts/evaluate_frozen.py peru-test` and
+`peru-2017-test` ran the 33 phase-D runs once (Mac MPS fp32; every run.json records commit
+`f1f61d6`, `git_dirty: false`, the frozen sha256s; logs `outputs/phaseD/test/eval_*.log`; 172 / 204
+logit files per run checked). Scored with `scripts/score_frozen.py` (first reading of any test
+label) and `scripts/bootstrap_frozen.py` (2,000 chip-bootstrap replicates, paired across rows,
+seed-mean IoU, chip sampling only). Sources: `outputs/phaseD/test/{peru-test,peru-2017-test}.md`,
+`*_groups.csv`, `*_runs.csv`, `*_chip_counts.csv`, `bootstrap_{groups,diffs}.csv`.
+
+**Correction to the scoring script (before any write-up).** The first scoring printed gap-closed
+ratios of 117–354 % on `peru-2017-test`: there the Peru-trained rows are *below* source-only for
+every backbone, so the denominator is negative and the ratio meaningless (e.g. U-Net trHM 0.854 <
+source 0.917 showed "+162 %"). `score_frozen.py` now prints "n/a (upper ≤ source)" when IoU_Peru ≤
+IoU_source; rescored from the saved logits (no inference rerun). peru-test denominators are large
+(U-Net 0.25, TerraMind 0.19), unaffected.
+
+**Results, `peru-test` (172 chips, 2023 Yaku event; water IoU, mean ± std over 3 seeds, 95 % chip-bootstrap CI):**
+
+| Row | IoU | 95 % CI | precision | recall | gap closed | dev IoU |
+|---|---|---|---|---|---|---|
+| U-Net trHM (primary) | 0.7985 ± 0.0048 | 0.704–0.865 | 0.952 | 0.832 | 88 % | 0.912 |
+| TerraMind trFDA (primary) | 0.7085 ± 0.0200 | 0.618–0.779 | 0.928 | 0.750 | 44 % | 0.837 |
+| Prithvi source-only (primary) | 0.7405 ± 0.0136 | 0.664–0.796 | 0.799 | 0.911 | — | 0.870 |
+| TerraMind trHM (secondary) | 0.7209 ± 0.0053 | 0.609–0.802 | 0.896 | 0.787 | 50 % | 0.844 |
+| U-Net AdaBN (secondary) | 0.7308 ± 0.0127 | 0.625–0.812 | 0.795 | 0.901 | 61 % | 0.899 |
+| TerraMind test-time HM (secondary) | 0.7055 ± 0.0006 | 0.587–0.790 | 0.860 | 0.797 | 42 % | 0.809 |
+| U-Net / TerraMind source-only | 0.5763 / 0.6261 | | 0.597 / 0.668 | 0.947 / 0.911 | — | 0.836 / 0.703 |
+| Peru-trained U-Net / TerraMind / Prithvi | 0.8280 / 0.8149 / 0.8244 | | 0.966 / 0.960 / 0.966 | 0.853 / 0.843 / 0.850 | — | 0.942 / 0.927 / 0.922 |
+
+Paired differences (seed-mean IoU, 95 % CI): U-Net trHM − Peru U-Net −0.030 [−0.048, −0.013];
+U-Net trHM − source U-Net +0.222 [0.132, 0.309]; U-Net trHM − Prithvi source +0.058 [0.013, 0.105];
+U-Net trHM − AdaBN +0.068 [0.005, 0.138]; TerraMind trFDA − source +0.082 [0.016, 0.156]; TerraMind
+trHM − trFDA +0.013 [−0.022, 0.044] (not separable); Prithvi source − Peru Prithvi −0.084
+[−0.134, −0.034]. Doubtful-excluded variants (166 / 169 chips) shift every row by +0.004 to
++0.016 and change no ordering (`peru-test.md`).
+
+**Results, `peru-2017-test` (EMSR199 2017 event; main subset 101 chips not touching 2023 train):**
+source-only U-Net 0.917, TerraMind 0.934, Prithvi 0.937; Peru-trained 0.878 / 0.892 / 0.878; U-Net
+trHM 0.854, AdaBN 0.887; TerraMind trFDA 0.831, trHM 0.866, HM 0.875. **The order reverses**: every
+alignment method and every Peru-trained model is below its source-only model (U-Net trHM − source
+−0.064 [−0.083, −0.046]; TerraMind trFDA − source −0.103 [−0.175, −0.048]; Prithvi source − Peru
++0.059 [0.039, 0.082]). TerraMind trHM beats trFDA on 2017 (+0.035 [0.012, 0.066]). All 204 chips:
+same pattern. Precision is ≥ 0.988 for every row; the differences are recall.
+
+**Reading.**
+1. On the 2023 event, label-free training-time HM brings U-Net to 0.03 IoU of the Peru-trained
+   U-Net, and is the best label-free row, ahead of the best source model (Prithvi) by 0.058. The dev
+   ordering of rows holds on test for the primaries.
+2. Every row drops ≈ 0.10–0.13 from dev to test, the Peru-trained ones too (U-Net 0.942 → 0.828,
+   recall 0.97 → 0.85): the test blocks are harder or labelled differently, not an adaptation
+   effect. The higher gap closed on test (88 % vs 72 % on dev) comes mostly from source-only falling
+   further (0.836 → 0.576); the paired differences are the better summary.
+3. On the 2017 event no label-free method beats source-only, and Peru training does not either.
+   The 2017 labels define dry only where MNDWI ≤ 0 and ignore MNDWI > 0 pixels outside EMS water
+   (`docs/peru_data_card.md`), so this set cannot penalise the over-prediction that phase D removes
+   (precision ≈ 1 for all) and in effect measures recall of spectrally clear water — where the dev
+   strata showed alignment and Peru training are conservative. **No method wins both events.**
+4. Pre-registered TerraMind rule (FDA over HM, seed-0 dev): on `peru-test` the two are not
+   separable; on 2017 HM is clearly better. The primary stays trFDA (no change after test); both rows
+   are reported.
+
+**Calibration on test:** not computed yet; the dev claim "U-Net trHM is the best-calibrated
+label-free model" is dev-only until it is (frozen temperatures and saved logits allow it with no refit).
+
+**Post-hoc diagnostic, declared before running (changes no reported number).** To test reading 3,
+on `peru-2017-test` (all 204 chips and the 101-chip subset), per row: recall on label-water pixels
+binned by MNDWI (0–0.1, 0.1–0.3, > 0.3), and the share of ignored (−1) pixels with MNDWI > 0 that
+the row predicts as water. Expected if reading 3 holds: the recall gap between source-only and the
+aligned / Peru-trained rows sits mostly in the low-MNDWI bins.
+
+Feeds: thesis chapters 4–5 (test results, two-event contrast), paper section "Results on held-out
+events"; the dev→test drop and the 2017 label construction go in the limitations.

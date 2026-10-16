@@ -3,7 +3,9 @@
 Per run and chip: plain and boundary-tolerant [tp, fp, fn] (floodseg.metrics.counts, water if
 z > 0), kept for bootstrap CIs. Pooled per subset, then mean ± std over the 3 seeds per group,
 and gap closed = (IoU − IoU_source) / (IoU_Peru − IoU_source) against the same backbone's
-`s1f11_src` and `peru` groups on the same subset.
+`s1f11_src` and `peru` groups on the same subset; undefined ("n/a") when IoU_Peru ≤ IoU_source
+(no gap to close; happens on peru-2017-test, fixed 2026-10-16 after the first scoring printed
+ratios with a negative denominator).
 
 Subsets:
 - peru-dev / peru-test: `full`; `excl_doubtful` (chips whose label-QA flag over all blobs is
@@ -109,11 +111,14 @@ def main() -> None:
                 r = gs.loc[(sub, gid)]
                 src, up = (sub, f"s1f11_src/{g['model']}"), (sub, f"peru/{g['model']}")
                 gap = np.nan
+                undefined = False
                 if g["regime"] not in ("s1f11_src", "peru", "s1f11_ft") and src in gs.index and up in gs.index:
-                    gap = (r[("iou", "mean")] - gs.loc[src, ("iou", "mean")]) / (gs.loc[up, ("iou", "mean")] - gs.loc[src, ("iou", "mean")])
+                    den = gs.loc[up, ("iou", "mean")] - gs.loc[src, ("iou", "mean")]
+                    undefined = den <= 0  # Peru-trained not above source-only: no gap to close
+                    gap = np.nan if undefined else (r[("iou", "mean")] - gs.loc[src, ("iou", "mean")]) / den
                 out.append(dict(subset=sub, group=gid, role=role, **{f"{c}_{s}": r[(c, s)] for c in cols for s in ("mean", "std")}, gap_closed=gap))
                 cells = " | ".join(f"{r[(c, 'mean')]:.4f} ± {r[(c, 'std')]:.4f}" for c in cols)
-                lines.append(f"| {role} | {MODELS[g['model']]} | {g['regime']} | {cells} | {'—' if np.isnan(gap) else f'{gap:.0%}'} |")
+                lines.append(f"| {role} | {MODELS[g['model']]} | {g['regime']} | {cells} | {'n/a (upper ≤ source)' if undefined else '—' if np.isnan(gap) else f'{gap:.0%}'} |")
     pd.DataFrame(out).to_csv(OUT / f"{tag}_groups.csv", index=False)
     text = "\n".join(lines) + "\n"
     if a.compare:

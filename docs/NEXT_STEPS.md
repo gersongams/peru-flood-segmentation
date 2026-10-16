@@ -49,7 +49,7 @@ AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
 3. **Freeze the phase-D methods and evaluate the test sets once (section 6).** Closes phase D.
    6.1 freeze: `configs/frozen.yaml` (`scripts/build_frozen.py`), 14 groups / 42 runs with sha256;
    gated evaluation `scripts/evaluate_frozen.py` + scoring `scripts/score_frozen.py`, checked on
-   `peru-dev` first. Phase-D pass: 30 runs on `peru-test` and `peru-2017-test`. Section-7 pass
+   `peru-dev` first. Phase-D pass: 33 runs on `peru-test` and `peru-2017-test`. Section-7 pass
    (Sen1Floods11 → Peru fine-tuned on the Peru tests, Sen1Floods11 `test`) is frozen, run later
    (disk space; back up `outputs/` first).
 4. **Start writing:** Chapter III (data, Peru dataset, protocol) and the phase-D results, in Spanish.
