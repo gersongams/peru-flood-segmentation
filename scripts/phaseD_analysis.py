@@ -3,8 +3,10 @@ whether their uncertainty is calibrated (pre-registered plan: docs/METHODS_NOTES
 
 Regimes per backbone (3 seeds each, float32 water logits in outputs/logits_dev/<regime>/...):
 `s1f11_src` (source-only), `adabn`, `hm` (test-time histogram matching), `peru` (Peru-trained
-upper bound). The best label-free method is AdaBN for U-Net and HM for TerraMind; both
-alignment methods are reported for both backbones.
+upper bound), and from pod session 2 `trhm`, `trfda` (training-time HM / FDA towards the pool;
+Peru images unchanged; `trfda` not run for Prithvi). Backbones U-Net, TerraMind, Prithvi.
+First run (2026-10-15): U-Net and TerraMind with the first four regimes; best label-free were
+AdaBN (U-Net) and HM (TerraMind). Extended 2026-10-16 with Prithvi and the training-time rows.
 
 1. Strata (task 5.2): the phase-C strata (scripts/analyze_dev.strata_for: distance to the label
    water edge, NDWI of all pixels and of water pixels, water-body size, water type, land cover,
@@ -16,7 +18,10 @@ alignment methods are reported for both backbones.
    as scripts/uncertainty_dev.py. Methods:
      single      raw logits, per seed
      temp_s1f    z / T_valid, T fitted by NLL on all labelled Sen1Floods11 `valid` pixels of the
-                 same source model and seed (outputs/logits_valid/s1f11_src/; no Peru label).
+                 same model and seed (no Peru label): the source model's `valid` logits
+                 (outputs/logits_valid/s1f11_src/) for s1f11_src/adabn/hm; for trhm/trfda the
+                 train-time model's own `valid` logits on the transformed `valid` input it was
+                 selected on (outputs/logits_valid/<regime>/, scripts/phaseD2_valid_logits.sh).
                  For `peru` (no Sen1Floods11 model) this method is skipped.
      temp_dev    2-fold-by-chip temperature fitted on dev labels (as phase C). Uses Peru
                  labels: the reference for what calibration could reach, not a label-free method.
@@ -43,12 +48,13 @@ from uncertainty_dev import auroc, ece, ens_logit, fit_t, iou, near_water  # noq
 
 REPO = Path(__file__).resolve().parents[1]
 DEV = REPO / "outputs" / "logits_dev"
-VALID = REPO / "outputs" / "logits_valid" / "s1f11_src"
+VALID = REPO / "outputs" / "logits_valid"
 LABEL_DEV = REPO / "data" / "peru" / "unosat2023" / "label"
 LABEL_VALID = REPO / "data" / "sen1floods11" / "v1.1" / "data" / "flood_events" / "HandLabeled" / "LabelHand"
 OUT = REPO / "outputs" / "phaseD" / "analysis"
-REGIMES = ["s1f11_src", "adabn", "hm", "peru"]
-MODELS = ["unet", "terramind_v1_base"]
+REGIMES = ["s1f11_src", "adabn", "hm", "peru", "trhm", "trfda"]
+MODELS = ["unet", "terramind_v1_base", "prithvi_eo_v2_300"]
+T_SOURCE = {"s1f11_src": "s1f11_src", "adabn": "s1f11_src", "hm": "s1f11_src", "trhm": "trhm", "trfda": "trfda"}
 SEEDS = ["seed0", "seed1", "seed2"]
 STRATA = ["distance to water edge", "water NDWI", "NDWI (all pixels)", "water body size", "water type",
           "landcover", "distance to thick cloud", "date"]
@@ -59,23 +65,27 @@ def load(d: Path, stems: list[str]) -> np.ndarray:
 
 
 def valid_temperatures() -> dict:
-    stems = sorted(p.stem for p in (VALID / "unet" / "seed0").glob("*.npy"))
+    """{valid-logit folder: {model: {seed / "ensemble": T}}}."""
+    stems = sorted(p.stem for p in (VALID / "s1f11_src" / "unet" / "seed0").glob("*.npy"))
     assert len(stems) == 89, len(stems)
     y = np.concatenate([rasterio.open(LABEL_VALID / f"{s.replace('_S2Hand', '_LabelHand')}.tif").read(1).ravel()
                         for s in stems])
     ok = y != -1
     t = {}
-    for m in MODELS:
-        zs = [load(VALID / m / s, stems)[ok] for s in SEEDS]
-        t[m] = {s: fit_t(z, y[ok]) for s, z in zip(SEEDS, zs)}
-        t[m]["ensemble"] = fit_t(ens_logit(zs), y[ok])
+    for src in sorted(set(T_SOURCE.values())):
+        for m in MODELS:
+            if not (VALID / src / m / "seed0").is_dir():
+                continue
+            zs = [load(VALID / src / m / s, stems)[ok] for s in SEEDS]
+            t.setdefault(src, {})[m] = {s: fit_t(z, y[ok]) for s, z in zip(SEEDS, zs)}
+            t[src][m]["ensemble"] = fit_t(ens_logit(zs), y[ok])
     return t
 
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     stems = (REPO / "data" / "peru" / "unosat2023" / "splits" / "dev.txt").read_text().split()
-    runs = {(r, m): [DEV / r / m / s for s in SEEDS] for r in REGIMES for m in MODELS}
+    runs = {(r, m): [DEV / r / m / s for s in SEEDS] for r in REGIMES for m in MODELS if (DEV / r / m).is_dir()}
     for ds in runs.values():
         for d in ds:
             assert len(list(d.glob("*.npy"))) == len(stems), d
@@ -127,12 +137,12 @@ def main() -> None:
         for seed, z in zip(SEEDS, zs):
             variants.append(("single", seed, z, -np.abs(z)))
             if regime != "peru":
-                variants.append(("temp_s1f", seed, z / t_valid[model][seed], None))
+                variants.append(("temp_s1f", seed, z / t_valid[T_SOURCE[regime]][model][seed], None))
             variants.append(("temp_dev", seed, temp_dev(z), None))
         zm = ens_logit(zs)
         variants.append(("ensemble", "ens", zm, -np.abs(zm)))
         if regime != "peru":
-            variants.append(("ens+temp_s1f", "ens", zm / t_valid[model]["ensemble"], None))
+            variants.append(("ens+temp_s1f", "ens", zm / t_valid[T_SOURCE[regime]][model]["ensemble"], None))
         variants.append(("ens+temp_dev", "ens", temp_dev(zm), None))
         for method, seed, z, unc in variants:
             row = dict(regime=regime, model=model, method=method, seed=seed)

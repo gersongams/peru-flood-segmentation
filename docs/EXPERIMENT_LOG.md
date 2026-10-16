@@ -452,6 +452,39 @@ sha256 checked; no Peru data on the pod, checked); Sen1Floods11 downloaded on th
 - **Checkpoints.** The three sweep checkpoints stay on the pod (selection uses metrics only). The
   Prithvi final checkpoints are stripped of optimizer/scheduler state (`best-*.ckpt` 3.7 GB →
   1.24 GB; every `state_dict` tensor checked equal before replacing) to fit the Mac's free disk.
+- **Done.** Queue B: Prithvi HM finished 09:57 UTC, TerraMind FDA 10:38 UTC; all 24 runs exit 0
+  (`outputs/<run>/queue.txt`). Copied with `scripts/cloud/fetch_phaseD2.sh` (verified: 186 files
+  match), pod deleted 2026-10-16 ≈ 10:45 UTC (`list-pods` empty). Billing (pod-billing read after
+  deletion): $9.68 = GPU $9.51 + disk $0.16. Session 1 (`otv36sv0k42lyh`) settled at $6.19.
+- Run folders (best `val/IoU_Flood` @ best epoch / last epoch, seeds 0/1/2):
+  `outputs/s1f11_prithvi_lr{3e-5,1e-4,3e-4}` (seed 0, 100-epoch cap; checkpoints left on the pod):
+  0.8247@74/94, 0.8257@74/94, 0.8170@64/84;
+  `outputs/s1f11_src_prithvi` (LR 1e-4): 0.8330@74/94, 0.8263@42/62, 0.8354@111/131;
+  `outputs/s1f11_trhm_unet`: 0.8194@42, 0.8214@107, 0.8129@53; `s1f11_trhm_terramind_v1_base`:
+  0.8316@57, 0.8324@88, 0.8292@62; `s1f11_trhm_prithvi_eo_v2_300`: 0.8306@53, 0.8307@79, 0.8343@95;
+  `s1f11_trfda_unet`: 0.7270@34, 0.7158@41, 0.7269@57; `s1f11_trfda_terramind_v1_base`: 0.7642@87,
+  0.7762@152, 0.7638@71 (train-time rows: on transformed `valid`). Queue logs and scripts in
+  `outputs/phaseD/pod2/`.
+
+## 2026-10-16 — Pod session 2 evaluation on `peru-dev` (Mac, no training)
+
+Commits `3eb2092` (scripts) and `7e872ff` (table regimes); MPS fp32.
+- Dev logits: `bash scripts/phaseD2_dev_logits.sh` → `outputs/logits_dev/{s1f11_src/prithvi_eo_v2_300,
+  trhm/*, trfda/*}` (174 files per run; logs `outputs/logits_dev/log_<regime>_<model>_seed<s>.txt`;
+  console output `outputs/phaseD/pod2/dev_logits_run{1,2}.txt`).
+- Prithvi local regimes (`outputs/phaseD/pod2/prithvi_local_regimes.txt`):
+  `phaseD_valid_logits.py prithvi_eo_v2_300` → `outputs/logits_valid/s1f11_src/prithvi_eo_v2_300`
+  (pooled IoU = logged best: 0.8330 / 0.8263 / 0.8354); `adabn.py prithvi_eo_v2_300` (9 decoder BN
+  layers, 753 pool images, ≈ 175 s each) → `logits_dev/adabn/prithvi_eo_v2_300`;
+  `input_alignment_dev.py prithvi_eo_v2_300` → `logits_dev/{hm,fda}/prithvi_eo_v2_300`. Run records
+  say `git_dirty: true`: the only uncommitted change was `scripts/phaseD_dev_table.py` (not used by them).
+- `scripts/phaseD_dev_table.py` → `outputs/phaseD/dev_table.md`, `dev_table_runs.csv`. Dev water IoU:
+  Prithvi source 0.8691 / 0.8699 / 0.8712, AdaBN 0.8744 / 0.8566 / 0.8709, HM 0.8088 / 0.8295 / 0.8174,
+  FDA ≈ 0.008; trHM U-Net 0.9148 / 0.9098 / 0.9108, TerraMind 0.8170 / 0.8415 / 0.8736, Prithvi
+  0.8687 / 0.8610 / 0.8493; trFDA U-Net 0.7251 / 0.5009 / 0.6193, TerraMind 0.8353 / 0.8373 / 0.8368.
+  Table IoU equals the TerraTorch-logged dev IoU for every new run. Paired deltas:
+  `phaseD_diagnostics.py` → `outputs/phaseD/paired_deltas.csv`. Results and interpretation:
+  METHODS_NOTES 2026-10-16.
 
 ## 2026-10-15 — Phase-D analysis of the best label-free methods (tasks 5.2, 5.3; Mac, no training)
 

@@ -1,7 +1,8 @@
 """Phase-D self-training diagnostics on `peru-dev` (METHODS_NOTES 2026-10-15: self-training
 results entry, its correction and addendum). Replaces the inline analyses run that day.
 
-1. Paired per-seed IoU deltas vs the same source seed, from outputs/phaseD/dev_table_runs.csv
+1. Paired per-seed IoU deltas vs the same source seed (all three backbones; train-time rows
+   `trhm`, `trfda` from pod session 2), from outputs/phaseD/dev_table_runs.csv
    (run scripts/phaseD_dev_table.py first) → outputs/phaseD/paired_deltas.csv.
 2. Teacher water fraction on pool batches during training (`target/water_frac_ema` in each
    run's metrics.csv) at iterations 100, 1,000, 2,000 and the last → water_frac_trajectory.csv.
@@ -33,7 +34,7 @@ SEEDS = ["seed0", "seed1", "seed2"]
 
 def paired_deltas() -> None:
     d = pd.read_csv(OUT / "dev_table_runs.csv")
-    regs = ["s1f11_src", "adabn", "hm", "st", "mic", "st_noadabn", "mic_noadabn"]
+    regs = ["s1f11_src", "adabn", "hm", "st", "mic", "st_noadabn", "mic_noadabn", "trhm", "trfda"]
     p = d[d.regime.isin(regs)].pivot_table(index=["model", "seed"], columns="regime", values="iou")
     for r in regs[1:]:
         if r in p:

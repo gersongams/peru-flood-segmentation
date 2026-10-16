@@ -1239,3 +1239,85 @@ of TerraMind + HM are confident, so uncertainty cannot be used to flag them. Fee
 (stratified results, calibration) and chapter 6 (limits of label-free adaptation; why
 histogram matching trades one error for another); paper sections "Where adaptation fails" and
 "Uncertainty under shift".
+
+## 2026-10-16 — Pod session 2 results: Prithvi source models and training-time input alignment on `peru-dev` (tasks 5.4, 3.4 part 2)
+
+**What was run** (protocol: entry "Pod session 2, pre-registered"; runs and deviations: EXPERIMENT_LOG
+2026-10-15/16 "Pod session 2"). All 24 runs exited 0; copy-back verified file by file (186 files);
+pod deleted. Dev logits on **unchanged** Peru images with each model's base config and its best
+`valid` checkpoint (`scripts/phaseD2_dev_logits.sh`, the procedure of the phase-D source rows);
+scored by `scripts/phaseD_dev_table.py` → `outputs/phaseD/dev_table.md`, `dev_table_runs.csv`;
+paired deltas by `scripts/phaseD_diagnostics.py` → `outputs/phaseD/paired_deltas.csv`. Prithvi
+test-time rows on the Mac with the existing scripts, Prithvi added (`adabn.py`: 9 BN layers in its
+UNet decoder; `input_alignment_dev.py`: HM and FDA on all 13 bands, then Prithvi's 6 selected).
+
+**Prithvi LR (automatic, pre-registered rule).** Max `val/IoU_Flood`, seed 0, 100-epoch cap:
+3e-5 0.8247, 1e-4 0.8257, 3e-4 0.8170 → 1e-4, interior, no edge run. The three are within 0.009,
+so the LR choice matters little. Finals (200-epoch cap) best `valid`: 0.8330 / 0.8263 / 0.8354
+(best epochs 74 / 42 / 111). The seed-0 final and the seed-0 sweep run at 1e-4 differ (0.8330
+vs 0.8257, both best at epoch 74): GPU 16-mixed training is not bit-reproducible, and the two
+ran next to other jobs. Mac `valid` logits of the finals reproduce the logged values exactly
+(also a check that stripping the optimizer state left the weights intact).
+
+**Results, `peru-dev` water IoU (3 seeds, mean ± std; gap closed vs source and Peru-trained):**
+
+| Row | U-Net | TerraMind | Prithvi |
+|---|---|---|---|
+| Source-only | 0.8364 ± 0.0224 | 0.7027 ± 0.0913 | **0.8701 ± 0.0011** |
+| AdaBN | 0.8969 ± 0.0161 (58 %) | 0.6563 ± 0.1019 (−21 %) | 0.8673 ± 0.0094 (−5 %) |
+| Test-time HM | 0.8734 ± 0.0052 (35 %) | 0.8089 ± 0.0064 (47 %) | 0.8185 ± 0.0104 (−100 %) |
+| Test-time FDA | 0.0116 (fails) | 0.0104 (fails) | 0.0076 (fails) |
+| **Training-time HM** | **0.9118 ± 0.0026 (72 %)** | 0.8440 ± 0.0284 (63 %) | 0.8597 ± 0.0098 (−20 %) |
+| Training-time FDA | 0.6151 ± 0.1122 (−211 %) | **0.8365 ± 0.0010 (60 %)** | not run |
+| Peru-trained (upper) | 0.9415 ± 0.0019 | 0.9265 ± 0.0025 | 0.9218 ± 0.0006 |
+
+Per seed (IoU − same-seed source; the train-time models are separate training runs with the same
+seed, so the pairing is by seed only): U-Net trHM +0.072 / +0.055 / +0.100; TerraMind trHM
++0.053 / +0.244 / +0.127, trFDA +0.071 / +0.240 / +0.090; Prithvi trHM −0.000 / −0.009 / −0.022,
+AdaBN +0.005 / −0.013 / −0.000, test-time HM −0.060 / −0.040 / −0.054.
+
+**Pre-registered HM-vs-FDA choice (seed-0 dev IoU, task 3.4).** U-Net: HM 0.9148 vs FDA 0.7251 →
+**HM**. TerraMind: FDA 0.8353 vs HM 0.8170 → **FDA**. By the rule, TerraMind's training-time row is
+FDA (0.8365 ± 0.0010). HM has the higher 3-seed mean (0.8440 ± 0.0284), but the difference is
+within HM's seed spread, and FDA is far more stable; the HM mean is reported, as post-hoc
+information, not as the choice. The FDA result contradicts the expectation recorded before launch
+("likely harmful", from test-time FDA): at training time the random pool amplitude acts as an
+augmentation over Peru-like low-frequency styles, while test-time FDA replaced a Peru image's
+amplitude by one mean Sen1Floods11 amplitude and destroyed the B03 − B11 contrast. For U-Net it
+is harmful (0.615, high variance), as expected.
+
+**Findings.**
+1. **Training-time HM is the best label-free method for U-Net** (0.912, every seed above AdaBN's
+   same seed: 0.915/0.910/0.911 vs 0.905/0.907/0.878), closing 72 % of the gap, with low seed
+   variance. It raises precision (0.962 vs source 0.848) at some cost in recall (0.946 vs 0.985).
+2. **For TerraMind, training-time alignment (HM or FDA) beats every test-time method** (0.84 vs
+   test-time HM 0.809), and removes the seed sensitivity of its source models (FDA std 0.001).
+3. **Prithvi transfers best without any adaptation** (source-only 0.870 ± 0.001, above every
+   adapted TerraMind row), and **every adaptation hurts it**: AdaBN on its decoder −0.003,
+   test-time HM −0.052, training-time HM −0.010. Its residual error is still false positives
+   (precision 0.887, recall 0.978). One reading: it sees only 6 bands (B02, B03, B04, B8A, B11, B12),
+   and its pre-training on harmonized HLS imagery may make it less sensitive to the
+   Sentinel-2 L1C intensity shift that HM corrects. This is a hypothesis, not tested.
+4. **No label-free method reaches the Peru-trained models** (best: U-Net trHM 0.912 vs 0.942).
+
+**Checks.** Dev logits: 174 files per run; table IoU = TerraTorch-logged dev IoU (the script
+prints both; equal to 4 decimals for every new run). Source-run reproducibility check of
+Prithvi `valid` logits passed (above).
+
+**Caveats.** Dev only; test splits untouched. The train-time rows' `valid` IoUs (U-Net HM
+0.813–0.821, FDA 0.716–0.727; TerraMind HM 0.829–0.832, FDA 0.764–0.776; Prithvi HM
+0.831–0.834) are on *transformed* `valid` and are not comparable with the source models' `valid`
+IoUs. Budget deviation: the session cost $9.68 (billing read 2026-10-16, GPU $9.51 + disk $0.16;
+may still rise slightly) against the pre-registered $9 ceiling. The estimate (3.5–4.5 h) was
+≈ 2.5× too low because the CPU transforms made queue B input-bound (TerraMind FDA ≈ 1¾ h per
+seed). At 08:20 UTC (≈ $8.2) the authors' instruction to use the added credit was taken to
+override the conservative ceiling; the full priority list was then completed, nothing was cut,
+and no result had been looked at. Prithvi HM was started early, in parallel with TerraMind FDA,
+with 4 DataLoader workers instead of queue B's 8 (speed only). Session 1 billing settled at
+$6.19. Remaining balance ≈ $16.4 − $9.68 ≈ $6.7 (not read from the account).
+
+**Which method per backbone is frozen for the test evaluation (section 6) is a separate decision**
+for the authors; recommendation in `docs/phaseD_dev.md`.
+
+Feeds: thesis chapter 5 (phase-D results table, Prithvi column; training- vs test-time alignment),
+paper section "Adapting without Peru labels".

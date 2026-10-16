@@ -18,7 +18,7 @@
 - [x] 3.1 MNDWI > 0 and Otsu-on-pool baselines (label-free) plus the dev-tuned MNDWI threshold (oracle row) on `peru-dev`; extend `scripts/index_baseline.py` with tolerant IoU, precision, recall
 - [x] 3.2 Source-only rows: the 3-seed source models of 1.4 evaluated on `peru-dev` (plain and tolerant IoU, precision, recall)
 - [x] 3.3 AdaBN for the U-Net (BN statistics re-estimated on the pool); `peru-dev` scores
-- [ ] 3.4 Per-band histogram matching and FDA transforms; source training with each, U-Net + TerraMind, seed 0 on dev; 3 seeds for the better one (test-time version done 2026-10-15: HM helps, FDA fails; training-time version only as transform × 3 seeds, after a cost decision)
+- [x] 3.4 Per-band histogram matching and FDA transforms; source training with each, U-Net + TerraMind, seed 0 on dev; 3 seeds for the better one (test-time version done 2026-10-15: HM helps, FDA fails; training-time version only as transform × 3 seeds, after a cost decision; done 2026-10-16, pod session 2: trHM U-Net 0.912, trFDA TerraMind 0.837 (pre-registered seed-0 choices))
 
 ## 4. Self-training
 
@@ -38,7 +38,7 @@
 - [x] 5.1 Gap-closed table: source-only → each method → Peru-trained upper bound, mean ± std, plain + tolerant IoU, precision, recall (`outputs/phaseD/dev_table.md`, `docs/phaseD_dev.md`)
 - [x] 5.2 Stratified analysis of the best method (edge, NDWI band, water-body size) with the phase-C scripts (U-Net AdaBN, TerraMind HM: `scripts/phaseD_analysis.py`, `docs/phaseD_dev.md`; Prithvi rows after pod session 2)
 - [x] 5.3 Calibration of adapted models (ECE near water, reliability) with `scripts/calibration_dev.py` (U-Net AdaBN, TerraMind HM: `scripts/phaseD_analysis.py`, `docs/phaseD_dev.md`; Prithvi rows after pod session 2)
-- [ ] 5.4 Decision on Prithvi (time and cost), then run its source models + best method if yes
+- [x] 5.4 Decision on Prithvi (time and cost), then run its source models + best method if yes (done 2026-10-16: source 0.870; AdaBN, test-time HM and training-time HM all lower)
 
 ## 6. Final evaluation (once)
 

@@ -1,4 +1,4 @@
-# Next steps (handoff, 2026-10-15)
+# Next steps (handoff, 2026-10-16)
 
 Status 2026-10-15: phase C is done; phase D is done up to the dev analysis (section 1 below). Local `main` is ahead of GitHub (not pushed). All RunPod pods are deleted. Results and provenance are in `docs/EXPERIMENT_LOG.md`, `docs/failure_analysis_dev.md` and `docs/uncertainty_dev.md`. Open tasks are in OpenSpec change `plan-flood-research` (`openspec/changes/plan-flood-research/tasks.md`).
 
@@ -40,9 +40,12 @@ AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
    Reuses the phase-C scripts (`scripts/analyze_dev.py`, `calibration_dev.py`, `uncertainty_dev.py`).
    Before it: move today's inline phase-D diagnostics (paired deltas, water fractions, no-AdaBN
    grid scoring) into `scripts/phaseD_diagnostics.py` and check they reproduce.
-2. **Decide on Prithvi (5.4) and training-time histogram matching (3.4 part 2).** Both need a
-   pod (≈ $7 credit left); decide after step 1. No further self-training session recommended
-   (`docs/phaseD_dev.md`).
+2. **Prithvi (5.4) and training-time alignment (3.4 part 2): done 2026-10-16** (pod session 2,
+   $9.68; ≈ $6.7 credit left). Training-time HM is the best label-free U-Net (0.912); TerraMind's
+   pre-registered train-time row is FDA (0.837); Prithvi is best source-only (0.870), no method
+   helped it. Strata/calibration (5.2/5.3) extended to Prithvi and the train-time rows.
+   **Open (authors):** which method per backbone to freeze for section 6; recommendation in
+   `docs/phaseD_dev.md` "Open decisions". No further pod session recommended.
 3. **Freeze the phase-D methods and evaluate the test sets once (section 6).** Closes phase D.
 4. **Start writing:** Chapter III (data, Peru dataset, protocol) and the phase-D results, in Spanish.
 
