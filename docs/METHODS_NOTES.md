@@ -1583,3 +1583,87 @@ image/label disagree) cannot be scored; source-only rows call more of them water
 correct depends on whether those pixels were wet on 2017-04-07, which the labels cannot tell.
 The 2017 result therefore says the label-free methods and Peru training trade faint-water recall
 for fewer false positives, and the 2017 labels score only the first half of that trade.
+
+## 2026-10-16 — Feature engineering for a pixel classifier (course progress, week 5; exploratory, dev-only)
+
+**What and why.** The course asked for a feature-engineering progress report. The deep
+models take raw L1C reflectance, so this measures what hand-made features (spectral indices,
+local context) add, using a classical pixel classifier. It runs on branch
+`avance-sem5-feature-engineering` only and is not merged into main. It was run **after** the
+one-time test evaluation, so it reads no test split (asserted in the script) and changes
+nothing in the frozen comparison.
+
+**Method.** `scripts/feature_engineering.py`.
+- **Features**, on r = DN/10,000:
+  - 13 bands;
+  - 8 indices: NDWI (B03, B08), MNDWI (B03, B11), MNDWI2 (B03, B12), NDVI, NDMI, AWEI_nsh,
+    AWEI_sh, WRI;
+  - 5 context features: MNDWI local mean 3×3 and 7×7, MNDWI local std 7×7, NIR and NDVI local
+    mean 7×7, via `uniform_filter` on the full chip.
+- **Feature sets:** bands; indices; bands+indices; all 26.
+- **Training:** sklearn HistGradientBoosting (200 iterations, lr 0.1, no early stopping), on
+  random labelled pixels with the natural class prior:
+  - 600 per `peru-train` chip (450,403 px, water share 0.040);
+  - or 2,000 per Sen1Floods11 `train` chip (501,892 px, water share 0.093).
+- **Seeds:** 3; the seed sets the sample and the model.
+- **Evaluation:** `peru-dev`, every 2nd row and column; pooled water IoU, p > 0.5.
+- **Baseline:** MNDWI > t, with t fitted by best pooled IoU over all labelled pixels of the
+  training set (0.005 bins): t = 0.28 (`peru-train`), 0.15 (Sen1Floods11 `train`).
+- **Extras:** univariate AUROC per feature; permutation importance (Jaccard, 3 repeats) of
+  the 26-feature model, seed 0, on 1,200 random dev pixels per chip.
+
+**Results** (`outputs/feature_engineering/{results,auroc,importance}.csv`, `summary.md`).
+
+Trained on `peru-train` (peru-dev IoU):
+
+| Row | IoU |
+|---|---|
+| bands | 0.9300 ± 0.0013 |
+| indices | 0.9127 ± 0.0040 |
+| bands+indices | 0.9256 ± 0.0033 |
+| all 26 | 0.9290 ± 0.0046 |
+| MNDWI > 0.28 | 0.9237 |
+
+Trained on Sen1Floods11 `train` (peru-dev IoU):
+
+| Row | IoU |
+|---|---|
+| bands | 0.7359 ± 0.0181 |
+| indices | 0.7348 ± 0.0092 |
+| bands+indices | 0.7233 ± 0.0070 |
+| all 26 | 0.7126 ± 0.0148 |
+| MNDWI > 0.15 | 0.8358 (precision 0.848, recall 0.983) |
+
+- The Sen1Floods11-trained classifiers have recall ≥ 0.985 and precision 0.72–0.74, the same
+  desert false-positive error as the source-only deep models.
+- Permutation importance: the Peru model relies on AWEI_nsh, MNDWI2, MNDWI, B12; the
+  Sen1Floods11 model on B12, AWEI_nsh, B08, B06.
+- Visible-band AUROC (water vs dry) is 0.56–0.62 on Sen1Floods11 and 0.24–0.32 on peru-train,
+  i.e. the direction flips: water is darker than the Peru desert. MNDWI is 0.983 / 0.994 /
+  0.997 (Sen1Floods11 train / peru-train / peru-dev).
+
+**Findings.**
+1. With in-domain labels, engineered features add nothing to a tree ensemble. A
+   train-fitted MNDWI threshold (0.924) almost equals the dev-tuned oracle (0.9251, entry
+   2026-10-15). The oracle concern is therefore small for Peru 2023: the threshold is stable
+   between train and dev.
+2. Cross-domain, the single invariant index transfers better than any flexible model, and
+   adding indices or context to the flexible model does not help. The bottleneck is the
+   dry-land shift, not missing features.
+3. MNDWI > 0.15 fitted on Sen1Floods11 is a label-free baseline equal to source-only U-Net on
+   dev (0.8358 vs 0.8364 ± 0.0224). It was defined after the test pass, so it is not evaluated
+   on test and is not added to the frozen table.
+
+**Caveats.**
+- Dev pixels are subsampled 1/4, so comparisons with the deep-model rows (all pixels) are
+  approximate.
+- The pixel classifier has no learned spatial context.
+- Permutation importance splits credit among correlated features.
+
+**Alternatives rejected (time; course deadline).** Retraining U-Net with an extra MNDWI
+channel (it would also break the foundation models' pretrained band embeddings; future work);
+SHAP.
+
+**Thesis use.** Chapter III (justifies raw-reflectance inputs; dry-land shift as the
+bottleneck); Chapter V discussion (label-free index baseline, exploratory). Course write-up:
+`docs/feature_engineering.md`, `notebooks/feature_engineering.ipynb` (Spanish).

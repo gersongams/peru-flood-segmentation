@@ -526,3 +526,13 @@ longer be rerun; its result stays as recorded in METHODS_NOTES 2026-10-14.
 gap-closed fix, same logits); `uv run python scripts/bootstrap_frozen.py` →
 `outputs/phaseD/test/bootstrap_{groups,diffs}.csv`. Results: METHODS_NOTES 2026-10-16 "One-time
 test evaluation". Commit: see this entry's commit.
+
+## 2026-10-16 — Feature engineering pixel classifier (course progress, week 5; branch `avance-sem5-feature-engineering`)
+
+`uv run python scripts/feature_engineering.py` (Mac CPU, ~8 min; HistGradientBoosting, 2
+training sets × 4 feature sets × 3 seeds + 2 MNDWI thresholds; peru-dev only, 1/4 of the pixels;
+no test split read) → `outputs/feature_engineering/{results_runs,results,auroc,importance}.csv`,
+`summary.md`, `figs/`, log `run.log`. Notebook: `uv run python notebooks/build_feature_engineering_nb.py`
+→ `notebooks/feature_engineering.ipynb` (executed). Results: METHODS_NOTES 2026-10-16 "Feature
+engineering for a pixel classifier". Commit: see this entry's commit (script first committed in
+the previous commit on the branch, unchanged since).
