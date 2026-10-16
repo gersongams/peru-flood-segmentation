@@ -12,6 +12,10 @@ Gate for the held-out splits `peru-test` and `peru-2017-test` (spec `adaptation-
   after an evaluation-code fix; the reason is stored in run.json and must be logged.
 `peru-dev` runs through the same code with none of these checks and writes to
 outputs/frozen_check/ by default, to reproduce the dev table before the test pass.
+Sen1Floods11 `test` (90 official chips; added 2026-10-16 for the section-7 pass, METHODS_NOTES
+"Section-7 pass") is held out too; per the freeze it is evaluated for the Sen1Floods11-trained
+source rows (`s1f11_src`, method none) only, so for this split the group filter is that regime
+instead of `--pass`.
 
 Per group `method`: `none` (checkpoint as is), `adabn` (BN statistics re-estimated on the
 `peru-train` pool, as scripts/adabn.py), `hm_test` (pool → Sen1Floods11 histogram map of
@@ -20,6 +24,8 @@ outputs/phaseD/alignment/params.npz applied to each image, as scripts/input_alig
     uv run python scripts/evaluate_frozen.py peru-dev  [--group trhm/unet ...]
     uv run python scripts/evaluate_frozen.py peru-test [--group ...]
     uv run python scripts/evaluate_frozen.py peru-2017-test [--group ...]
+    uv run python scripts/evaluate_frozen.py peru-test --pass section7
+    uv run python scripts/evaluate_frozen.py test
 → <out_root>/<regime>/<model>/seed<s>/<stem>.npy + run.json
 """
 
@@ -39,15 +45,18 @@ from terratorch.tasks import SemanticSegmentationTask
 
 from floodseg.adapt_eval import adapt_bn
 from floodseg.input_alignment import hist_match
+from floodseg.sen1floods11 import CHIP_DIR, official_ids
 from floodseg.target_pool import REPO, forbid_peru_labels, model_input_spec, normalize, sha256
 
 FROZEN = REPO / "configs" / "frozen.yaml"
 UNOSAT = REPO / "data" / "peru" / "unosat2023"
 EMSR = REPO / "data" / "peru" / "emsr2017"
-HELD_OUT = {"peru-test", "peru-2017-test"}
+HELD_OUT = {"peru-test", "peru-2017-test", "test"}
+TEST_REGIMES = {"s1f11_src"}  # rows frozen for Sen1Floods11 `test` (METHODS_NOTES "Phase-D freeze")
 OUT_ROOT = {"peru-dev": REPO / "outputs" / "frozen_check" / "logits_dev",
             "peru-test": REPO / "outputs" / "logits_test",
-            "peru-2017-test": REPO / "outputs" / "logits_2017"}
+            "peru-2017-test": REPO / "outputs" / "logits_2017",
+            "test": REPO / "outputs" / "logits_s1f11_test"}
 BATCHES = {"unet": 16, "terramind_v1_base": 8, "prithvi_eo_v2_300": 4}
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 
@@ -63,18 +72,24 @@ def split_images(split: str) -> list[Path]:
         return [UNOSAT / "s2" / f"{s}.tif" for s in (UNOSAT / "splits" / "test.txt").read_text().split()]
     if split == "peru-2017-test":
         return [EMSR / "s2" / f"{c}.tif" for c in pd.read_csv(EMSR / "manifest.csv").chip]
+    if split == "test":
+        return [CHIP_DIR / "S2Hand" / f"{i}_S2Hand.tif" for i in official_ids("test")]
     raise ValueError(split)
 
 
-def check_gate(frozen: dict, groups: list[dict], pas: str) -> None:
+def eligible(g: dict, split: str, pas: str) -> bool:
+    return g["regime"] in TEST_REGIMES and g["method"] == "none" if split == "test" else g["pass"] == pas
+
+
+def check_gate(frozen: dict, groups: list[dict], pas: str, split: str) -> None:
     if git("ls-files", "configs/frozen.yaml") != "configs/frozen.yaml":
         raise SystemExit("gate: configs/frozen.yaml is not tracked; commit the freeze first")
     modified = [line for line in git("status", "--porcelain", "--untracked-files=no").splitlines() if line]
     if modified:
         raise SystemExit(f"gate: tracked files modified, commit first: {modified[:5]}")
     for g in groups:
-        if g["pass"] != pas:
-            raise SystemExit(f"gate: {g['id']} is frozen for pass {g['pass']!r}, not {pas!r}")
+        if not eligible(g, split, pas):
+            raise SystemExit(f"gate: {g['id']} is not frozen for {split} in pass {pas!r}")
         for s, r in g["runs"].items():
             if sha256(REPO / r["checkpoint"]) != r["sha256"]:
                 raise SystemExit(f"gate: checkpoint of {g['id']} {s} changed since the freeze")
@@ -109,14 +124,14 @@ def main() -> None:
     a = ap.parse_args()
 
     frozen = yaml.safe_load(FROZEN.read_text())
-    groups = [g for g in frozen["groups"] if (g["id"] in a.group if a.group else g["pass"] == a.pas)]
+    groups = [g for g in frozen["groups"] if (g["id"] in a.group if a.group else eligible(g, a.split, a.pas))]
     if a.group and len(groups) != len(a.group):
         raise SystemExit(f"not frozen: {sorted(set(a.group) - {g['id'] for g in groups})}")
     held = a.split in HELD_OUT
     if held:
         if a.out_root:
             raise SystemExit("gate: held-out splits write to their fixed output folder")
-        check_gate(frozen, groups, a.pas)
+        check_gate(frozen, groups, a.pas, a.split)
     out_root = a.out_root or OUT_ROOT[a.split]
     images = split_images(a.split)
     hm = np.load(REPO / frozen["artifacts"]["hm_test_params"]["path"])

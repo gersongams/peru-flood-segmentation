@@ -1713,3 +1713,42 @@ on dev (`scripts/uncertainty_dev.py` helpers):
   (freeze entry). `temp_dev` uses the stored `outputs/logits_dev`, the ones behind the dev table.
 
 **Outputs.** `outputs/phaseD/test/calibration_runs.csv`, `calibration.csv`, `calibration.md`.
+
+## 2026-10-16 — Section-7 pass: Sen1Floods11 → Peru fine-tuned rows on the Peru tests, source rows on Sen1Floods11 `test` (plan 7.3)
+
+**What and why.** This closes the "evaluate once at the end" requirement for the rows that the
+freeze deferred for disk space. The groups and hashes are unchanged from `configs/frozen.yaml`
+(commit `f1f61d6`). About 29 GB is free; the pass needs about 3.6 GB.
+
+**Scope, as frozen.**
+- `s1f11_ft` × {U-Net, TerraMind, Prithvi} × 3 seeds on `peru-test` and `peru-2017-test`, with
+  `--pass section7`.
+- Sen1Floods11 official `test` (90 chips) for the Sen1Floods11-trained rows.
+
+**Decision on "Sen1Floods11-trained rows".** The phrase is read as the source-only groups
+`s1f11_src` × 3 models (9 runs), method none.
+- Reason: `test` exists in the plan to report the in-domain benchmark (RQ1, comparison with
+  published numbers).
+- `trhm` / `trfda` are also trained on Sen1Floods11, but on transformed inputs. A `test` score
+  for them would need the training-time transform applied to `test` images: a design choice that
+  was not made before the freeze.
+- They are left out and not evaluated. Their in-domain cost is already on `valid` (selection).
+- Peru-trained and `s1f11_ft` models on Sen1Floods11 `test` were not frozen for that split
+  (plan 7.3 lists "all regimes"; the freeze did not). They are not reported. This is stated as
+  a deviation from plan 7.3.
+
+**Code change (evaluation code, after the phase-D pass, no effect on it).**
+- `scripts/evaluate_frozen.py` gains split `test`:
+  - images are the official `test` ids (`floodseg.sen1floods11.official_ids`), read as in
+    `scripts/phaseD_valid_logits.py` (raw DN → the config's normalization);
+  - output goes to `outputs/logits_s1f11_test`;
+  - the same one-look and hash gate applies;
+  - the group filter is regime `s1f11_src` with method none, instead of `--pass`.
+- `scripts/score_frozen.py` gains split `test` (subset `full`, LabelHand labels, the same pooled
+  metrics).
+- Tests pass (50).
+
+**Outputs.**
+- `outputs/logits_test/s1f11_ft/`, `outputs/logits_2017/s1f11_ft/`, `outputs/logits_s1f11_test/`.
+- Scores in `outputs/phaseD/test/{peru-test,peru-2017-test,test}*`. The Peru splits are
+  rescored with the extra rows; the existing rows' numbers must not change (check).

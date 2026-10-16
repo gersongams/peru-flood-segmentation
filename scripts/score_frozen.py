@@ -12,7 +12,8 @@ Subsets:
   "doubtful" removed) and `excl_doubtful_nocloud` (flag without near-cloud blobs), from
   outputs/label_qa/chips.csv (task 4.4; frozen sha256 in configs/frozen.yaml);
 - peru-2017-test: `no_2023_train_overlap` (the 101 chips that touch no 2023 `peru-train`
-  location: the main 2017 number) and `all` (204).
+  location: the main 2017 number) and `all` (204);
+- test (Sen1Floods11 official `test`, 90 chips; section-7 pass): `full`.
 
 `--compare` (dev only) also checks the logits against the dev-table logits in
 outputs/logits_dev (max |Δz|, pixels whose sign differs) and the per-run IoU against
@@ -21,6 +22,7 @@ outputs/phaseD/dev_table_runs.csv.
     uv run python scripts/score_frozen.py peru-dev --logits_root outputs/frozen_check/logits_dev --compare
     uv run python scripts/score_frozen.py peru-test
     uv run python scripts/score_frozen.py peru-2017-test
+    uv run python scripts/score_frozen.py test
 → outputs/phaseD/test/<split>_{chip_counts,runs,groups}.csv and <split>.md
 """
 
@@ -33,17 +35,22 @@ import rasterio
 import yaml
 
 from floodseg.metrics import counts, scores
+from floodseg.sen1floods11 import CHIP_DIR, official_ids
 
 REPO = Path(__file__).resolve().parents[1]
 FROZEN = REPO / "configs" / "frozen.yaml"
 OUT = REPO / "outputs" / "phaseD" / "test"
 ROOTS = {"peru-dev": REPO / "outputs" / "frozen_check" / "logits_dev",
-         "peru-test": REPO / "outputs" / "logits_test", "peru-2017-test": REPO / "outputs" / "logits_2017"}
+         "peru-test": REPO / "outputs" / "logits_test", "peru-2017-test": REPO / "outputs" / "logits_2017",
+         "test": REPO / "outputs" / "logits_s1f11_test"}
 MODELS = {"unet": "U-Net", "terramind_v1_base": "TerraMind", "prithvi_eo_v2_300": "Prithvi"}
 ROW_ORDER = ["primary", "secondary", "reference"]
 
 
 def chips_and_subsets(split: str) -> tuple[list[str], dict[str, Path], dict[str, set]]:
+    if split == "test":
+        stems = [f"{i}_S2Hand" for i in official_ids("test")]
+        return stems, {s: CHIP_DIR / "LabelHand" / f"{s.removesuffix('_S2Hand')}_LabelHand.tif" for s in stems}, {"full": set(stems)}
     if split == "peru-2017-test":
         m = pd.read_csv(REPO / "data" / "peru" / "emsr2017" / "manifest.csv")
         stems = list(m.chip)
