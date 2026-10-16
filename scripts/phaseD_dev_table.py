@@ -17,7 +17,10 @@ recall; pooled over the 174 dev chips):
   `hm`, `fda` = source models on aligned dev images (scripts/input_alignment_dev.py),
   `st`, `mic` = self-training headline runs (scripts/self_train.py; oracle grid runs are scored
   by scripts/phaseD_oracle.py, not here); `st_noadabn`, `mic_noadabn` = the same final teachers
-  without the AdaBN pass (post-hoc diagnostic, not pre-registered; eval_adapted.py --no_adabn).
+  without the AdaBN pass (post-hoc diagnostic, not pre-registered; eval_adapted.py --no_adabn),
+  `trhm`, `trfda` = models trained on Sen1Floods11 with training-time HM / FDA towards the pool
+  (pod session 2; scripts/phaseD2_dev_logits.sh). Prithvi `s1f11_src` rows are the session-2
+  source models (LR 1e-4).
 - Gap closed (adaptation rows only) vs source-only and the Peru-trained upper bound of the same
   backbone: (IoU − IoU_source) / (IoU_upper − IoU_source).
 MNDWI = (B03 − B11)/(B03 + B11), as in scripts/index_baseline.py.
@@ -50,7 +53,9 @@ REGIMES = {"s1f11_src": "Sen1Floods11 source-only (phase D)", "peru": "Peru-trai
            "st": "Self-training, pre-registered defaults (final teacher, AdaBN)",
            "mic": "Self-training + masked consistency, defaults (final teacher, AdaBN)",
            "st_noadabn": "Self-training, defaults, final teacher without AdaBN (post-hoc diagnostic)",
-           "mic_noadabn": "Self-training + masked, final teacher without AdaBN (post-hoc diagnostic)"}
+           "mic_noadabn": "Self-training + masked, final teacher without AdaBN (post-hoc diagnostic)",
+           "trhm": "Training-time histogram matching (Sen1Floods11 → pool; Peru images unchanged)",
+           "trfda": "Training-time FDA (β = 0.01, random pool amplitude; Peru images unchanged)"}
 NOT_METHODS = {"s1f11_src", "peru", "s1f11", "s1f11_src_lr2e-5"}  # no gap-closed value
 MODELS = {"unet": "U-Net", "terramind_v1_base": "TerraMind", "prithvi_eo_v2_300": "Prithvi"}
 T_SWEEP = np.round(np.arange(-0.30, 0.601, 0.01), 2)
