@@ -51,7 +51,10 @@ AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
    gated evaluation `scripts/evaluate_frozen.py` + scoring `scripts/score_frozen.py`, checked on
    `peru-dev` first. Phase-D pass: 33 runs on `peru-test` and `peru-2017-test`. Section-7 pass
    (Sen1Floods11 → Peru fine-tuned on the Peru tests, Sen1Floods11 `test`) is frozen, run later
-   (disk space; back up `outputs/` first).
+   (disk space).
+   **6.2 done 2026-10-16:** `docs/phaseD_test.md`. 2023: U-Net trHM 0.799 (Peru-trained 0.828,
+   source 0.576). 2017: order reverses (source-only best; labels score only clear-water recall).
+   Next: test calibration (6.3), section-7 pass (`--pass section7`, ≈ 3.4 GB; 13 GB free), then writing.
 4. **Start writing:** Chapter III (data, Peru dataset, protocol) and the phase-D results, in Spanish.
 
 ### 2. Close the open phase-C tasks (local, free, a few hours)

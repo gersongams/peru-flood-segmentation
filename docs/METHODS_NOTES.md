@@ -1563,3 +1563,23 @@ aligned / Peru-trained rows sits mostly in the low-MNDWI bins.
 
 Feeds: thesis chapters 4–5 (test results, two-event contrast), paper section "Results on held-out
 events"; the dev→test drop and the 2017 label construction go in the limitations.
+
+**Post-hoc diagnostic result** (`scripts/diag_2017_recall.py` → `outputs/phaseD/test/diag_2017_recall.csv`;
+all 204 chips; seed means; label-water pixels per bin 0.60 M / 0.65 M / 11.47 M, ignored MNDWI > 0 7.37 M):
+
+| Row | recall MNDWI 0–0.1 | 0.1–0.3 | > 0.3 | ignored MNDWI > 0 predicted water |
+|---|---|---|---|---|
+| source-only U-Net / TerraMind / Prithvi | 0.344 / 0.349 / 0.356 | 0.642 / 0.836 / 0.851 | 0.998 / 0.999 / 0.999 | 0.711 / 0.722 / 0.750 |
+| Peru-trained U-Net / TerraMind / Prithvi | 0.017 / 0.054 / 0.049 | 0.401 / 0.511 / 0.399 | 0.998 / 0.997 / 0.994 | 0.628 / 0.719 / 0.619 |
+| U-Net trHM / AdaBN | 0.019 / 0.082 | 0.158 / 0.451 | 0.988 / 0.996 | 0.619 / 0.613 |
+| TerraMind trFDA / trHM / HM | 0.084 / 0.053 / 0.047 | 0.223 / 0.275 / 0.355 | 0.912 / 0.985 / 0.992 | 0.461 / 0.627 / 0.674 |
+
+Reading 3 holds: on clear water (MNDWI > 0.3, 91 % of 2017 label water) every row except TerraMind
+trFDA has recall ≥ 0.985; the 2017 gap between source-only and the aligned / Peru-trained rows is
+in the faint-water bins (0–0.3), where source-only keeps 0.34–0.85 and the others 0.02–0.51 — the
+same trade-off the dev strata showed. TerraMind trFDA additionally misses clear water (0.912), as on
+dev (0.950), which is why it is the lowest 2017 row. The ignored MNDWI > 0 pixels (EMS says dry, or
+image/label disagree) cannot be scored; source-only rows call more of them water. Whether that is
+correct depends on whether those pixels were wet on 2017-04-07, which the labels cannot tell.
+The 2017 result therefore says the label-free methods and Peru training trade faint-water recall
+for fewer false positives, and the 2017 labels score only the first half of that trade.
