@@ -2359,3 +2359,27 @@ evaluation.
 - **Confirmed (no change): AdaBN layers.** The counts were checked earlier in code: U-Net 46 BN layers; TerraMind 9 (decoder and neck); Prithvi 9 (decoder).
 
 **Checks.** XeLaTeX: 0 errors, 0 undefined references. **Feeds.** Ch. I §1.3.2, Ch. II §2.2.9.
+
+## 2026-10-17: Whole-thesis review (compiled PDF, 47 pp.)
+
+**What was done.** An external review of the full compiled thesis. It confirms all Chapter I–II fixes from the previous reviews:
+- the 15-minute median rule;
+- "bordes de nubes";
+- p > 0.5 in both chapters;
+- "almacenamiento local (caché)".
+
+It asks for no new text changes in Chapters I–II and recommends stopping editorial polishing. No edits were made.
+
+**Open items it raises, all already planned:**
+- Chapters III–IV (results and hypothesis tests) are still empty.
+- Annex 3 (reproducibility) is still empty. Its source material exists:
+  - `configs/frozen.yaml` (sha256 of the checkpoints), which backs the Annex 2 phrase "congelada con suma de verificación";
+  - `docs/EXPERIMENT_LOG.md` (commits, seeds, run dirs);
+  - `docs/system_evaluation_protocol.md`.
+- Report HE3 as "mediana por tesela ≤ 15 min" and publish all 18 times and the maximum. The protocol already requires this.
+- Keep "agua detectada" separate from "área inundada" (WRITING_RULES §11.12). The title says "mapeo de áreas inundadas". It is left to the authors, since "área inundada" is the defined RF6 quantity.
+- Quantify the possible optimism from evaluating 2017 only on EMS/MNDWI-concordant pixels. Ch. I already states the caveat (Capitulo1.tex:330–332); the number goes in Ch. III.
+- Annex 1 matrix font is about 8 pt. Check it against the UNI format rules before submission.
+- Final source audit of cited numbers. Chapter II has had three independent passes; ISO 25010 and the paywalled items are still pending.
+
+**Feeds.** Ch. III, Ch. IV, Annex 3.
