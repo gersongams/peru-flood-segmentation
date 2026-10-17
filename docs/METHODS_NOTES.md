@@ -2106,3 +2106,50 @@ stored in any output file. It was reported to the user.
 
 **Thesis use.** Chapter I (objectives, hypotheses, requirements table); Chapter III (system);
 Chapter IV (third conclusion).
+
+## 2026-10-17 — Open items from the Chapter I audit: UNOSAT areas reconciled, RF6 defined, HE3 protocol fixed
+
+**1. UNOSAT 985.9 vs ~1,023 km² (reconciled).** `scripts/unosat_reconcile.py` →
+`outputs/unosat_reconcile.txt`. Areas measured on the UNOSAT 2023-03-22 geometry in UTM 17S:
+
+| Layer | Area | Notes |
+|---|---|---|
+| FloodExtent ("New Water / Water Increase") | 986.1 km² | UNOSAT table: 985.9; layer attribute: 986.8 |
+| WaterExtent (flood + pre-existing water) | 1,023.4 km² | the data card's "about 1,023" |
+| Pre-existing water (WaterExtent − FloodExtent) | 37.3 km² | |
+| Project rasterized labels (668 chips) | 1,016.6 km² | the difference comes from grid coverage and ignore pixels |
+
+- Both UNOSAT figures are correct; they are different quantities. The data card now states the
+  layers explicitly.
+
+**2. RF6 "área inundada" (defined before implementation).**
+- **Definition:** water (p ≥ 0.5) at date *t*, minus water on a pre-event reference image of the
+  same tile; valid pixels only.
+- **Reference image:** the clearest S2 acquisition in the 60 days before the event start.
+- This mirrors UNOSAT's own FloodExtent logic.
+- **Alternative rejected:** a static ESA WorldCover 2021 class-80 mask. It covers 173.0 km² of the
+  analysed extent, of which **105.9 km² fall inside UNOSAT's 2023 flood** and only 22.6 km² inside
+  its pre-existing water. Subtracting it would remove about 11 % of the mapped flood.
+- Wording: "área inundada" is used only for this quantity, otherwise "agua detectada"
+  (WRITING_RULES §11.12).
+
+**3. HE3 evaluation protocol (fixed before the system exists).** `docs/system_evaluation_protocol.md`:
+- **Escena:** one S2 L1C MGRS tile and date.
+- **Descarga:** the OData product download from CDSE, including authentication. The Process API is
+  excluded for its processing-unit cost.
+- **Conditions:**
+  - warm system with models loaded; empty image cache;
+  - timer from the backend receiving the request to the GeoTIFFs written and the map available;
+  - the 6 tiles covering the UNOSAT extent on 2023-03-22 (17MNP, 17MNQ, 17MPN, 17MNN, 17MPP,
+    17MPQ);
+  - 3 repetitions each;
+  - network capacity logged with `networkQuality`;
+  - external failures retried at most 3 times and reported.
+- **Decision rule:** the median is ≤ 15 min for each of the 6 tiles. A cold start is reported
+  separately.
+- **Requirements:** each RF1–RF7 has a pass/fail test with evidence. RF3 must agree with the
+  frozen pass on the overlapping `peru-test` chips: mean |Δp| ≤ 0.02 and mask IoU ≥ 0.95.
+- **Rule:** nothing in the protocol may change after the first measurement.
+
+**Thesis use.** Chapter III (system evaluation method; data description of the UNOSAT layers);
+WRITING_RULES §11 open items closed.

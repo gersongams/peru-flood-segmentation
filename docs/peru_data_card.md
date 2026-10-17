@@ -35,7 +35,7 @@ maps turned into rasters by fixed rules.
   and Sen2Cor SCL are not used: they flag the bright Sechura desert as cloud.
 - **Builder:** `scripts/build_peru_unosat.py`.
 - **Size:** 1,291 chips at 668 locations (668 on 2023-03-22, 623 on 2023-04-01).
-  Water 1,017 km² on 22 March (UNOSAT reports about 1,023 km²) and 1,003 km² on
+  Water 1,017 km² on 22 March (UNOSAT WaterExtent layer 1,023.4 km² = FloodExtent 986.1 + pre-existing 37.3; our grid covers 1,016.6 of it; `scripts/unosat_reconcile.py`) and 1,003 km² on
   1 April. Mean ignore share 14.7 % (22 March) and 22.0 % (1 April).
 - **Split:** `scripts/split_peru_unosat.py`. Spatial blocks of 4 × 4 chips (≈ 20 km)
   assigned at random (seed 0) until dev and test each hold ≈ 15 % of the water; a

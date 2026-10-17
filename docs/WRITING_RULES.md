@@ -330,8 +330,8 @@ Binding from now on.
     reads as monotonous. Let some paragraphs be short and some state results plainly.
 
 **Open items found by the audit**
-- **The timing protocol for HE3 must be fixed before any measurement:** hardware, network,
-  scenes, cache state, number of repetitions, timer start and stop, and what "descarga"
-  includes.
-- Reconcile UNOSAT 985.9 km² (flood extent) with the data card's ~1,023 km² (water extent).
-- RF6 must define which area it calls "inundada" (see rule 12).
+- ~~HE3 timing protocol~~: fixed 2026-10-17 in `docs/system_evaluation_protocol.md`.
+- ~~UNOSAT 985.9 vs ~1,023 km²~~: reconciled. These are different layers: FloodExtent 986.1 vs
+  WaterExtent 1,023.4 = flood + 37.3 pre-existing (`scripts/unosat_reconcile.py`).
+- ~~RF6 "área inundada"~~: defined as water at t minus water on a pre-event reference image of
+  the same tile (protocol §4).
