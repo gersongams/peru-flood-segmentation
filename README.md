@@ -92,5 +92,10 @@ GPUs. Notes on MPS speed and pitfalls are in [`docs/feasibility.md`](docs/feasib
 
 ## Course deliverables
 
-Weekly progress reports for the master's course are kept on their own branches. For example,
-`avance-sem5-feature-engineering` is the week-5 feature-engineering report, in Spanish.
+Weekly progress reports for the master's course are kept on their own branches and are also
+in `main`. Both notebooks are in Spanish and saved with their outputs:
+
+| Week | Branch | Notebook |
+|---|---|---|
+| 4: exploratory data analysis (EDA) | `avance-sem4-eda` | [`notebooks/eda.ipynb`](notebooks/eda.ipynb) |
+| 5: feature engineering | `avance-sem5-feature-engineering` | [`notebooks/feature_engineering.ipynb`](notebooks/feature_engineering.ipynb) |

@@ -1902,3 +1902,42 @@ section-7 pass.
   Prithvi-EO-2.0.
 
 **Thesis use.** Chapter IV (reproduction of SOTA, phase A); cite tables, not abstracts.
+
+## 2026-10-16 — EDA notebook (course progress, week 4)
+
+**What and why.** The course syllabus (MIA-403 v1.1, weeks 3–4) asks for a decision-oriented
+EDA notebook covering leakage, class imbalance and drift. The project's EDA existed as separate
+analyses: the data card, `scripts/band_stats.py`, `scripts/label_qa.py` and the domain-shift
+write-up. `notebooks/eda.ipynb` (Spanish, executed; built by `notebooks/build_eda_nb.py`) gathers
+them into one notebook.
+
+**Method.**
+- Labels are read only for `peru-train`, `peru-dev` and Sen1Floods11 `train`/`valid`. The test
+  splits appear only as metadata: location, date, counts.
+- **Inventory:** from the manifest and split list.
+- **Spatial map:** chip centres in UTM 17S by split. Check: no location is in two splits (0
+  found).
+- **Class balance:** from the manifest fractions (Peru) and LabelHand (Sen1Floods11).
+- **Band statistics, SMD and index percentiles:** from the existing `outputs/band_stats/`
+  (entry 2026-10-14).
+- **Label QA flags:** from `outputs/label_qa/chips.csv`, train and dev only.
+- **New:** Pearson correlation between the 13 bands on `peru-train`. Sample: 60 chips drawn
+  with seed 0, every 50th valid pixel (311,919 pixels).
+
+**Results.**
+- **Water share of labelled pixels:**
+
+  | Set | Water | Chips without water |
+  |---|---|---|
+  | `peru-train` | 4.6 % | 64.5 % |
+  | `peru-dev` | 12.4 % | 36.2 % |
+  | Sen1Floods11 `train` | 9.5 % | 13.1 % |
+  | Sen1Floods11 `valid` | 11.0 % | 13.5 % |
+
+- **Doubtful-label chips:** 16 of 753 (train) and 8 of 174 (dev).
+- **Band correlation:** within groups ≥ 0.97 (visible B02–B05; red-edge/NIR B06–B8A; SWIR B11–B12).
+  Between groups 0.70–0.91. Cirrus B10 is uncorrelated (|r| ≤ 0.09, except 0.50 with B09).
+- The other figures repeat earlier entries.
+
+**Thesis use.** Chapter III (data description). Course deliverable: branch
+`avance-sem4-eda`, also merged into main.

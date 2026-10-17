@@ -561,3 +561,10 @@ checked) and `outputs/logits_dev` for the dev-label reference. Output:
 - Results: METHODS_NOTES 2026-10-16 "Section-7 pass: results", `docs/published_comparison.md`.
 
 Commit: see this entry's commit.
+
+## 2026-10-16 — EDA notebook (course progress, week 4)
+
+`uv run python notebooks/build_eda_nb.py` → `notebooks/eda.ipynb` (executed). Reads the
+manifests, train/dev and Sen1Floods11 train/valid labels, 60 `peru-train` images, and
+`outputs/{band_stats,label_qa}`. No test labels are read. Results: METHODS_NOTES 2026-10-16 "EDA
+notebook". Commit: see this entry's commit.
