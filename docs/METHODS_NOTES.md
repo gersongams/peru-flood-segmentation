@@ -2023,3 +2023,41 @@ from Sen1Floods11 `test` to `peru-test`. The numbers in the same entry say other
   paired bootstrap does not apply; an independent bootstrap could be added.
 - Found while mapping the PLAN hypotheses to the results for Chapter I. The statement was
   reported to the authors in the same session and is now corrected in both places.
+
+## 2026-10-16 — Literature and Peru context for Chapters I–II (agent search)
+
+**What.** A background agent gathered sourced material for §1.1 (Peru flood impacts),
+§2.1 (antecedentes) and §2.2 (bases teóricas). Outputs:
+- `docs/literature_thesis.md`, sorted oldest to newest, each item with its method and a result
+  with table/page;
+- `docs/literature_thesis.bib`, 127 entries, each with a `% verified:` DOI/URL.
+
+Entries move into `thesis/3_3_BIBLIOGRAFIA/library.bib` one at a time, only when cited
+(`docs/WRITING_RULES.md` §8).
+
+**Results.**
+- **Antecedentes:** 31 in the main list. Including the supplementary list there are 24
+  Peruvian/Latin-American studies (17 Peru, 5 of them theses).
+- **Closest Peruvian precedent:** Shen et al. (2022), a Sen1Floods11-trained UNet++ applied to
+  Piura 2017, water IoU 0.69 (their Table 3). Any claim of a "first deep-learning flood map of
+  Peru" is ruled out.
+- **2017 impacts:** INDECI 2017 Compendio, pp. 13–16: 285 453 damnificados, 1 454 051 afectados,
+  138 deaths. The 2023 edition revises these to 283 137 / 1 644 879 / 169. Cite one edition.
+- **2017 losses:** about US$ 3.1 bn (French et al., 2020, Table 1). The BCRP S/ 25 655 M figure is
+  the reconstruction budget, not losses.
+- **Yaku 2023:** 44 deaths and 107 780 damnificados (INDECI Compendio 2024, Tabla 6, p. 86).
+
+**Open checks.**
+- UNOSAT's product page gives a **flood** extent of 985.9 km² (22 March) and 992.8 km² (1
+  April). `docs/peru_data_card.md` says "UNOSAT reports about 1,023 km²" for the water extent
+  (flood plus existing water, the layer we rasterized). These are probably different quantities.
+  To be reconciled before either number goes into §1.1.
+- **Unverified:** Portalés-Julià 2025 Table 3 (download blocked), the Quintana-Ortiz 2021 full
+  text, journal indexing, the World Bank/CEPAL loss figures, the ENFEN 2017 magnitude.
+- **Follow-ups for `docs/published_comparison.md` / `docs/REFERENCES.md`:**
+  - the "U-Net Base 84.03" row is Li et al. 2023, Tables 2–3;
+  - the Badillo-Rivera AUC question is resolved by its Table 5.
+
+**Privacy note.** During the search, one sub-agent sent the user's email address to the
+Unpaywall API (an open-access lookup that requires an email parameter). The address is not
+stored in any output file. It was reported to the user.
