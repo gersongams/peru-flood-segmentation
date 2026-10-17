@@ -1,4 +1,113 @@
-# Chapter I backbone: problems, objectives, hypotheses, variables (proposal for approval)
+# Chapter I backbone v2: the system as the general objective (proposal for approval)
+
+2026-10-16. The authors asked to reframe Chapter I around building an AI application that uses
+the models. **v1** (below, approved and written earlier the same day) is superseded once v2 is
+approved. Evaluation of the system: **technical only** (authors' choice, 2026-10-16).
+
+## Integrity rule applied
+- HE1, and the merged HE2 (old HE2 + HE3), keep the **pre-registered wording unchanged**.
+  Their outcomes are already known, so they are not reworded.
+- **HE3 is new and is fixed now (2026-10-16), before the system exists or is measured.** That
+  is legitimate only because the system has not been evaluated yet.
+- The threshold and the requirements below must not change after the measurement.
+
+## Title (proposal; ≤ 20 words; closest to the approved plan title)
+> SISTEMA DE ANÁLISIS SATELITAL DE INUNDACIONES BASADO EN MODELOS DE SEGMENTACIÓN PROFUNDA PARA EL
+> MAPEO DE ÁREAS INUNDADAS EN EL PERÚ (19 words)
+
+Only the end of the approved title changes: "para la detección de áreas de riesgo" becomes "para el
+mapeo de áreas inundadas en el Perú". It is still worth checking whether this needs a formal
+request.
+
+## Problema general
+> ¿Cómo desarrollar un sistema de análisis satelital de inundaciones para el Perú, basado en
+> modelos de segmentación profunda, que genere mapas de la extensión del agua y de su
+> incertidumbre a partir de imágenes Sentinel-2, incluso cuando no se dispone de etiquetas
+> peruanas?
+
+## Problemas específicos
+1. **PE1.** ¿Qué modelo de segmentación (los modelos fundacionales geoespaciales TerraMind y
+   Prithvi, o una U-Net) y qué régimen de entrenamiento ofrecen el mejor desempeño en
+   Sen1Floods11 y en el Perú?
+2. **PE2.** ¿En qué medida la adaptación de dominio sin etiquetas peruanas reduce la pérdida de
+   desempeño de los modelos en el Perú, y está calibrada la incertidumbre que el sistema
+   mostrará?
+3. **PE3.** ¿Cumple el sistema implementado los requisitos funcionales y el tiempo de
+   procesamiento necesarios para usarlo después de un evento de inundación?
+
+## Objetivo general
+> Desarrollar un sistema de análisis satelital de inundaciones para el Perú, basado en modelos de
+> segmentación profunda, que genere mapas de la extensión del agua y de su incertidumbre a partir
+> de imágenes Sentinel-2.
+
+## Objetivos específicos
+1. **OE1.** Comparar el IoU de agua de TerraMind v1-B, Prithvi-EO-2.0 300M y U-Net en
+   Sen1Floods11 y en los eventos peruanos de 2023 y 2017, con tres regímenes de entrenamiento,
+   para seleccionar el modelo del sistema.
+2. **OE2.** Determinar en qué medida la adaptación de dominio no supervisada y la calibración de
+   la incertidumbre mejoran la fiabilidad de los mapas en el Perú, e identificar los estratos en
+   los que se concentran los errores.
+3. **OE3.** Implementar el sistema como una aplicación web interactiva y evaluar su cumplimiento
+   de los requisitos funcionales y su tiempo de procesamiento por escena Sentinel-2.
+
+## Hipótesis general
+> Los modelos fundacionales geoespaciales pierden menos desempeño que la U-Net al pasar de
+> Sen1Floods11 al Perú. La adaptación de dominio sin etiquetas y la calibración de la
+> incertidumbre mejoran parcialmente la fiabilidad de los mapas. Un sistema que integra estos
+> modelos cumple sus requisitos funcionales y procesa una escena Sentinel-2 en un tiempo
+> compatible con la respuesta posterior a un evento.
+
+## Hipótesis específicas
+| | Hypothesis (Spanish) | Status |
+|---|---|---|
+| **HE1** | En Sen1Floods11 no existe una diferencia apreciable en IoU de agua entre los modelos fundacionales y la U-Net (el IC 95 % de la diferencia incluye 0). En el Perú, los modelos fundacionales pierden menos IoU de agua que la U-Net. | pre-registered (PLAN, 2026-10-11), unchanged |
+| **HE2** | Los errores de los modelos en el Perú se concentran en pocos estratos (nubes, vegetación inundada, terreno desértico o costero). La adaptación de dominio no supervisada aumenta el IoU de agua respecto del modelo sin adaptar (IC 95 % > 0), sin alcanzar al modelo entrenado en el Perú. Sin calibrar, las probabilidades están sobreconfiadas; el escalado de temperatura y los ensambles reducen el ECE, y la incertidumbre concentra los errores (AUROC > 0.5). | old HE2 + HE3, pre-registered, wording unchanged |
+| **HE3** | El sistema cumple el 100 % de los requisitos funcionales RF1–RF7 y genera el mapa de agua y de incertidumbre de una escena Sentinel-2 completa (aproximadamente 110 × 110 km) en no más de **15 minutos**, incluida la descarga, en un equipo de escritorio (Apple M4 Max). | **new, fixed 2026-10-16 before any measurement** |
+
+**Functional requirements**, fixed now and verified by a test procedure in Chapter III:
+- **RF1** Select an event or date and an area of interest.
+- **RF2** Obtain the Sentinel-2 L1C image from Copernicus Data Space, or load one already
+  processed.
+- **RF3** Generate the water-probability map with the selected model (ensemble of 3 seeds).
+- **RF4** Show the uncertainty and the unobserved areas (clouds, no data).
+- **RF5** Overlay the reference map when one exists (UNOSAT / EMS) and show agreement metrics.
+- **RF6** Compute the flooded area per date and show it on a timeline.
+- **RF7** Export the maps (GeoTIFF / GeoJSON).
+
+The **15 min** threshold is the authors' operational requirement, not a literature figure. The
+authors can confirm or change it **now**, never after measuring.
+
+## Variables
+- **Independent:** model and training / adaptation strategy (unchanged), plus the **system
+  configuration** (selected model, inference pipeline).
+- **Dependent:** quality of the flood mapping (unchanged dimensions), plus **system
+  performance**:
+  - functional requirements met (%);
+  - processing time per scene (min).
+
+## Methodology changes
+- **Type:** applied (technological development).
+- **Design:**
+  - experimental, as controlled computational experiments, for OE1–OE2;
+  - development and technical evaluation of the system for OE3, with an iterative-incremental
+    method.
+- **New stage 6:** system development and technical evaluation.
+- **Chapter III gains a section:** "Desarrollo del sistema", covering architecture,
+  implementation and the RF/time tests.
+
+## Consequences
+- **The viewer becomes a thesis component.** The 2026-10-16 rule that "the viewer produces no
+  thesis results" (`.viewer-wip/uncommitted_viewer_changes.diff`) will be rewritten. Its
+  technical evaluation (RF checklist, processing time) becomes a thesis result, logged and
+  pre-specified as above. Model quality numbers still come only from the frozen test pass.
+- **RF2 and the time hypothesis need on-demand processing:** a small backend that fetches a
+  scene and runs the model. This is new work: Stage 3 of the viewer plan moves into the thesis.
+- **Expected verdicts:** HE1 is supported with a caveat; HE2 is partly supported (unchanged from
+  v1). HE3 is unknown until the system is built and measured.
+
+---
+
+# Chapter I backbone v1 (superseded if v2 is approved)
 
 2026-10-16. **Approved by the authors on 2026-10-16 and written into `thesis/2_CAPITULO1/Capitulo1.tex`
 (thesis commit after `32568ac`) and Anexos 1–2.** Drafted by Claude (`docs/WRITING_RULES.md` §3, §9). Thesis wording is in Spanish. Notes on
