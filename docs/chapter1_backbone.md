@@ -1,7 +1,7 @@
 # Chapter I backbone: problems, objectives, hypotheses, variables (proposal for approval)
 
-2026-10-16. Draft by Claude for the authors' review (`docs/WRITING_RULES.md` §3, §9). Nothing
-here goes into `thesis/` until the authors approve it. Thesis wording is in Spanish. Notes on
+2026-10-16. **Approved by the authors on 2026-10-16 and written into `thesis/2_CAPITULO1/Capitulo1.tex`
+(thesis commit after `32568ac`) and Anexos 1–2.** Drafted by Claude (`docs/WRITING_RULES.md` §3, §9). Thesis wording is in Spanish. Notes on
 provenance and the expected verdict are in English.
 
 ## Provenance of the hypotheses (rule: hypotheses are not fitted to the results)

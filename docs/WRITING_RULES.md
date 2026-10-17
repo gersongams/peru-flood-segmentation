@@ -213,8 +213,8 @@ ANEXOS: 1 Matriz de consistencia · 2 Matriz de operacionalización (required by
 
 ## 8. Citations, figures, tables
 
-- **APA 7** via `apacite`: "Bonafilia et al. (2020)" (`\citeA`) or "(Bonafilia et al., 2020)"
-  (`\cite`).
+- **APA 7** via `apacite` with `natbibapa`: "Bonafilia et al. (2020)" (`\citet`) or
+  "(Bonafilia et al., 2020)" (`\citep`). Add a page or table as `\citep[Tabla~3, p.~137]{key}`.
   - Each bib entry is added **one at a time** to `3_3_BIBLIOGRAFIA/library.bib`, checked against
     the source (DOI/URL), and only once it is cited.
   - Datasets and software are cited too (Sen1Floods11, TerraTorch, UNOSAT and EMS products).
