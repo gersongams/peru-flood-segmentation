@@ -1,5 +1,7 @@
 # Overleaf thesis is its own git repo (remote: Overleaf)
 thesis/
+# Overleaf presentations repo (Beamer), also its own git repo
+presentation/
 
 # Data, weights, experiment outputs
 data/
