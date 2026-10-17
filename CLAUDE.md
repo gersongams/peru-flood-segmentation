@@ -12,6 +12,7 @@ Master's thesis (UNI, Maestría en Ciencias con mención en IA; authors Gerson A
 - `docs/NEXT_STEPS.md`: handoff — what to do next, in order.
 - `docs/EXPERIMENT_LOG.md`: every run and evaluation with commit, run dir and source file. Add an entry for each new run.
 - `docs/METHODS_NOTES.md`: what was done and why (methods, decisions, checks, corrections), dated, for writing the thesis and paper.
+- `docs/WRITING_RULES.md`: **binding rules for writing the thesis** (EPG-UNI Guía N°2 structure and format, content rules, integrity, style, terminology, numbers, citations, AI-use workflow). Read before drafting any chapter.
 
 ## Environment
 

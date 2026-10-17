@@ -1941,3 +1941,62 @@ them into one notebook.
 
 **Thesis use.** Chapter III (data description). Course deliverable: branch
 `avance-sem4-eda`, also merged into main.
+
+## 2026-10-16 — Thesis writing rules and template restructure (authors' decision)
+
+**What and why.** Writing starts now, so the rules were fixed before any chapter is drafted.
+The Overleaf template turned out to be an **undergraduate** FIIS template: its readme says
+"plantilla de tesis de pregrado", it has 6 chapters, and its cover reads "INGENIERO DE
+SISTEMAS". It matches neither EPG-UNI guide.
+
+**Sources.**
+- `thesis-guidelines/`: Guía N°1 (plan), Guía N°2 (thesis) and the two MIA-403 syllabi.
+- The guides are scanned PDFs. They were read page by page, and the full extraction with
+  quotes is in `docs/guide_rules_extracted.md`.
+- Key pages were re-checked by eye:
+  - G2 p. 4: "en forma estricta".
+  - G2 pp. 9–10: the structure of a Maestría de Investigación thesis.
+  - G2 p. 20: the cover.
+  - G2 p. 27: the consistency matrix.
+  - G1 pp. 43–44: the format standards.
+- Guía N°2 was approved on 28-03-2023 by the EPG Consejo Directivo N°05, with the FIIS
+  graduate-unit director among the signatories.
+
+**Decisions (authors, 2026-10-16).**
+1. Follow Guía N°2's 4-chapter structure and restructure the template.
+2. Use 3 specific objectives and 3 hypotheses. This fits G2 p. 19 (exactly 3 conclusions and 3
+   recommendations). The hypotheses come from the research questions in `docs/PLAN.md`, written
+   before the results.
+3. Write a new title of at most 20 words. Whether changing the approved plan's title needs a
+   formal request is still to be checked.
+4. Claude drafts and the authors review and edit. The S1 LLM-detector clause is flagged, and the
+   argumentative sections should be rewritten by the authors.
+
+**Rules.** The binding rules are in `docs/WRITING_RULES.md`. Defaults set where the guides are
+silent:
+- impersonal voice;
+- a Spanish terminology table;
+- metric proportions with 3 decimals and a decimal point;
+- APA 7 captions;
+- a `% fuente:` comment after every number.
+
+**Template (thesis repo).**
+- Structure:
+  - front matter in G2 order;
+  - Introducción;
+  - Cap. I Protocolo, II Marco teórico, III Desarrollo, IV Conclusiones y recomendaciones;
+  - Referencias;
+  - Anexos: consistency matrix (G2 p. 27), operationalization matrix (required by the course),
+    reproducibility (required by the course).
+- Format:
+  - A4; margins 3/3/2.5/2.5 cm; Arial 11, falling back to Liberation Sans or TeX Gyre Heros
+    with a log warning; 1.5 spacing.
+  - Page number only, top right. Lowercase Roman numerals in the front matter, with the cover
+    counted but not printed. Arabic numerals from the Introducción, not printed on the
+    Introducción or on chapter-opening pages.
+  - The cover follows G2 p. 20, with Poppins (OFL) bundled in `fonts/`.
+  - References double-spaced with a hanging indent.
+- Removed sections: Permisos, Prólogo, Símbolos, and the separate Conclusiones and
+  Recomendaciones chapters.
+- Compiled locally with XeLaTeX: 17 pages, no errors. The pages were inspected as rendered
+  images.
