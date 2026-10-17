@@ -2173,6 +2173,20 @@ The rule applied is to fix the statement itself, not only explain it afterwards 
 - **No equivalence margin was introduced:** choosing one now, after seeing the CIs, would be
   fitting to the results.
 
+- **Second correction (same day, after a second review):**
+  - "no superan" still asserted more than a CI containing 0 can show.
+  - HE1 now reads: "En Sen1Floods11 no se espera detectar una diferencia estadísticamente
+    significativa en IoU de agua entre los modelos fundacionales y la U-Net, según los
+    intervalos de confianza al 95 % de la diferencia. En el Perú, los modelos fundacionales
+    presentan una menor caída de IoU de agua que la U-Net respecto de su desempeño en
+    Sen1Floods11."
+  - This is a testable prediction about the test outcome; the direction is the same as PLAN.
+  - The reviewer's draft dropped "que la U-Net"; it was kept, because the comparison is the
+    hypothesis.
+- **Also corrected:** §1.4.1 "es de tipo aplicada" → "es una investigación aplicada".
+- **Authors' rule from now on:** no further style-only edits to Chapter I. Remaining effort goes
+  to making Chapters II–IV support exactly what Chapter I claims.
+
 **"Sin etiquetas peruanas" made precise in every statement.** The phrase becomes "sin etiquetas
 peruanas de entrenamiento" in:
 - the general problem;
