@@ -2347,3 +2347,15 @@ short form "pocos estratos" and needed no change.
 **Checks.** XeLaTeX 0 errors, 0 undefined references; Chapters I (pp. 11–20) and II (pp. 21–31)
 rendered and inspected. **Feeds.** Thesis Ch. I §1.3.2, Ch. II §2.2.7, §2.2.9, §2.3; Ch. III system
 evaluation.
+
+## 2026-10-17: Chapter II third review
+
+**What was done.** A third external review of Chapter II, against the second-review PDF. One change was accepted; the other points were already resolved or rejected.
+
+- **Accepted: "memoria local" → "almacenamiento local (caché)".** "Memoria" can be read as RAM, but the protocol means the on-disk product cache. Ch. I §1.3.2 now reads "sin la imagen en su almacenamiento local (caché vaciada antes de cada repetición)", matching `docs/system_evaluation_protocol.md` §2 (cache cleared before each run). Ch. II §2.2.9 reads "almacenamiento local (caché)". Timed runs always include the download; the cached path is only tested functionally (RF2 b) and is not timed.
+- **Already resolved: decision statistic for 15 min.** The reviewer said Ch. I §1.3.2 does not name the statistic. It does: since the second review, Ch. I says the requirement is met if the median of three repetitions is ≤ 15 min in each of the six tiles, and all times and the maximum are reported. The `\ref` resolves to §1.3.2. The reviewer seems to have checked an older Ch. I. The rule was fixed on 2026-10-17 in `docs/system_evaluation_protocol.md`, before the system exists and before any measurement, so "se fija antes de medir" is accurate.
+- **Rejected, for the third time: "≥ 0.5 in Ch. I".** No `.tex` file contains "mayor o igual" or ≥ for the water rule. The rule is p > 0.5 (z > 0), as in `configs/frozen.yaml`.
+- **Not done: optional page-break tweak between §2.2.9 and §2.3.** The float/page layout is acceptable, and forcing breaks would make the layout fragile.
+- **Confirmed (no change): AdaBN layers.** The counts were checked earlier in code: U-Net 46 BN layers; TerraMind 9 (decoder and neck); Prithvi 9 (decoder).
+
+**Checks.** XeLaTeX: 0 errors, 0 undefined references. **Feeds.** Ch. I §1.3.2, Ch. II §2.2.9.
