@@ -226,6 +226,9 @@ ANEXOS: 1 Matriz de consistencia · 2 Matriz de operacionalización (required by
     `outputs/…`" or "Adaptado de Autor (año, p. x)".
   - Numbering is by chapter.
   - Every table and figure is cited in the text before it appears.
+  - Tables and figures **float** (`[htbp]`), never `[H]`. A fixed `[H]` float that does not fit
+    leaves a large empty gap at the bottom of the page. Page breaks are handled globally in the
+    preamble: no word split across pages, no widows or orphans, equations kept with their text.
 - **Figures:**
   - Made by scripts in this repo (reproducible), saved as PDF (vector) or high-resolution PNG.
   - Legible in grey scale.
