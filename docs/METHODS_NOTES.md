@@ -1855,8 +1855,10 @@ Run as fixed in the entry "Section-7 pass" above (commits `d42c861` for `peru-te
 - U-Net − Prithvi +0.013 [−0.022, 0.062]; U-Net − TerraMind +0.015 [−0.019, 0.051]. The three
   are not separable in-domain (RQ1: no meaningful gap in-distribution, as hypothesised).
 - Peru-2023 test vs Sen1Floods11 test, source-only: U-Net 0.833 → 0.576, TerraMind 0.819 →
-  0.626, Prithvi 0.820 → 0.741. Prithvi loses the least, so "foundation models lose less on Peru"
-  holds for Prithvi only.
+  0.626, Prithvi 0.820 → 0.741. Both foundation models lose less than U-Net (drops −0.257 U-Net, −0.192 TerraMind, −0.080
+  Prithvi). Prithvi loses by far the least. TerraMind's advantage is within its large seed spread on
+  `peru-test` (±0.055). (Corrected 2026-10-16: first written as "holds for Prithvi only", which
+  misread TerraMind's drop. See the correction entry below.)
 
 **Deviation from plan 7.3.** Peru-trained and `s1f11_ft` models were not evaluated on
 Sen1Floods11 `test` (not frozen for it). Neither were `trhm` / `trfda` (scope entry above).
@@ -2000,3 +2002,24 @@ silent:
   Recomendaciones chapters.
 - Compiled locally with XeLaTeX: 17 pages, no errors. The pages were inspected as rendered
   images.
+
+
+## 2026-10-16 — Correction: "foundation models lose less on Peru" is not Prithvi-only
+
+The Section-7 results entry and `docs/phaseD_test.md` first said that only Prithvi "loses less"
+from Sen1Floods11 `test` to `peru-test`. The numbers in the same entry say otherwise.
+
+| Model (source-only) | Sen1Floods11 `test` | `peru-test` | Drop |
+|---|---|---|---|
+| U-Net | 0.8331 | 0.5763 | −0.257 |
+| TerraMind | 0.8185 | 0.6261 | −0.192 |
+| Prithvi | 0.8203 | 0.7405 | −0.080 |
+
+(`outputs/phaseD/test/{test,peru-test}_groups.csv`.)
+
+- Both foundation models drop less than U-Net. TerraMind's margin over U-Net (0.065) is about one
+  seed std of TerraMind on `peru-test` (0.055).
+- No CI was computed for the difference of drops. The two test sets have different chips, so a
+  paired bootstrap does not apply; an independent bootstrap could be added.
+- Found while mapping the PLAN hypotheses to the results for Chapter I. The statement was
+  reported to the authors in the same session and is now corrected in both places.

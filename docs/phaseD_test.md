@@ -121,6 +121,7 @@ METHODS_NOTES 2026-10-16 "Section-7 pass: results"; earlier rows reproduced exac
   | TerraMind | −0.192 |
   | Prithvi | −0.080 |
 
-  Only Prithvi "loses less".
+  Both foundation models lose less than U-Net. Prithvi loses by far the least; TerraMind's margin
+  is within its seed spread (corrected 2026-10-16, METHODS_NOTES).
 - Not evaluated (not frozen for it): Peru-trained, fine-tuned and training-time-aligned models on
   Sen1Floods11 `test`.
