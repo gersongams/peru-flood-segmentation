@@ -2240,3 +2240,60 @@ imagen, no una inundación verificada en campo".
 abstract only. To open via the UNI library before submission.
 
 **Thesis.** Chapter II; Chapter I eq. 1.1 wording.
+
+## 2026-10-17 — Chapter II: external review applied (thesis commit 302922d, not pushed)
+
+**What and why.** An external review (ChatGPT, of `new_thesis_capitulo2.pdf`) raised 8 technical
+and 3 layout points. Each was checked against the code, results and primary sources before
+deciding.
+
+**Accepted and applied (Chapter II):**
+- *HLS vs L1C (§2.2.4).* New paragraph: HLS S30 is surface reflectance, nadir-normalized
+  (BRDF), resampled to 30 m from 10/20/60 m, with most bands adjusted to Landsat (Ju et al. 2026,
+  HLS User Guide v2.0, §1 p. 6, Table 2 p. 10). This research feeds Prithvi six L1C TOA bands
+  (B2, B3, B4, B8A, B11, B12; `configs/prithvi_eo_v2_300.yaml`) at 10 m, the Sen1Floods11 format
+  (13 bands sampled to 10 m, Bonafilia 2020 p. 4). Stated as a factor that may affect Prithvi's
+  transfer; no effect size claimed. TerraMind was pretrained on S2 L1C and L2A (Jakubik 2025,
+  arXiv v5 §8, p. 13 of PDF) and we use its S2L1C modality. Sen1Floods11's processing level is
+  not stated in Bonafilia, so the text does not claim it.
+- *AdaBN applicability (§2.2.5).* AdaBN only re-estimates BN statistics (Li 2018). ViT encoders
+  use LayerNorm before every block (Dosovitskiy 2021 §3.1), which computes the same at train and
+  test time (Ba 2016, abstract p. 1), so in the foundation models AdaBN can only act on decoder BN
+  layers. This matches what was run (phaseD_dev: "decoder BN only"); the results stay in Ch. III.
+- *ECE variant (§2.2.7).* Stated exactly what was computed: top-label confidence max(p, 1−p),
+  15 equal-width bins on [0.5, 1], pixels (`scripts/uncertainty_dev.py::ece`,
+  `docs/calibration_dev.md`), and that reliability diagrams were also produced (Guo 2017 §2).
+  Not class-wise calibration of p; no new metric added after the fact.
+- *System evaluation (new §2.2.9).* Short basis for OE3/HE3: pass/fail requirement tests fixed in
+  advance; end-to-end time from request to map; its components (download, band reading and
+  resampling, normalization, inference ~1.21e8 px per 110 km tile at 10 m, writing); repetitions
+  summarized by the median. Consistent with `docs/system_evaluation_protocol.md`. **Pending:** a
+  normative citation (ISO/IEC 25010, functional suitability / time behaviour) could not be
+  verified (iso.org 403, standard paywalled); left as `% pendiente`, not paraphrased from
+  secondary sites.
+- *UDA definition (§2.3).* "métodos que buscan reducir" (the methods are what is being tested).
+- *Mateo-Garcia (§2.1.1).* Removed "El trabajo establece la comparación con índices espectrales
+  como línea base necesaria": an interpretation, not a finding of the paper.
+- *Layout.* Tabla 2.1 moved after the gap paragraph, `\FloatBarrier` (placeins) before §2.2, so it
+  no longer splits a sentence; table note now states each value keeps its source's scale (IoU/mIoU
+  % or proportion, ECE proportion) instead of converting the numbers.
+
+**Rejected:**
+- *Threshold "≥ 0.5" in both chapters.* The reviewer read an older Chapter I. Implementation is
+  strict (z > 0 ⇔ p > 0.5; `ece()`, `score_frozen.py`); both chapters already say "mayor que 0.5"
+  (thesis 815c9ba).
+- *Add an NDWI/MNDWI baseline experiment.* Not added: the Sen1Floods11-fitted MNDWI > 0.15 was
+  defined after the test pass (entry above) and test is evaluated once. The label-free MNDWI rows
+  already in phase D dev (MNDWI > 0, Otsu, oracle) are reported in Ch. III.
+
+**Escalated to the authors (not applied):** Chapter I HE2 lists "nubes" as an error stratum, but
+cloudy pixels are excluded; the stratum actually analysed is *proximity to thick cloud* (within
+20 px, `docs/failure_analysis_dev.md` Finding 4). Proposed wording "bordes de nubes" /
+"proximidad a nubes". HE2 is pre-registered, so a wording change after results needs the
+authors' decision and its own log entry.
+
+**Checks.** XeLaTeX build: 0 errors, 0 undefined references, `main.blg` 0 warnings; pages 20–30
+rendered and inspected. Primary sources downloaded and grepped for every new claim.
+
+**Feeds.** Thesis Ch. II (§2.1.1, §2.1.3, §2.2.4, §2.2.5, §2.2.7, §2.2.9, §2.3); Ch. III
+methodology (decoder-only AdaBN, Prithvi input path); paper Methods.
