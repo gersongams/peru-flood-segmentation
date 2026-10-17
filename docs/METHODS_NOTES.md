@@ -2297,3 +2297,18 @@ rendered and inspected. Primary sources downloaded and grepped for every new cla
 
 **Feeds.** Thesis Ch. II (§2.1.1, §2.1.3, §2.2.4, §2.2.5, §2.2.7, §2.2.9, §2.3); Ch. III
 methodology (decoder-only AdaBN, Prithvi input path); paper Methods.
+
+## 2026-10-17 — HE2 wording: "nubes" → "bordes de nubes" (authors approved)
+
+**What and why.** Follow-up to the Chapter II review entry above. HE2 listed "nubes" as an error
+stratum, but pixels under thick cloud are excluded from every evaluation, so they cannot carry
+errors. The stratum that was actually analysed is proximity to thick cloud (within 20 px;
+`docs/failure_analysis_dev.md`, Finding 4). The authors approved "bordes de nubes" on 2026-10-17.
+
+**Scope.** Wording only: it names the stratum that the pre-registered analysis already measured.
+The hypothesis, the strata and the analysis are unchanged. It was corrected after the dev results
+were known, and it is recorded here for that reason (as with the HE1 corrections). Changed in
+thesis Chapter I (HE2) and in `docs/chapter1_backbone.md`; the consistency matrix (annex) uses the
+short form "pocos estratos" and needed no change.
+
+**Feeds.** Thesis Ch. I §1.5 (hypotheses); Ch. III error analysis.
