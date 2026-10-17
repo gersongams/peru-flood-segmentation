@@ -58,8 +58,15 @@ Each requirement passes if its test passes. Evidence is a log excerpt and a scre
 
 ## 4. Definition of "área inundada" (RF6)
 
-**Flooded area at date *t* = valid pixels detected as water at *t*, minus pixels detected as
-water on a pre-event reference image of the same tile.**
+**Flooded area at date *t* = A = Área((W_t \ W_0) ∩ V_t ∩ V_0), computed pixel by pixel.**
+It is the surface of the pixels that change from not-water to water between a pre-event reference
+image and *t*. It is **not** a difference of two total areas, which would net new water against
+receding water.
+- W_t and W_0 are the water pixels at *t* and on the reference image.
+- V_t and V_0 are the valid pixels (no cloud, no data) at *t* and on the reference image.
+- Both images are the same MGRS tile on the same grid. (Clarified 2026-10-17 before
+  implementation, after review feedback. The definition is unchanged; only the formula is now
+  explicit.)
 - **Water** means probability ≥ 0.5.
 - **Valid** means not cloud and not no-data, at both *t* and the reference.
 - Total water at *t* is reported alongside.
