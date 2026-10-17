@@ -61,7 +61,7 @@ request.
 ## Hipótesis específicas
 | | Hypothesis (Spanish) | Status |
 |---|---|---|
-| **HE1** | En Sen1Floods11 no existe una diferencia apreciable en IoU de agua entre los modelos fundacionales y la U-Net (el IC 95 % de la diferencia incluye 0). En el Perú, los modelos fundacionales pierden menos IoU de agua que la U-Net. | pre-registered (PLAN, 2026-10-11), unchanged |
+| **HE1** | En Sen1Floods11, los modelos fundacionales no superan a la U-Net en IoU de agua: no se detecta una diferencia (el IC 95 % de la diferencia incluye 0). En el Perú, los modelos fundacionales pierden menos IoU de agua que la U-Net. | pre-registered direction (PLAN, 2026-10-11); wording corrected 2026-10-17 to drop the implied equivalence (METHODS_NOTES) |
 | **HE2** | Los errores de los modelos en el Perú se concentran en pocos estratos (nubes, vegetación inundada, terreno desértico o costero). La adaptación de dominio no supervisada aumenta el IoU de agua respecto del modelo sin adaptar (IC 95 % > 0), sin alcanzar al modelo entrenado en el Perú. Sin calibrar, las probabilidades están sobreconfiadas; el escalado de temperatura y los ensambles reducen el ECE, y la incertidumbre concentra los errores (AUROC > 0.5). | old HE2 + HE3, pre-registered, wording unchanged |
 | **HE3** | El sistema cumple el 100 % de los requisitos funcionales RF1–RF7 y genera el mapa de agua y de incertidumbre de una escena Sentinel-2 completa (aproximadamente 110 × 110 km) en no más de **15 minutos**, incluida la descarga, en un equipo de escritorio (Apple M4 Max). | **new, fixed 2026-10-16 before any measurement** |
 

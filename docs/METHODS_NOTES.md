@@ -2153,3 +2153,40 @@ Chapter IV (third conclusion).
 
 **Thesis use.** Chapter III (system evaluation method; data description of the UNOSAT layers);
 WRITING_RULES §11 open items closed.
+
+## 2026-10-17 — Chapter I wording corrections after external review: HE1, "sin etiquetas", RF6
+
+**Context.** An external AI-assisted review of the Chapter I PDF raised two methodological points.
+The rule applied is to fix the statement itself, not only explain it afterwards (WRITING_RULES
+§11.8–11.9). Authors' approval: 2026-10-17.
+
+**HE1, rewording made after the results are known (recorded as such).**
+- **Before:** "En Sen1Floods11 no existe una diferencia apreciable … (el IC 95 % de la diferencia
+  incluye el cero)".
+- **Now:** "En Sen1Floods11, los modelos fundacionales no superan a la U-Net en IoU de agua: no
+  se detecta una diferencia (el IC 95 % de la diferencia incluye el cero)".
+- The pre-registered prediction, "No meaningful gap in-distribution" (PLAN, 2026-10-11), is
+  unchanged in direction.
+- The CI criterion itself was first written on 2026-10-16, when the test results were already
+  known. The new wording only removes the implied equivalence claim, which a CI containing 0
+  cannot support. It does not make the hypothesis easier to pass.
+- **No equivalence margin was introduced:** choosing one now, after seeing the CIs, would be
+  fitting to the results.
+
+**"Sin etiquetas peruanas" made precise in every statement.** The phrase becomes "sin etiquetas
+peruanas de entrenamiento" in:
+- the general problem;
+- PE2;
+- the practical justification;
+- OE2, which now adds "la selección de configuraciones usa la partición de validación peruana";
+- the general hypothesis and HE2;
+- stage 4;
+- the variables table;
+- Annexes 1–2.
+
+No claim changes; the statements now say from the start what the method does.
+
+**RF6.** Equation 1.1 is followed by "representa la nueva superficie de agua detectada en la
+imagen, no una inundación verificada en campo".
+
+**Thesis.** Chapter I; Annexes 1–2.
