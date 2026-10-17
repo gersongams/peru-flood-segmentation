@@ -1,7 +1,8 @@
 # Chapter I backbone v2: the system as the general objective (proposal for approval)
 
-2026-10-16. The authors asked to reframe Chapter I around building an AI application that uses
-the models. **v1** (below, approved and written earlier the same day) is superseded once v2 is
+2026-10-16. **Approved by the authors on 2026-10-16 and written into the thesis (thesis commit
+0c5be86).** The authors asked to reframe Chapter I around building an AI application that uses the
+models. **v1** (below, approved and written earlier the same day) is superseded once v2 is
 approved. Evaluation of the system: **technical only** (authors' choice, 2026-10-16).
 
 ## Integrity rule applied

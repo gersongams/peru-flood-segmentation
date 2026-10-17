@@ -52,6 +52,8 @@ ANEXOS: 1 Matriz de consistencia · 2 Matriz de operacionalización (required by
   - §2.1: antecedentes.
   - §2.2: Sentinel-2, segmentation, CNNs and Transformers, foundation models, domain
     adaptation, calibration.
+  - §3.1 also holds the system: its development and its technical evaluation (RF1–RF7, time per
+    scene; Chapter I v2).
   - §3: everything in `docs/phaseD_dev.md`, `docs/phaseD_test.md`, the failure, calibration and
     domain-shift write-ups, and `docs/published_comparison.md`.
 

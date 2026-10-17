@@ -2061,3 +2061,48 @@ Entries move into `thesis/3_3_BIBLIOGRAFIA/library.bib` one at a time, only when
 **Privacy note.** During the search, one sub-agent sent the user's email address to the
 Unpaywall API (an open-access lookup that requires an email parameter). The address is not
 stored in any output file. It was reported to the user.
+
+## 2026-10-16 — Thesis reframed around a system (AI application); new hypothesis HE3 fixed before measurement
+
+**Decision (authors, 2026-10-16).**
+- The general objective becomes *developing* an AI flood-analysis system for Peru, built on the
+  segmentation models. This is close to the approved plan title, "Sistema de análisis satelital
+  de inundaciones basado en modelos de segmentación profunda…", whose new ending is "para el
+  mapeo de áreas inundadas en el Perú".
+- Specific objectives:
+  - **OE1:** compare and select the system's model.
+  - **OE2:** adaptation without Peru labels, plus calibration.
+  - **OE3:** implement the system as a web application and evaluate it **technically only**
+    (authors' choice; no user study).
+- Text: `docs/chapter1_backbone.md` v2. Written into thesis Chapter I and Annexes 1–2.
+
+**Integrity.**
+- **HE1 and HE2 keep the pre-registered wording.** HE1 comes from `docs/PLAN.md` (2026-10-11).
+  HE2 merges the former HE2 and HE3, from PLAN and the phase-D proposal of 2026-10-14. Their
+  outcomes are already known, so they are not reworded.
+- **HE3 is new and is fixed today, before the system exists:**
+  - The system meets 100 % of the functional requirements RF1–RF7.
+  - It produces the water and uncertainty map of a full Sentinel-2 scene (about 110 × 110 km)
+    in **≤ 15 min including download**, on a desktop machine (Apple M4 Max).
+  - **RF1:** select an event or date and an area.
+  - **RF2:** get the S2 L1C image from CDSE, or load an already processed one.
+  - **RF3:** water-probability map from the selected model (3-seed ensemble).
+  - **RF4:** uncertainty plus clouds and no-data.
+  - **RF5:** reference overlay (UNOSAT/EMS) with agreement metrics.
+  - **RF6:** flooded area per date on a timeline.
+  - **RF7:** export as GeoTIFF and GeoJSON.
+- The 15 min threshold is an operational requirement of the authors, not a literature value.
+- The requirements and the threshold must not change after the measurement. The commit of this
+  entry is the evidence of when they were fixed.
+
+**Consequences.**
+- The flood viewer, paused locally in `.viewer-wip/`, becomes a thesis component. Its earlier
+  rule ("produces no thesis results") is replaced:
+  - the RF checklist and the time measurements are thesis results, logged like any run;
+  - model-quality numbers still come only from the frozen test pass.
+- RF2 and the time hypothesis need on-demand processing (a backend that fetches a scene and runs
+  the model). This is new work.
+- Chapter III §3.1 gains the system's development and its evaluation.
+
+**Thesis use.** Chapter I (objectives, hypotheses, requirements table); Chapter III (system);
+Chapter IV (third conclusion).
