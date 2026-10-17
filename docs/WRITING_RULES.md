@@ -265,3 +265,73 @@ ANEXOS: 1 Matriz de consistencia · 2 Matriz de operacionalización (required by
 3. **Arial on Overleaf.** The template falls back to TeX Gyre Heros (a Helvetica clone) if Arial
    is missing. The final PDF must be built where Arial exists. Check this before submission.
 4. **Adviser:** none assigned yet. The cover shows "ASESOR: (por asignar)".
+
+## 11. Claim precision: lessons from the Chapter I audit and external review (2026-10-17)
+
+Sources:
+- the authors' citation audit (`docs/chapter1_citation_audit.md`);
+- an external AI-assisted review of the Chapter I PDF, whose verdict was "AI-assisted and
+  revised; academic issues remain".
+
+Binding from now on.
+
+**Figures and sources**
+1. **Say exactly what the number counts.**
+   - Name the scope: "a nivel nacional", "en los ocho departamentos", not just "en Lambayeque y
+     Piura".
+   - Name the cut-off date for preliminary statistics ("datos procesados al 4 de julio de 2017").
+   - Never attribute a total to a subset region.
+2. **Cite the exact locator, and say which page numbering it is.**
+   - Use "Tabla 6, p. 86" for a printed page and "p. 10 del PDF" for a PDF page.
+   - Use one edition of a statistic. Revised editions differ, so do not mix them.
+3. **Describe a legal or official act correctly.** A decree that *prorroga* an emergency is not
+   the one that *declaró* it. Cite the act that says what the sentence claims.
+4. **State the definition behind a reference product.** For example, Copernicus GFM excludes
+   permanent water. Disagreement with a reference can come from definitions, not only from
+   model failure.
+5. **Name methods and products; never use superlatives without a source.**
+   - Write "Prithvi-CAFE, el modelo híbrido propuesto en ese trabajo", not "el mejor modelo".
+   - Say when a table compiles other studies' results rather than a controlled comparison.
+6. **A reference supports only what it measured.** U-Net (2015) is biomedical: it identifies
+   the architecture, it is not flood evidence. Citing a paper does not validate the sentences
+   around it.
+
+**Strength of claims**
+7. **No absolute negatives from a non-systematic search.** Write "no se identificaron, en las
+   fuentes consultadas, estudios que…" and add once that the search is not a systematic review.
+   Never write "no existe".
+8. **An interval that includes 0 is not equivalence.**
+   - Write "no se detectó una diferencia" or "la diferencia no se distingue de cero".
+   - Do not write "son equivalentes" or "no hay diferencia", unless an equivalence margin was
+     fixed **before** the data.
+   - The historical HE1 wording stays (it is pre-registered). Chapter III must report it with
+     this caveat.
+9. **"Without Peru labels" needs its scope.**
+   - The adaptation methods are fitted without Peru labels.
+   - Configuration **selection** used labelled `peru-dev`.
+   - Write both. Do not claim a fully label-free pipeline.
+10. **Label caveats go where they apply.** The 2017 labels keep only pixels where EMS and MNDWI
+    agree, so 2017 metrics can be optimistic. Say this wherever 2017 results are reported.
+11. **Requirements are not results.** RF1–RF7 and the 15 min threshold are pre-fixed targets.
+    Never describe them as achieved before the measurement.
+12. **Water is not flood.** The model detects visible water, including permanent water. Use
+    "agua" for what is measured. Use "inundación" or "área inundada" only where permanent water
+    is removed or the reference defines flood.
+
+**Placement and style**
+13. **Put methodological caveats in the methodology or limitations, not inside the argument.**
+    Chapter I §1.1 argues the problem. The bootstrap scope, label biases and protocol details
+    belong in §1.4 or §1.1.4 (limitations), stated once, and are referenced from elsewhere.
+14. **Keep the academic register.** Do not make the text informal or add errors "so it looks
+    human". The defence against AI-detection concerns is the authors rewriting in their own
+    voice and the version history (§9), not degraded prose.
+15. **Vary the paragraph shape.** Not every paragraph should open with a topic sentence and
+    close with a caveat. Uniform structure throughout is a known marker of assisted text and
+    reads as monotonous. Let some paragraphs be short and some state results plainly.
+
+**Open items found by the audit**
+- **The timing protocol for HE3 must be fixed before any measurement:** hardware, network,
+  scenes, cache state, number of repetitions, timer start and stop, and what "descarga"
+  includes.
+- Reconcile UNOSAT 985.9 km² (flood extent) with the data card's ~1,023 km² (water extent).
+- RF6 must define which area it calls "inundada" (see rule 12).
