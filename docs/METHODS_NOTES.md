@@ -2312,3 +2312,38 @@ thesis Chapter I (HE2) and in `docs/chapter1_backbone.md`; the consistency matri
 short form "pocos estratos" and needed no change.
 
 **Feeds.** Thesis Ch. I §1.5 (hypotheses); Ch. III error analysis.
+
+## 2026-10-17 — Chapter II, second external review
+
+**Accepted and applied:**
+- *Timer start (§2.2.9).* "desde que el servidor recibe la tesela y la fecha" read as if the image
+  arrived with the request. Now: the request names tile and date but carries no image; the download
+  from Copernicus Data Space is inside the time when the image is not cached. Matches
+  `docs/system_evaluation_protocol.md` §2 (timer start = request received; cache empty).
+- *Decision statistic for the 15-min limit.* Chapter II now says the statistic is fixed before
+  measuring and points to Chapter I; Chapter I (after the specific hypotheses) now states the rule
+  already fixed in the protocol on 2026-10-17, before the system exists: 6 tiles × 3 repetitions,
+  warm system, image not cached, met if the median of the 3 runs ≤ 15 min for each of the 6 tiles;
+  all times and the maximum reported. Nothing has been measured, so this is not a post-hoc change.
+- *ECE bins terminology.* "intervalos de confianza" → "intervalos … según su confianza predicha"
+  (§2.2.7) and "intervalos de confianza predicha del modelo; no son intervalos de confianza
+  estadísticos" (§2.3), to keep "intervalo de confianza" for the bootstrap CI.
+- *Prithvi bands phrase.* "seleccionadas entre las 13 bandas que Sen1Floods11 distribuye
+  muestreadas a 10 m".
+
+**Checked, no text change:**
+- *Decoders contain BatchNorm.* `scripts/adabn.py`: U-Net 46 BN layers; TerraMind 9 BN layers in its
+  UNet decoder and neck; Prithvi 9 BN layers in its decoder (entry 2026-10-16, Mac re-run). So the
+  §2.2.5 sentence holds for all three models.
+- *ECE bins in code.* `ece()`: 15 equal-width bins on [0.5, 1] of max(p, 1−p), as written.
+
+**Rejected:**
+- *Threshold "≥ 0.5" in Chapter I eq. (1.1).* Not present: a search of all `.tex` files finds no
+  "mayor o igual" or ≥; Chapter I and II both say "mayor que 0.5" (since thesis 815c9ba). The
+  reviewer compared against an older Chapter I PDF.
+- *ISO/IEC 25023:2016 citation.* Paywalled, not verified in the primary source; the `% pendiente`
+  note stays. Not cited from secondary descriptions.
+
+**Checks.** XeLaTeX 0 errors, 0 undefined references; Chapters I (pp. 11–20) and II (pp. 21–31)
+rendered and inspected. **Feeds.** Thesis Ch. I §1.3.2, Ch. II §2.2.7, §2.2.9, §2.3; Ch. III system
+evaluation.
