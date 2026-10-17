@@ -50,7 +50,7 @@ Each requirement passes if its test passes. Evidence is a log excerpt and a scre
 |---|---|
 | RF1 | In the app, select the event "Yaku 2023", the date 2023-03-22 and a rectangle inside 17MNP. The request reaches the backend with the right tile, date and bounds (log) |
 | RF2 | (a) For a tile and date not in the cache, the product is downloaded from CDSE and processed. (b) For an already processed tile, it loads from the cache without downloading |
-| RF3 | The probability GeoTIFF exists for the whole tile, covers the tile footprint, and values lie in [0, 1]. On the `peru-test` chips it overlaps, it agrees with the frozen pass (sigmoid of `outputs/logits_test` peru-trained logits, seed mean): **mean absolute probability difference ≤ 0.02 and IoU of the water masks (p ≥ 0.5) ≥ 0.95**. The tolerance allows for the different input path: raw SAFE bands and their resampling versus the Process API chips |
+| RF3 | The probability GeoTIFF exists for the whole tile, covers the tile footprint, and values lie in [0, 1]. On the `peru-test` chips it overlaps, it agrees with the frozen pass (sigmoid of `outputs/logits_test` peru-trained logits, seed mean): **mean absolute probability difference ≤ 0.02 and IoU of the water masks (p > 0.5) ≥ 0.95**. The tolerance allows for the different input path: raw SAFE bands and their resampling versus the Process API chips |
 | RF4 | The uncertainty layer (seed std) and the cloud / no-data layer (project thick-cloud rule; no-data where all bands are 0) are displayed and can be toggled |
 | RF5 | Over the 2023 analysed extent, the UNOSAT reference overlays the map, and agreement metrics (IoU, precision, recall) are shown. On chips of `peru-test`, the metrics match `scripts/score_frozen.py` to 3 decimals |
 | RF6 | For at least 2 dates, the app shows the flooded area (definition in §4) and the total water area per date on a timeline |
@@ -67,7 +67,7 @@ receding water.
 - Both images are the same MGRS tile on the same grid. (Clarified 2026-10-17 before
   implementation, after review feedback. The definition is unchanged; only the formula is now
   explicit.)
-- **Water** means probability ≥ 0.5.
+- **Water** means probability > 0.5, i.e. z > 0, the frozen evaluation rule (`configs/frozen.yaml`). Written "≥ 0.5" until 2026-10-17 and corrected for consistency before any measurement.
 - **Valid** means not cloud and not no-data, at both *t* and the reference.
 - Total water at *t* is reported alongside.
 - **The reference image:** the clearest (least thick-cloud) Sentinel-2 acquisition of the same

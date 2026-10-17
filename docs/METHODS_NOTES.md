@@ -2204,3 +2204,39 @@ No claim changes; the statements now say from the start what the method does.
 imagen, no una inundación verificada en campo".
 
 **Thesis.** Chapter I; Annexes 1–2.
+
+## 2026-10-17 — Chapter II drafted and audited against primary sources
+
+**What.**
+- Chapter II (Marco teórico) was written following the `thesis-writing` skill:
+  - §2.1 antecedentes: 17 international (2021–2026) and 6 national or Latin-American studies,
+    chronological, each with its method and a result with table/page; a comparison matrix
+    (Tabla 2.1) and the research gap;
+  - §2.2 bases teóricas, organised by the thesis variables;
+  - §2.3 sixteen term definitions.
+- 49 references were added to the thesis bibliography, only as cited.
+- Three independent agents then audited every claim against the primary sources (procedure:
+  `thesis-claim-audit`). Record: `docs/chapter2_citation_audit.md`.
+
+**Selection.**
+- Excluded: studies without a verifiable result (Quintana-Ortiz 2021, paywalled; Portalés-Julià
+  2025 Table 3, not re-read) and studies known only from an abstract.
+- Gonzalez et al. (2020) is the only pre-2021 antecedent, with a one-sentence justification.
+
+**Substantive corrections from the audit.**
+- **Gap paragraph.** Under leave-one-region-out, the foundation model did not beat the U-Net in
+  Bolivia, Colombia or Paraguay (Kaushik et al. 2026, Table VI). Their Table III is a random
+  split, and its "mIoU" is the flood-class IoU.
+- **Prithvi-EO-2.0.** The variant used here (300M, non-TL) has no time/location embeddings.
+- **Pech-May (2024)** reports no Tabasco evaluation.
+- **Several locators and attributions corrected:** Englert Table 1; ECE formula attributed to Guo
+  eq. 3; the Handbook's 100 km² vs SentiWiki's 110 km tiles.
+- **Water threshold made consistent with the frozen rule (z > 0, p > 0.5)** in Chapter I eq. 1.1,
+  in Chapter II and in `docs/system_evaluation_protocol.md` (previously "≥ 0.5"). This is a
+  consistency correction made before any system measurement.
+
+**Not verifiable (paywalled), used only for definitions:** McFeeters 1996, Otsu 1979, Jaccard
+1912, Gonzalez & Woods 2018, Efron 1979, Efron & Tibshirani 1993. Xu 2006 was checked from its
+abstract only. To open via the UNI library before submission.
+
+**Thesis.** Chapter II; Chapter I eq. 1.1 wording.
