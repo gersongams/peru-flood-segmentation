@@ -3,6 +3,7 @@ import { api, type Scene } from "./api";
 import { EVENTS, type EventId } from "./config";
 import { fmtDate } from "./format";
 import Evidence from "./components/Evidence";
+import Home from "./components/Home";
 import ExportDialog from "./components/ExportDialog";
 import { Calendar, Download, Logo } from "./components/Icons";
 import NewAnalysis from "./components/NewAnalysis";
@@ -10,8 +11,9 @@ import Reference from "./components/Reference";
 import FloodTimeline from "./components/FloodTimeline";
 import Viewer from "./components/Viewer";
 
-type Tab = "visor" | "nuevo" | "referencia" | "linea" | "evidencia";
+type Tab = "inicio" | "visor" | "nuevo" | "referencia" | "linea" | "evidencia";
 const TABS: { id: Tab; label: string }[] = [
+  { id: "inicio", label: "Inicio" },
   { id: "visor", label: "Visor" },
   { id: "nuevo", label: "Nuevo análisis" },
   { id: "referencia", label: "Referencia" },
@@ -19,8 +21,17 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "evidencia", label: "Evidencia" },
 ];
 
+// One line under the top bar: what each screen is for.
+const INTRO: Partial<Record<Tab, [string, string]>> = {
+  visor: ["Visor:", "agua detectada por la IA (azul) sobre la imagen satelital. Pasa el cursor para ver la probabilidad y la incertidumbre de cada píxel."],
+  nuevo: ["Nuevo análisis:", "elige tesela y fecha; el sistema descarga la imagen de Copernicus y genera el mapa de agua en unos minutos."],
+  referencia: ["Referencia:", "compara el mapa de la IA con el mapa experto de UNOSAT: aciertos, agua falsa y agua omitida."],
+  linea: ["Línea de tiempo:", "área inundada por fecha = agua nueva respecto de una imagen anterior al evento."],
+  evidencia: ["Evidencia:", "qué tan bien funciona cada modelo en datos de prueba y qué límites tiene."],
+};
+
 export default function App() {
-  const [tab, setTab] = useState<Tab>("visor");
+  const [tab, setTab] = useState<Tab>("inicio");
   const [eventId, setEventId] = useState<EventId>("yaku2023");
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [sceneId, setSceneId] = useState<string | null>(null);
@@ -77,11 +88,17 @@ export default function App() {
         <div className="spacer" />
         <span className="chipbtn" title="Modelo principal (configs/frozen.yaml, grupo peru/unet)">
           <span className="dot" style={{ background: online ? "#2f8a4c" : online === false ? "#d4553c" : "#9a9083" }} />
-          {online === false ? "Servidor no disponible" : <>Modelo: <b>U-Net (Perú) · 3 semillas</b></>}
+          {online === false ? "Servidor no disponible" : <>Modelo: <b>U-Net (Perú)</b></>}
         </span>
-        <button className="btn dark" disabled={!scene} onClick={() => setExporting(true)}><Download /> Exportar</button>
+        {(tab === "visor" || tab === "linea" || tab === "referencia") && <button className="btn dark" disabled={!scene} onClick={() => setExporting(true)}><Download /> Exportar</button>}
       </header>
 
+      {INTRO[tab] && (
+        <div className="intro" role="note">
+          <b>{INTRO[tab]![0]}</b> {INTRO[tab]![1]}
+        </div>
+      )}
+      {tab === "inicio" && <Home event={ev} scenes={eventScenes} go={setTab} />}
       {tab === "visor" && (
         <Viewer event={ev} scenes={eventScenes} scene={scene} onScene={(s) => setSceneId(s.scene)} onNew={() => setTab("nuevo")} onView={setView} />
       )}

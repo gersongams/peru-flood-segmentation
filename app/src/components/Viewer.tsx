@@ -64,8 +64,8 @@ export default function Viewer({ event, scenes, scene, onScene, onNew, onView }:
                 </>
               )}
               <div className="row">
-                <span style={{ width: 14, height: 10, borderRadius: 2, background: "repeating-linear-gradient(45deg,#f1eee8 0 3px,#d6d1c8 3px 5px)", border: "1px solid #cfc8bc" }} />
-                Nubes o sin datos
+                <span style={{ width: 14, height: 10, borderRadius: 2, background: "#e6e1d8", border: "1px solid #cfc8bc" }} />
+                Nube: sin resultado (no es «seco»)
               </div>
             </div>
           )}

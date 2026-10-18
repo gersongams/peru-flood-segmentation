@@ -92,7 +92,7 @@ export const LAYERS: LayerDef[] = [
   { id: "rgb", name: "Imagen Sentinel-2", hint: "Color verdadero de la fecha", swatch: "linear-gradient(135deg,#c9b48a,#7d8c6a)", defaultOn: true, defaultOpacity: 1 },
   { id: "probability", name: "Agua detectada por IA", hint: "U-Net entrenada con Perú · 3 semillas", swatch: "linear-gradient(135deg,#96d2f5,#0e3ca0)", defaultOn: true, defaultOpacity: 0.9 },
   { id: "uncertainty", name: "Incertidumbre", hint: "Desacuerdo entre semillas (σ)", swatch: "linear-gradient(135deg,#fdc878,#961e5a)", defaultOn: false, defaultOpacity: 0.85 },
-  { id: "mask", name: "Nubes y sin datos", hint: "Regla de nube espesa del proyecto", swatch: "repeating-linear-gradient(45deg,#f1eee8 0 4px,#d6d1c8 4px 7px)", defaultOn: true, defaultOpacity: 0.8 },
+  { id: "mask", name: "Nubes (sin resultado)", hint: "Bajo la nube el satélite no ve el suelo", swatch: "#e6e1d8", defaultOn: true, defaultOpacity: 0.5 },
 ];
 
 // MGRS tiles over each event's reference extent, with their share of UNOSAT's analysed extent

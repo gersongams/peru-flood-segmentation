@@ -252,12 +252,8 @@ def _colorize(layer: str, data: np.ndarray, valid: np.ndarray) -> np.ndarray:
         return rgba
     if layer == "mask":
         rgba = np.zeros((h, w, 4), np.uint8)
-        yy, xx = np.mgrid[0:h, 0:w]
-        hatch = ((yy + xx) % 6) < 2
-        cloud, nod = v == 1, v == 2
-        rgba[cloud] = (241, 238, 232, 200)
-        rgba[cloud & hatch] = (200, 194, 184, 220)
-        rgba[nod] = (120, 112, 100, 120)
+        rgba[v == 1] = (236, 232, 225, 170)  # thick cloud: flat light grey
+        rgba[v == 2] = (120, 112, 100, 90)   # no data
         return rgba
     raise HTTPException(404, f"unknown layer {layer}")
 
