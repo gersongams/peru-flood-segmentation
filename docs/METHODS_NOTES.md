@@ -2460,3 +2460,18 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 **Verdicts in the thesis.** 1a coherent (no difference detected; CIs reach 0.062 / 0.051, no equivalence margin); 1b partly (Prithvi yes, TerraMind not established); 2a partly (post hoc criterion, dev); 2b confirmed on 2023 for U-Net and TerraMind, refuted on 2017 (label caveat), not testable for Prithvi; 2c confirmed for the frozen rows, with exceptions outside them (Peru-trained Prithvi AUROC 0.439; dev low-contrast and < 1 ha strata); HE2 overall partly; HE3 pending.
 
 **Feeds.** Chapter III §3.3; §3.2 next.
+
+## 2026-10-17: Chapter III §3.2 (Discusión) drafted
+
+**What was done.** §3.2 written in G2 order: synthesis; comparison with other studies (agreeing and contradicting); findings and the authors' interpretation; limitations; implications. Only references already cited in Chapter II, with the same locators and numbers. No new test analyses.
+
+**Comparisons and how they are bounded.**
+- Agreeing: Sen1Floods11 parity (Li 2023, PANGAEA, Jakubik 2023); Prithvi OOD advantage (Li 2023, Bolivia, Prithvi-100M named as such); overconfidence and temperature/ensemble ECE reduction (Guo 2017, Lakshminarayanan 2017).
+- Contradicting: Kaushik 2026 leave-region-out (Clay not above U-Net) alongside TerraMind not separable from U-Net in Peru; self-training worked in LoveDA, Englert 2024 and Chen 2026 but not here (scenario differences stated; evaluation-time AdaBN pass from the post hoc diagnostic; rest of the cause "no se aisló").
+- Qualitative only: Kolluru 2026 (same error direction, high recall / low precision; numbers not comparable: per-event, HLS 30 m, GFM excludes permanent water); Shastry 2023 (not contradicted; under-cloud pixels are excluded here); Banerjee 2026 ECE stated as not comparable; Ovadia 2019 applied only to the source→Peru temperature transfer, with the caveat that the degradation versus the source domain was not measured.
+
+**Checks.** Peru-trained rows on `peru-test` (0.828 / 0.815 / 0.824) have no paired differences in `bootstrap_diffs.csv`, so the text gives point estimates and says they were not compared. The implication "train with Peru labels" is scoped to the 2023 test (all three Peru-trained means above every label-free row; on 2017 the source rows are higher). The label-free selection caveat (selection on labelled `peru-dev`, §11.9) is stated in limitations and implications.
+
+**Also.** The §3.3 verdict terms used `\emph`; replaced with «» (WRITING_RULES §9: no italics except foreign words). Table 3.6 group headers changed from italic to bold for the same reason.
+
+**Feeds.** Chapter III §3.2. The authors rewrite §3.2 in their own words (§9).
