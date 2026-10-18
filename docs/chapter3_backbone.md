@@ -67,19 +67,25 @@ Evidence: dev only, descriptive, post hoc (`error_shares.csv`, derived from the 
 
 Also strong, but not named in the hypothesis: low-contrast water (NDWI −0.1 to 0.1; band IoU 0.45–0.53 for the Peru-trained models) and water bodies < 1 ha (recall 45–58 %).
 
-**Decisions for the authors:**
-1. **Which models HE2(a) refers to.** It could be the source models, the Peru-trained models, or the adapted (frozen) rows. The pattern differs by group, for example cloud edges for TerraMind source.
-2. **What counts as "concentrated".** Two options:
-   - error share / pixel share above some ratio (e.g. 2×);
-   - the named strata together holding most errors.
+**Decisions (authors, 2026-10-17; post hoc operationalization, to be stated as such in §3.3):**
+1. **Models:** the verdict refers to the **source-only models** (Sen1Floods11-trained, applied to Peru unadapted). Reason: HE2 compares adaptation against "el modelo sin adaptar" in the next sentence. Peru-trained and adapted rows are reported as complementary only.
+2. **Threshold:** a stratum is **concentrated** when error share / pixel share **≥ 2**.
 
-   This was not fixed in advance. Choosing it now must be reported as a post hoc operationalization.
+Mapping of the named strata (pre-specified strata families): cloud edges = distance to thick cloud < 20 px (bands < 5 px and 5–20 px together); flooded vegetation = WorldCover herbaceous wetland (proxy); desert or coast = WorldCover bare/sparse.
 
-**Proposed reading** (pending those decisions):
-- **Partly supported.** Errors do concentrate in a few strata, but mainly in strata the hypothesis did not name: label edges and permanent water.
-- **Desert or coast:** relevant only as the location of the source models' false positives.
-- **Cloud edges:** not concentrated for the Peru-trained models; about 1.8× for TerraMind source.
-- **Flooded vegetation:** over-represented but negligible in size, with visual evidence from one chip only.
+**Result under these decisions** (source-only, `error_shares.csv`; ratio = error share / pixel share):
+
+| Named stratum (pixel share) | U-Net | TerraMind | Prithvi | Concentrated (≥ 2×)? |
+|---|---|---|---|---|
+| cloud edges < 20 px (8.4 %) | 0.78 | 1.80 | 0.77 | no (TerraMind closest) |
+| herbaceous wetland (0.18 %) | 3.27 (0.6 % of errors) | 1.64 | 4.32 (0.8 %) | U-Net and Prithvi, but < 1 % of errors |
+| bare/sparse (85.2 %) | 1.02 | 1.07 | 0.99 | no |
+| *not named:* label edge ≤ 1 px (2.9 %) | 13.48 | 6.43 | 20.06 | yes, all |
+| *not named:* permanent water (2.5 %) | 2.62 | 1.32 | 3.28 | U-Net and Prithvi |
+
+The 5–20 px band alone gives 0.77 / 1.76 / 0.77 (Tabla 3.4); the < 5 px band alone reaches 4.41 for TerraMind but holds 0.11 % of pixels and 0.47 % of its errors. Neither changes the verdict.
+
+**Verdict: not supported for the named strata.** Errors do concentrate in few strata, but in the label edge and permanent water. Of the three named strata only flooded vegetation reaches 2× (two of three models) and it holds under 1 % of the errors. Desert or coast matters only as where the source models' false positives sit (FPR source 0.026 vs Peru 0.003, U-Net). Complementary: the Peru-trained models show the same pattern (edge 20.35–23.04×, permanent water 4.85–5.79×, herbaceous wetland 4.60–4.78×, cloud < 20 px 0.93–1.14×).
 
 **(b) Unsupervised adaptation raises water IoU over the unadapted model (CI > 0) without reaching the Peru-trained model.**
 - **2023 `peru-test`:**

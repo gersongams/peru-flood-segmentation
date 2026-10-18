@@ -2420,3 +2420,25 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 - **Chapter I and Chapter II do not contain the affected values** (checked by search).
 
 **Feeds.** Chapter III §3.1; §3.3 verdicts (`docs/chapter3_backbone.md`).
+
+## 2026-10-17: HE2(a) operationalized (authors' decision, post hoc)
+
+**What was decided.** HE2(a) ("los errores de los modelos en el Perú se concentran en pocos estratos: bordes de nubes, vegetación inundada, terreno desértico o costero") had no pre-specified model group or threshold. The authors chose, after seeing the dev error shares:
+1. **Model group:** the source-only models (Sen1Floods11-trained, unadapted). HE2 compares adaptation with "el modelo sin adaptar", so the errors it refers to are those models' errors. Peru-trained and adapted rows are complementary.
+2. **Threshold:** a stratum is concentrated when error share / pixel share ≥ 2.
+
+**Alternatives considered.** Peru-trained models (what is hard in Peru even with Peru labels); one verdict per group (longer, less clear); > 1× (too permissive: any over-representation counts); the named strata together holding > 50 % of errors (rejected: bare/sparse is 85 % of the pixels, so it holds almost always and says little).
+
+**Mapping of named strata** to the pre-specified strata families: cloud edges = distance to thick cloud < 20 px (< 5 and 5–20 px bands pooled); flooded vegetation = WorldCover herbaceous wetland (proxy); desert or coast = WorldCover bare/sparse.
+
+**Result** (`outputs/phaseD/analysis/error_shares.csv`, source-only, ratio U-Net / TerraMind / Prithvi):
+- cloud edges < 20 px: 0.78 / 1.80 / 0.77 (5–20 px band alone 0.77 / 1.76 / 0.77; < 5 px band alone TerraMind 4.41 but 0.11 % of pixels, 0.47 % of errors);
+- herbaceous wetland: 3.27 / 1.64 / 4.32, holding 0.6 / 0.3 / 0.8 % of errors;
+- bare/sparse: 1.02 / 1.07 / 0.99;
+- not named: label edge ≤ 1 px 13.48 / 6.43 / 20.06; permanent water 2.62 / 1.32 / 3.28.
+
+**Verdict.** Not supported for the named strata: errors concentrate in few strata, but in the label edge and permanent water; only flooded vegetation reaches 2× (two models) and it holds < 1 % of errors. Peru-trained models show the same pattern. Ledger: `docs/chapter3_backbone.md`.
+
+**Caveats.** Dev only, descriptive, no CI; criterion fixed after seeing results, to be reported as post hoc in §3.3.
+
+**Feeds.** Chapter III §3.3 (HE2a), §3.2.
