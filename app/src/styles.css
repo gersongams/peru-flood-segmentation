@@ -206,3 +206,11 @@ legend { font-weight: 600; margin-bottom: 8px; display: flex; gap: 8px; align-it
   .form, .job { flex: none; border: 0; }
   .picker { min-height: 360px; min-width: 0; }
 }
+
+/* ---------- dialog ---------- */
+.dialog { width: min(720px, calc(100% - 32px)); padding: 0; border: 0; border-radius: 14px; background: var(--panel); color: var(--ink); box-shadow: 0 20px 60px rgba(30, 20, 10, 0.35); }
+.dialog::backdrop { background: rgba(42, 37, 32, 0.45); }
+.dlg-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 22px 12px; border-bottom: 1px solid var(--line); }
+.dlg-head h2 { margin: 0; font-size: 18px; }
+.dlg-body { padding: 16px 22px; display: flex; flex-direction: column; gap: 16px; }
+.dlg-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 14px 22px; border-top: 1px solid var(--line); background: var(--panel-2); }

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { Scene } from "../api";
+import { useEffect, useState } from "react";
+import { api, type Flood, type Scene } from "../api";
 import { LAYERS, type FloodEvent, type LayerId } from "../config";
 import { fmtDate, km2, num } from "../format";
 import { Info } from "./Icons";
@@ -12,13 +12,19 @@ interface Props {
   scene: Scene | null;
   onScene: (s: Scene) => void;
   onNew: () => void;
+  onView?: (b: [number, number, number, number]) => void;
 }
 
 const initial = Object.fromEntries(LAYERS.map((l) => [l.id, { on: l.defaultOn, opacity: l.defaultOpacity }])) as Record<LayerId, LayerState>;
 
-export default function Viewer({ event, scenes, scene, onScene, onNew }: Props) {
+export default function Viewer({ event, scenes, scene, onScene, onNew, onView }: Props) {
   const [layers, setLayers] = useState(initial);
   const set = (id: LayerId, patch: Partial<LayerState>) => setLayers((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
+  const [flood, setFlood] = useState<Flood | null>(null);
+  useEffect(() => {
+    setFlood(null);
+    if (scene) api.flood(scene.scene).then(setFlood).catch(() => setFlood(null));
+  }, [scene]);
   const px = scene?.pixels;
   const total = px ? px.valid + px.cloud + px.nodata : 0;
 
@@ -26,7 +32,7 @@ export default function Viewer({ event, scenes, scene, onScene, onNew }: Props) 
     <div className="viewer">
       <div className="main">
         <div className="mapwrap">
-          <MapView scene={scene} layers={layers} center={event.center} zoom={event.zoom} />
+          <MapView scene={scene} layers={layers} center={event.center} zoom={event.zoom} onView={onView} />
           {scene ? (
             <div className="ov floating datechip" style={{ left: 56 }}>
               <div className="d">{fmtDate(scene.date)}</div>
@@ -89,13 +95,13 @@ export default function Viewer({ event, scenes, scene, onScene, onNew }: Props) 
             <div className="stats">
               <div className="stat">
                 <div className="lbl">Área inundada</div>
-                <div className="val water">—</div>
-                <div className="sub">requiere imagen pre-evento</div>
+                <div className="val water">{flood?.available && !flood.is_reference ? `${num(flood.flooded_km2!)} km²` : "—"}</div>
+                <div className="sub">{flood?.is_reference ? "esta es la imagen pre-evento" : flood?.available ? `frente a ${fmtDate(flood.reference_scene!.split("_")[1])}` : "requiere imagen pre-evento"}</div>
               </div>
               <div className="stat">
                 <div className="lbl">Agua detectada</div>
                 <div className="val">{px ? `${num(km2(px.water_valid))} km²` : "—"}</div>
-                <div className="sub">píxeles válidos, p &gt; 0.5</div>
+                <div className="sub">píxeles válidos, incluye mar</div>
               </div>
               <div className="stat">
                 <div className="lbl">Nubes</div>

@@ -1,6 +1,6 @@
 // Client for the FastAPI backend (floodseg.system.server), proxied at /api by Vite.
 
-export type StageId = "auth" | "catalog" | "download" | "read" | "mask" | "inference" | "write";
+export type StageId = "select" | "auth" | "catalog" | "download" | "read" | "mask" | "inference" | "write";
 export type StageStatus = "pending" | "running" | "done" | "cached";
 
 export interface Stage {
@@ -23,7 +23,7 @@ export interface Job {
   seconds?: number;
   elapsed?: number;
   scene?: string;
-  stages: Record<StageId, Stage>;
+  stages: Record<string, Stage>;
 }
 
 export interface Scene {
@@ -65,6 +65,17 @@ export interface Metrics {
   partition_share: Record<"train" | "dev" | "test" | "buffer", number>;
 }
 
+export interface Flood {
+  available: boolean;
+  is_reference?: boolean;
+  reference_scene?: string;
+  flooded_km2?: number;
+  water_km2?: number;
+  water_ref_km2?: number;
+  valid_both_share?: number;
+  record: { chosen: string; window: [string, string]; ranking: { date: string; thick_cloud: number; valid: number }[] } | null;
+}
+
 async function get<T>(url: string): Promise<T> {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
@@ -88,6 +99,12 @@ export const api = {
     if (bbox) q.set("bbox", bbox.join(","));
     if (part) q.set("part", part);
     return get<Metrics>(`/api/metrics/${scene}?${q}`);
+  },
+  flood: (scene: string) => get<Flood>(`/api/flood/${scene}`),
+  createPreevent: async (body: { event: string; tile: string }): Promise<Job> => {
+    const r = await fetch("/api/preevent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    return r.json();
   },
   tileUrl: (scene: string, layer: string) => `${location.origin}/api/tiles/${scene}/${layer}/{z}/{x}/{y}.png`,
 };

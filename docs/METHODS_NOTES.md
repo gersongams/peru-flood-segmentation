@@ -2638,3 +2638,46 @@ about 2.5 MB/s); without download 56.7 s (read 12.3, mask 2.4, inference 31.9, w
 PMTiles path of the paused viewer is not used: map tiles are cut on the fly from the full-tile COGs.
 
 **Feeds.** Chapter III §3.1.9 (development), §3.1.10 (full-scene processing), §3.1.11 (RF3).
+
+## 2026-10-18: System RF5–RF7 implemented (reference metrics, flooded area, export); choices made while building
+
+**RF5, reference and metrics** (`src/floodseg/system/reference.py`). UNOSAT is rasterized on the
+scene grid with the Peru-label rule (`scripts/build_peru_unosat.py`): water = the date's
+FloodExtent + pre-existing water of 2023-03-22; ignore = outside the analysed extent or inside
+UNOSAT's cloud-obstruction layer. Scored pixels: valid in the system mask and not ignored. Water:
+p > 0.5. Scopes: map view, whole tile, or one Peru-split partition (pixels of the `peru-test`
+chips of that date).
+- **Why the partition scope:** the tile contains training chips. On 17MNP 2023-03-22, 51 % of the
+  scored pixels are `peru-train` (dev 18 %, test 12 %, buffer 18 %); IoU is 0.925 on the whole
+  tile, 0.957 on train pixels and 0.701 on test pixels. The app therefore shows the partition
+  share and a warning, and offers the test-only scope. These on-screen numbers are system
+  outputs, not thesis results; they select nothing (the thesis numbers stay the frozen pass).
+- **Not yet done:** the RF5 check "on peru-test chips the metrics match `scripts/score_frozen.py`
+  to 3 decimals" (needs the same pooling as score_frozen); the 2017 EMS reference.
+
+**RF6, flooded area** (`src/floodseg/system/preevent.py`). Definition as in the protocol §4.
+Pre-event image: candidates = all L1C acquisitions of the tile in the 60 days before the event
+start; each ranked on a 200 m Process API preview (B02, B11, dataMask, harmonized DN) by its
+thick-cloud share among valid pixels. Two operational details not spelled out in the protocol,
+fixed now before any measurement: (1) candidates with < 50 % of the tile valid are skipped —
+they are the adjacent orbit, which covers only about 25 % of 17MNP, and would count as "clear"
+with almost no data; (2) ties go to the date closest to the event. 17MNP: 23 candidates
+(2023-01-03 to 2023-03-03); chosen 2023-01-26 (thick cloud 0.04 %, valid 94 %); record
+`outputs/system/scenes/preevent_17MNP_2023-03-04.json`. Preview cost: 23 requests at 549 × 549 px,
+3 bands (a few processing units in total). The pre-event scene is processed like any scene and
+cached; it is outside the HE3 timer.
+- Results on 17MNP: flooded area 786.2 km² (2023-03-22) and 846.7 km² (2023-04-01); valid in both
+  dates 84 % and 87 % of the tile. Source: `/api/flood/<scene>` (`preevent.flood`).
+- **Caveat found:** "agua detectada" (total water) includes the sea inside the tile (e.g. 1 390.7 km²
+  on 2023-03-22). The flooded area is not affected (the sea is wet on both dates). The UI labels
+  it "incluye mar". Whether to mask the sea for total water is open (no protocol change made).
+
+**RF7, export** (`src/floodseg/system/export.py`). ZIP with probability and uncertainty (uint16,
+×1e-4, nodata 65535), flood (uint8: 1 flooded, 0 not, 255 cloud / no data), mask, flood polygons
+(GeoJSON, EPSG:4326, 8-connected `rasterio.features.shapes`, no simplification) and
+`metadatos.json` (product, pre-event date, checkpoints with sha256, commit, attribution).
+Whole tile or map view. Check on 17MNP 2023-03-22: rasters open in rasterio with EPSG:32717 and
+the exact tile bounds (499 980, 9 290 200, 609 780, 9 400 000); GeoJSON opens in geopandas, 3 718
+polygons, area 786.2 km² = the RF6 flooded area. Build time 22 s, 48 MB.
+
+**Feeds.** Chapter III §3.1.9–3.1.11.

@@ -27,7 +27,7 @@ from pyproj import Transformer
 from rio_tiler.errors import TileOutsideBounds
 from rio_tiler.io import Reader
 
-from floodseg.system import cdse, pipeline, reference
+from floodseg.system import cdse, export, pipeline, preevent, reference
 from floodseg.system.infer import Ensemble
 from floodseg.target_pool import REPO
 
@@ -156,9 +156,9 @@ COLS = "ABCDEFGHJKLMNPQRSTUVWXYZ"
 ROWS = "ABCDEFGHJKLMNPQRSTUV"
 
 
-def footprint(tile: str) -> dict:
-    """WGS84 polygon of an S2 tile (MGRS square, 109.8 km, upper-left corner 20 m west of the
-    square's west edge and at its north edge). Southern-hemisphere zones only (Peru)."""
+def utm_bounds(tile: str) -> tuple[tuple[float, float, float, float], int]:
+    """UTM bounds (W, S, E, N) and EPSG of an S2 tile (MGRS square, 109.8 km, upper-left corner
+    20 m west of the square's west edge and at its north edge). Southern-hemisphere zones (Peru)."""
     zone, sq = int(tile[:2]), tile[3:]
     col_set = (zone - 1) % 3  # 0: A–H, 1: J–R, 2: S–Z
     e = (COLS.index(sq[0]) - 8 * col_set + 1) * 100_000
@@ -167,8 +167,13 @@ def footprint(tile: str) -> dict:
     while n < 8_900_000:  # Peru: northings 8.0–10.0 Mm in UTM south; MGRS rows repeat every 2 000 km
         n += 2_000_000
     x0, y1 = e - 20, n + 100_000
-    x1, y0 = x0 + 109_800, y1 - 109_800
-    t = Transformer.from_crs(f"EPSG:{32700 + zone}", "EPSG:4326", always_xy=True)
+    return (x0, y1 - 109_800, x0 + 109_800, y1), 32700 + zone
+
+
+def footprint(tile: str) -> dict:
+    """WGS84 polygon of an S2 tile."""
+    (x0, y0, x1, y1), epsg = utm_bounds(tile)
+    t = Transformer.from_crs(f"EPSG:{epsg}", "EPSG:4326", always_xy=True)
     ring = [t.transform(x, y) for x, y in [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]]
     return {"type": "Feature", "properties": {"tile": tile}, "geometry": {"type": "Polygon", "coordinates": [ring]}}
 
@@ -282,6 +287,8 @@ def _read_tile(path, x: int, y: int, z: int, resampling: str = "nearest"):
 @app.get("/api/tiles/{scene}/{layer}/{z}/{x}/{y}.png")
 def tile(scene: str, layer: str, z: int, x: int, y: int) -> Response:
     d = pipeline.SCENES / scene
+    if layer == "flood":
+        return flood_tile(scene, z, x, y)
     if layer in ("reference", "errors"):
         if not reference.available(scene.split("_")[1]):
             return Response(_empty_png(), media_type="image/png")
@@ -361,3 +368,131 @@ def pixel(scene: str, lon: float, lat: float) -> dict:
     out["inside"] = True
     out["state"] = {0: "valid", 1: "cloud", 2: "nodata"}[out["mask"]]
     return out
+
+
+# ---------------------------------------------------------------- flooded area (RF6)
+
+class PreeventRequest(BaseModel):
+    event: str
+    tile: str
+
+
+def _event_of(date: str) -> str | None:
+    return next((k for k, e in EVENTS.items() if e["range"][0] <= date <= e["range"][1]), None)
+
+
+@app.post("/api/preevent")
+def create_preevent(req: PreeventRequest) -> dict:
+    """Choose (once) and process the pre-event reference scene of a tile. Not part of the HE3 timer."""
+    ev = EVENTS[req.event]
+    jid = uuid.uuid4().hex[:12]
+    stages = {"select": {"status": "pending", "fraction": 0.0, "detail": "", "seconds": None}}
+    stages.update({s: {"status": "pending", "fraction": 0.0, "detail": "", "seconds": None} for s in pipeline.STAGES})
+    job = {"id": jid, "kind": "preevent", "event": req.event, "tile": req.tile, "date": None, "bounds": None,
+           "received": _now(), "t0": time.perf_counter(), "cached": False, "status": "queued", "error": None,
+           "stages": stages}
+    _jobs[jid] = job
+    log.info("preevent job %s received tile=%s event=%s", jid, req.tile, req.event)
+
+    def work() -> None:
+        def progress(stage: str, frac: float, detail: str) -> None:
+            st = job["stages"][stage]
+            if st["status"] == "pending":
+                st["status"], st["started"] = "running", time.perf_counter()
+            st["fraction"], st["detail"] = round(frac, 4), detail
+            if frac >= 1.0:
+                st["status"], st["seconds"] = "done", round(time.perf_counter() - st["started"], 2)
+
+        with _run_lock:
+            job["status"] = "running"
+            try:
+                rec = preevent.load_record(req.tile, ev["start"])
+                progress("select", 0.0, "evaluando nubosidad de las fechas candidatas")
+                if rec is None:
+                    b, epsg = utm_bounds(req.tile)
+                    rec = preevent.choose(req.tile, ev["start"], b, epsg)
+                    preevent.record_path(req.tile, ev["start"]).write_text(json.dumps(rec, indent=2))
+                progress("select", 1.0, rec["chosen"])
+                job["date"] = rec["chosen"]
+                if pipeline.is_cached(req.tile, rec["chosen"]):
+                    job["cached"] = True
+                    for k in pipeline.STAGES:
+                        job["stages"][k].update(status="cached", fraction=1.0)
+                else:
+                    pipeline.run(req.tile, rec["chosen"], _state["ensemble"], progress)
+                job["status"], job["scene"] = "done", f"{req.tile}_{rec['chosen']}"
+            except Exception as e:
+                job["status"], job["error"] = "error", f"{type(e).__name__}: {e}"
+                log.exception("preevent job %s failed", jid)
+            job["stop"] = _now()
+            job["seconds"] = round(time.perf_counter() - job["t0"], 2)
+            log.info("preevent job %s %s chosen=%s seconds=%s", jid, job["status"], job["date"], job["seconds"])
+
+    threading.Thread(target=work, daemon=True).start()
+    return _public(job)
+
+
+def _ref_scene(scene: str) -> tuple[str | None, dict | None]:
+    tile, date = scene.split("_")
+    ev = _event_of(date)
+    if ev is None:
+        return None, None
+    rec = preevent.load_record(tile, EVENTS[ev]["start"])
+    if rec is None or not pipeline.is_cached(tile, rec["chosen"]):
+        return None, rec
+    return f"{tile}_{rec['chosen']}", rec
+
+
+@lru_cache(maxsize=64)
+def _flood_cached(scene: str, ref: str) -> dict:
+    return preevent.flood(scene, ref)
+
+
+@app.get("/api/flood/{scene}")
+def flood(scene: str) -> dict:
+    ref, rec = _ref_scene(scene)
+    if ref is None:
+        return {"available": False, "record": rec}
+    if ref == scene:
+        return {"available": True, "is_reference": True, "reference_scene": ref, "record": rec}
+    return {"available": True, "is_reference": False, "record": rec, **_flood_cached(scene, ref)}
+
+
+def flood_tile(scene: str, z: int, x: int, y: int) -> Response:
+    ref, _ = _ref_scene(scene)
+    if ref is None or ref == scene:
+        return Response(_empty_png(), media_type="image/png")
+    d_t, d_0 = pipeline.SCENES / scene, pipeline.SCENES / ref
+    reads = [_read_tile(d / f, x, y, z) for d in (d_t, d_0) for f in ("probability.tif", "mask.tif")]
+    if any(r is None for r in reads):
+        return Response(_empty_png(), media_type="image/png")
+    p_t, m_t, p_0, m_0 = (r.data[0] for r in reads)
+    both = (m_t == 0) & (m_0 == 0) & (p_t != pipeline.NODATA16) & (p_0 != pipeline.NODATA16)
+    w_t, w_0 = p_t > pipeline.SCALE // 2, p_0 > pipeline.SCALE // 2
+    rgba = np.zeros((256, 256, 4), np.uint8)
+    rgba[w_t & ~w_0 & both] = (29, 79, 154, 235)
+    rgba[w_t & w_0 & both] = (127, 176, 224, 200)
+    return _png(rgba)
+
+
+# ---------------------------------------------------------------- export (RF7)
+
+@app.get("/api/export/{scene}")
+def export_scene(scene: str, layers: str = ",".join(export.LAYERS), bbox: str | None = None) -> Response:
+    if not pipeline.is_cached(*scene.split("_")):
+        raise HTTPException(404, f"no scene {scene}")
+    ref, _ = _ref_scene(scene)
+    if ref == scene:
+        ref = None
+    box = None
+    if bbox:
+        meta = json.loads((pipeline.SCENES / scene / "meta.json").read_text())
+        w, s_, e, n = (float(v) for v in bbox.split(","))
+        t = _to_utm(meta["crs"])
+        xs, ys = zip(*(t.transform(a, b) for a, b in [(w, s_), (e, s_), (e, n), (w, n)]))
+        box = (min(xs), min(ys), max(xs), max(ys))
+    t0 = time.perf_counter()
+    data, info = export.build(scene, [x for x in layers.split(",") if x in export.LAYERS], ref, box)
+    log.info("export %s layers=%s bbox=%s bytes=%d seconds=%.1f", scene, layers, bbox, len(data), time.perf_counter() - t0)
+    return Response(data, media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="{scene}.zip"'})

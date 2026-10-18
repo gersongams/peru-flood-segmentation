@@ -3,9 +3,11 @@ import { api, type Scene } from "./api";
 import { EVENTS, type EventId } from "./config";
 import { fmtDate } from "./format";
 import Evidence from "./components/Evidence";
-import { Calendar, Logo } from "./components/Icons";
+import ExportDialog from "./components/ExportDialog";
+import { Calendar, Download, Logo } from "./components/Icons";
 import NewAnalysis from "./components/NewAnalysis";
 import Reference from "./components/Reference";
+import FloodTimeline from "./components/FloodTimeline";
 import Viewer from "./components/Viewer";
 
 type Tab = "visor" | "nuevo" | "referencia" | "linea" | "evidencia";
@@ -23,6 +25,8 @@ export default function App() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [sceneId, setSceneId] = useState<string | null>(null);
   const [online, setOnline] = useState<boolean | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [view, setView] = useState<[number, number, number, number] | null>(null);
   const ev = EVENTS[eventId];
 
   const refresh = useCallback(async () => {
@@ -75,10 +79,11 @@ export default function App() {
           <span className="dot" style={{ background: online ? "#2f8a4c" : online === false ? "#d4553c" : "#9a9083" }} />
           {online === false ? "Servidor no disponible" : <>Modelo: <b>U-Net (Perú) · 3 semillas</b></>}
         </span>
+        <button className="btn dark" disabled={!scene} onClick={() => setExporting(true)}><Download /> Exportar</button>
       </header>
 
       {tab === "visor" && (
-        <Viewer event={ev} scenes={eventScenes} scene={scene} onScene={(s) => setSceneId(s.scene)} onNew={() => setTab("nuevo")} />
+        <Viewer event={ev} scenes={eventScenes} scene={scene} onScene={(s) => setSceneId(s.scene)} onNew={() => setTab("nuevo")} onView={setView} />
       )}
       {tab === "nuevo" && (
         <NewAnalysis
@@ -92,8 +97,9 @@ export default function App() {
         <Reference event={ev} scenes={eventScenes} scene={scene} onScene={(s) => setSceneId(s.scene)} />
       )}
       {tab === "linea" && (
-        <div className="page"><div className="doc"><div className="panel">En construcción.</div></div></div>
+        <FloodTimeline eventId={eventId} event={ev} scenes={eventScenes} scene={scene} onScene={(s) => setSceneId(s.scene)} onRefresh={refresh} />
       )}
+      {exporting && scene && <ExportDialog scene={scene} view={view} onClose={() => setExporting(false)} />}
     </div>
   );
 }
