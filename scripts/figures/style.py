@@ -57,6 +57,11 @@ def apply() -> None:
         "savefig.bbox": "tight",
         "savefig.pad_inches": 0.02,
         "axes.formatter.use_locale": False,
+        # italics for foreign words in labels ($\\it{...}$) in the same font as the text
+        "mathtext.fontset": "custom",
+        "mathtext.rm": "Arial",
+        "mathtext.it": "Arial:italic",
+        "mathtext.bf": "Arial:bold",
     })
 
 

@@ -197,6 +197,7 @@ ANEXOS: 1 Matriz de consistencia · 2 Matriz de operacionalización (required by
 | backbone | *backbone* (codificador preentrenado) |
 | patch | *patch* (parche) |
 | prompt, token | *token* |
+| buffer (spatial split) | *buffer*, defined at first use (Ch. I §1.4) and in §2.3 (authors, 2026-10-17) |
 
 ## 7. Numbers and units **(default** unless noted)
 

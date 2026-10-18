@@ -274,7 +274,7 @@ def main() -> None:
         handles.append(Patch(fc="none", ec=colour[s], lw=1.0))
         labels.append(f"{style.SPLIT_NAME[s]}: {n_cd[s]} / {n_loc[s]}")
     handles.append(Patch(fc="none", ec=colour["buffer"], lw=1.0))
-    labels.append(f"Amortiguamiento (sin uso):\n{n_cd['buffer']} / {n_loc['buffer']}")
+    labels.append(f"$\\it{{Buffer}}$ (sin uso): {n_cd['buffer']} / {n_loc['buffer']}")
     handles.append(Patch(fc="none", ec=style.SPLIT["2017"], lw=1.0, ls=(0, (2.5, 1.5))))
     labels.append(f"{style.SPLIT_NAME['2017']}: {len(m17)} / {m17.chip.nunique()}")
     lax = fig.add_axes([left, 0.035, rw, 0.40])
