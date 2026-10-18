@@ -21,3 +21,11 @@ dev = [
     "nbformat>=5.11.1",
     "pytest>=9.1.1",
 ]
+system = [
+    "fastapi>=0.146.0",
+    "rio-tiler>=9.4.12",
+    "uvicorn>=0.54.0",
+]
+
+[tool.uv]
+default-groups = ["dev", "system"]

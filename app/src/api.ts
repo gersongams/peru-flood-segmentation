@@ -1,0 +1,93 @@
+// Client for the FastAPI backend (floodseg.system.server), proxied at /api by Vite.
+
+export type StageId = "auth" | "catalog" | "download" | "read" | "mask" | "inference" | "write";
+export type StageStatus = "pending" | "running" | "done" | "cached";
+
+export interface Stage {
+  status: StageStatus;
+  fraction: number;
+  detail: string;
+  seconds: number | null;
+}
+
+export interface Job {
+  id: string;
+  event: string;
+  tile: string;
+  date: string;
+  status: "queued" | "running" | "done" | "error";
+  cached: boolean;
+  error: string | null;
+  received: string;
+  stop?: string;
+  seconds?: number;
+  elapsed?: number;
+  scene?: string;
+  stages: Record<StageId, Stage>;
+}
+
+export interface Scene {
+  scene: string;
+  tile: string;
+  date: string;
+  product: string;
+  pixels: { valid: number; cloud: number; nodata: number; water_valid: number };
+  total_s: number;
+  bounds: [number, number, number, number];
+}
+
+export interface Acquisition {
+  Id: string;
+  Name: string;
+  date: string;
+  cloud_cover: number | null;
+  cached: boolean;
+}
+
+export interface Pixel {
+  inside: boolean;
+  probability?: number | null;
+  uncertainty?: number | null;
+  mask?: number;
+  state?: "valid" | "cloud" | "nodata";
+}
+
+export interface Metrics {
+  available: boolean;
+  pixels: number;
+  iou: number | null;
+  precision: number | null;
+  recall: number | null;
+  tp_km2: number;
+  fp_km2: number;
+  fn_km2: number;
+  reference_water_km2: number;
+  partition_share: Record<"train" | "dev" | "test" | "buffer", number>;
+}
+
+async function get<T>(url: string): Promise<T> {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.json();
+}
+
+export const api = {
+  status: () => get<{ models_loaded: boolean; model: string; busy: boolean }>("/api/status"),
+  scenes: () => get<Scene[]>("/api/scenes"),
+  acquisitions: (tile: string, start: string, end: string) =>
+    get<Acquisition[]>(`/api/acquisitions?tile=${tile}&start=${start}&end=${end}`),
+  job: (id: string) => get<Job>(`/api/jobs/${id}`),
+  pixel: (scene: string, lon: number, lat: number) => get<Pixel>(`/api/pixel/${scene}?lon=${lon}&lat=${lat}`),
+  createJob: async (body: { event: string; tile: string; date: string; bounds?: number[] }): Promise<Job> => {
+    const r = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    return r.json();
+  },
+  metrics: (scene: string, bbox?: number[], part?: string) => {
+    const q = new URLSearchParams();
+    if (bbox) q.set("bbox", bbox.join(","));
+    if (part) q.set("part", part);
+    return get<Metrics>(`/api/metrics/${scene}?${q}`);
+  },
+  tileUrl: (scene: string, layer: string) => `${location.origin}/api/tiles/${scene}/${layer}/{z}/{x}/{y}.png`,
+};

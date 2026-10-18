@@ -2587,3 +2587,54 @@ labelled as not the thesis numbers (those come from the frozen pass); limits sta
 low-contrast water, worse calibration near edges).
 
 **Feeds.** Chapter III §3.1.9 (development: modules, model choice, uncertainty layer), §3.2.6.
+
+## 2026-10-18: Full-scene pipeline of the system; inference windows aligned to the chip grid (authors' decision)
+
+**What was built.** `src/floodseg/system/` (backend of the web app) and `app/` (frontend):
+- `cdse.py`: catalog lookup (CDSE OData) and streaming download of the whole L1C product. The
+  Sentinel Hub client-credentials token is accepted by the OData download service (checked
+  2026-10-18), so the existing credentials are used; the Process API is not used (protocol §1).
+- `scene.py`: reads the 13 JP2 bands from the zip (`/vsizip/`, 13 threads), upsamples 20/60 m to
+  10 m by pixel replication (= Process API default NEAREST, since the grids share the tile origin)
+  and applies `RADIO_ADD_OFFSET` per band from `MTD_MSIL1C.xml` (DN + offset, clipped at 0, DN 0
+  kept as no data), which reproduces the Process API `harmonizeValues` used for the training chips.
+  Cloud / no-data mask: the project thick-cloud rule (B02 > 4500 and B11 < 1.15·B02, dilated 5 px);
+  no data where all bands are 0.
+- `infer.py`: frozen `peru/unet` ensemble (sha256 checked at load), probability = seed mean of
+  sigmoid(z1 − z0), uncertainty = seed std.
+- `pipeline.py`: timed stages, COG GeoTIFF outputs (probability and std as uint16 × 10 000, nodata
+  65535; mask uint8; RGB preview), `meta.json` with product, offsets, checkpoints, commit, times.
+- `server.py` (FastAPI): models loaded at start-up (warm system), jobs with per-stage progress,
+  request/stop timestamps in `outputs/system/server.log` and `jobs.jsonl`, cache (RF2b), dynamic
+  map tiles from the COGs (rio-tiler), pixel readout.
+
+**Check: input path.** For 8 `peru-test` chips of 17MNP the tile stack equals the training chip
+bit for bit in all 13 bands. The 2023 product is processing baseline N0510 (offset −1000).
+
+**Decision: chip-aligned inference windows.** The first version used overlapping 512 px windows
+(64 px overlap, tent blending). RF3 (protocol §3) gave MAD 0.0075 (pass) but IoU 0.934 (< 0.95,
+fail) on the 49 `peru-test` chips of 17MNP. Since the inputs are identical, the difference comes
+only from the window context: in the outer 48 px of each chip IoU was 0.887, inside 0.958. On the
+73 `peru-dev` chips of the same tile both layouts score the same against the labels (0.9532
+overlapping vs 0.9523 chip windows), so neither is better. The authors chose non-overlapping
+512 px windows aligned to the chips' 5 120 m UTM grid, i.e. exactly the evaluated configuration:
+on every chip the map equals the frozen pass. RF3 then gives MAD 1.8e-5 and IoU 0.99994.
+- **Alternatives rejected:** (a) keep overlap and amend RF3 before the formal measurement — a
+  protocol change made after a failing development run; (b) keep overlap and report RF3 as failed.
+- **Integrity note:** the dev labels were used only to check that the two layouts are equally
+  accurate; no test label was read. The RF3 test and thresholds are unchanged. This was a
+  development run on an uncommitted tree, not the protocol measurement.
+- **Caveat:** non-overlapping windows can leave faint seams every 5.12 km where the model's
+  predictions depend on context; to be inspected on the maps.
+
+**Timing (development, 17MNP 2023-03-22, M4 Max).** Download 303.9 s of 371.6 s total (771 MB at
+about 2.5 MB/s); without download 56.7 s (read 12.3, mask 2.4, inference 31.9, write 7.8). The
+15 min threshold of HE3 therefore depends mainly on the CDSE download rate; the protocol records
+`networkQuality` before each run. Source: `docs/EXPERIMENT_LOG.md` 2026-10-18.
+
+**Also decided while building:** the earlier viewer note ("the viewer produces no thesis result",
+2026-10-16 draft, never committed) is superseded by the reframing of 2026-10-16; `app/` and
+`scripts/viewer/` are now tracked in git so the system can be tagged (protocol §2). The chip-based
+PMTiles path of the paused viewer is not used: map tiles are cut on the fly from the full-tile COGs.
+
+**Feeds.** Chapter III §3.1.9 (development), §3.1.10 (full-scene processing), §3.1.11 (RF3).

@@ -28,3 +28,9 @@ sources/
 
 # University course guides (PDFs, large)
 thesis-guidelines/
+
+# System web app (deps, build output) and system outputs
+app/node_modules/
+app/dist/
+app/public/data
+.playwright-mcp/

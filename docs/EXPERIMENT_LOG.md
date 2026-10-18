@@ -568,3 +568,23 @@ Commit: see this entry's commit.
 manifests, train/dev and Sen1Floods11 train/valid labels, 60 `peru-train` images, and
 `outputs/{band_stats,label_qa}`. No test labels are read. Results: METHODS_NOTES 2026-10-16 "EDA
 notebook". Commit: see this entry's commit.
+
+## 2026-10-18 — System development runs (full-tile pipeline; dev benchmark, not the HE3 measurement)
+
+- `uv run python -m floodseg.system.pipeline 17MNP 2023-03-22 --keep-archive`, first version
+  (overlapping 512 px windows, 64 px tent blending). Product
+  `S2B_MSIL1C_20230322T153619_N0510_R068_T17MNP_20240829T023421.SAFE` (771 MB). Stage times (s):
+  auth 1.4, catalog 0.8, download 303.9, read 15.8, mask 2.0, inference 39.6, write 7.9; total
+  371.6 s. Log `outputs/system/spike_17MNP.log`.
+- `uv run python scripts/system_rf3_check.py 17MNP 2023-03-22` on that output: 49 `peru-test`
+  chips, MAD 0.0075, IoU 0.934 → RF3 fails (IoU < 0.95).
+- Diagnostics (scratch scripts, not kept): tile input = chip input, bit-identical in all 13 bands
+  for the 8 chips checked; disagreement concentrated in the outer 48 px of the chips (IoU 0.887
+  vs 0.958 inside); on 73 `peru-dev` chips of the tile, IoU against labels 0.9532 (tile windows)
+  vs 0.9523 (chip windows, `outputs/viewer/chips`).
+- Second version, chip-aligned non-overlapping windows (archive reused, no download): read 12.3,
+  mask 2.4, inference 31.9, write 7.8; total 56.7 s. RF3 check: MAD 1.8e-5, IoU 0.99994, pass.
+  Outputs `outputs/system/scenes/17MNP_2023-03-22/`, check `outputs/system_eval/rf/rf3_17MNP_2023-03-22.json`.
+- Mac M4 Max, MPS; commit: uncommitted working tree (`git_commit` in `meta.json` ends in
+  `-dirty`). These runs only check the pipeline; the timed HE3 runs follow the protocol at a tagged
+  commit.
