@@ -56,7 +56,7 @@ Detailed write-ups:
 Headline from `docs/phaseD_test.md`:
 
 - **2023 event (`peru-test`).** U-Net trained on Sen1Floods11 with histogram matching to
-  unlabelled Peru imagery reaches 0.799 ± 0.005 water IoU.
+  unlabelled Peru imagery reaches 0.798 ± 0.005 water IoU.
   - That is 0.030 below the Peru-trained U-Net (0.828) and 0.22 above the unadapted U-Net (0.576).
   - It is the best result without Peru labels.
 - **2017 event (`peru-2017-test`).** The order reverses: the unadapted models score best.

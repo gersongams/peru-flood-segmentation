@@ -52,7 +52,7 @@ AdaBN U-Net and HM TerraMind. Then section 6 (freeze, test once).
    `peru-dev` first. Phase-D pass: 33 runs on `peru-test` and `peru-2017-test`. Section-7 pass
    (Sen1Floods11 → Peru fine-tuned on the Peru tests, Sen1Floods11 `test`) is frozen, run later
    (disk space).
-   **6.2 done 2026-10-16:** `docs/phaseD_test.md`. 2023: U-Net trHM 0.799 (Peru-trained 0.828,
+   **6.2 done 2026-10-16:** `docs/phaseD_test.md`. 2023: U-Net trHM 0.798 (Peru-trained 0.828,
    source 0.576). 2017: order reverses (source-only best; labels score only clear-water recall).
    **Done 2026-10-16:** test calibration (frozen temperatures; near-edge ECE degrades on test for
    every row; the label-free T transfers; "U-Net trHM best calibrated" holds for all pixels, not

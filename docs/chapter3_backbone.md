@@ -54,21 +54,38 @@ Started 2026-10-17. This file is the ledger for `thesis/2_CAPITULO3/Capitulo3.te
 
 ### HE2. Errors, adaptation, calibration
 
-**(a) Errors are concentrated in a few strata: cloud edges, flooded vegetation, desert or coastal terrain.** Dev only (`error_shares.csv`, post-hoc shares from the pre-specified strata).
-- **Errors do concentrate in a few strata, but mostly not the named ones.**
-  - The ≤ 1 px label-edge band holds 2.9 % of the pixels and carries 58.6–66.3 % of the Peru-trained models' errors, and 38.8 % / 57.8 % of source-only U-Net / Prithvi errors (TerraMind source-only 18.5 %).
-  - WorldCover permanent water holds 2.5 % of the pixels and carries 6.5–14.3 % of the errors.
-- **Cloud edges: not concentrated.** The 5–20 px band from thick cloud holds 8.3 % of the pixels and carries 6.4–9.4 % of the errors (TerraMind source-only 14.6 %); the < 5 px band is 0.1 %.
-- **Flooded vegetation** (WorldCover herbaceous wetland) is over-represented (0.18 % of the pixels, 0.3–0.9 % of the errors) but negligible in size. Visual evidence comes from one chip only.
-- **Desert or coastal (bare/sparse):** 85.2 % of the pixels and 78–91 % of the errors, so about proportional to area. For the source models, however, it is where the false positives are (bare FPR source 0.026 vs Peru-trained 0.003, U-Net).
-- Strata not named in the hypothesis also stand out: low-contrast water (NDWI −0.1 to 0.1, band IoU 0.45–0.53 Peru-trained) and water bodies < 1 ha (recall 45–58 %).
-- **Verdict: partly supported.** The concentration exists. Of the named strata, desert matters only for the source models' false positives, and cloud edges are refuted.
+**(a) Errors are concentrated in a few strata: cloud edges, flooded vegetation, desert or coastal terrain.**
+Evidence: dev only, descriptive, post hoc (`error_shares.csv`, derived from the pre-specified strata), no CI. **No threshold for "concentrated" was fixed in advance.** The verdict depends on two choices the authors must make (below).
+
+| Stratum (share of dev pixels) | Peru-trained, share of errors | Source-only, share of errors | Reading |
+|---|---|---|---|
+| ≤ 1 px label edge (2.9 %) | 58.6–66.3 % | U-Net 38.8, TerraMind 18.5, Prithvi 57.8 % | strongly concentrated (not a named stratum) |
+| WorldCover permanent water (2.5 %) | 12.0–14.3 % | 3.3–8.1 % | concentrated (not named) |
+| 5–20 px from thick cloud (8.3 %) | 7.6–9.4 % | U-Net 6.4, **TerraMind 14.6** (≈ 1.8×), Prithvi 6.4 % | proportional except for TerraMind source |
+| herbaceous wetland, a flooded-vegetation proxy (0.2 %) | 0.9 % (≈ 5×) | 0.3–0.8 % | over-represented but negligible in size |
+| bare/sparse, desert and coast (85.2 %) | 77.9–80.3 % | 84.7–91.5 % | about proportional; it is where the source models' false positives sit (FPR source 0.026 vs Peru 0.003, U-Net) |
+
+Also strong, but not named in the hypothesis: low-contrast water (NDWI −0.1 to 0.1; band IoU 0.45–0.53 for the Peru-trained models) and water bodies < 1 ha (recall 45–58 %).
+
+**Decisions for the authors:**
+1. **Which models HE2(a) refers to.** It could be the source models, the Peru-trained models, or the adapted (frozen) rows. The pattern differs by group, for example cloud edges for TerraMind source.
+2. **What counts as "concentrated".** Two options:
+   - error share / pixel share above some ratio (e.g. 2×);
+   - the named strata together holding most errors.
+
+   This was not fixed in advance. Choosing it now must be reported as a post hoc operationalization.
+
+**Proposed reading** (pending those decisions):
+- **Partly supported.** Errors do concentrate in a few strata, but mainly in strata the hypothesis did not name: label edges and permanent water.
+- **Desert or coast:** relevant only as the location of the source models' false positives.
+- **Cloud edges:** not concentrated for the Peru-trained models; about 1.8× for TerraMind source.
+- **Flooded vegetation:** over-represented but negligible in size, with visual evidence from one chip only.
 
 **(b) Unsupervised adaptation raises water IoU over the unadapted model (CI > 0) without reaching the Peru-trained model.**
 - **2023 `peru-test`:**
   - U-Net trHM − source = +0.222 [0.132, 0.309]; trHM − Peru-trained = −0.030 [−0.048, −0.013]. **Supported.**
   - TerraMind trFDA − source = +0.082 [0.016, 0.156]; it stays below Peru-trained (0.708 vs 0.815). No paired CI against Peru-trained TerraMind; the gap is large. **Supported.**
-  - Prithvi: no method improved it on dev, so none was frozen; source-only is its primary row. **Not supported for Prithvi.**
+  - Prithvi: no adaptation was frozen, because every method lowered its dev mean (AdaBN −0.003, test-time HM −0.052, training-time HM −0.010; AdaBN improved seed 0 alone). The prediction **could not be tested on test for Prithvi**. On dev it is not supported.
 - **2017 (101 chips):** reversed.
   - U-Net trHM − source = −0.063 [−0.083, −0.046];
   - TerraMind trFDA − source = −0.103 [−0.175, −0.048].
@@ -76,9 +93,15 @@ Started 2026-10-17. This file is the ledger for `thesis/2_CAPITULO3/Capitulo3.te
 - Overall: **partly supported**.
 
 **(c) Uncalibrated probabilities are overconfident; temperature scaling and ensembles reduce ECE; error AUROC > 0.5.**
-- **Overconfidence: supported for U-Net and Prithvi.**
-  - Fitted T > 1 for every Peru-trained model on dev: U-Net 2.35, TerraMind 1.49, Prithvi 3.33.
-  - In-domain on Sen1Floods11 `valid`, the final source models are overconfident too (T: U-Net 2.02–2.12, TerraMind 1.13–1.36, Prithvi 2.80–3.23; `temperatures.json`). TerraMind is the closest to calibrated, but not calibrated. (The 1.01 quoted earlier belongs to the pre-sweep seed-0 model.)
+- **Overconfidence: supported.** Every fitted temperature is above 1:
+  - Peru-trained models (dev, 2-fold): U-Net 2.35, TerraMind 1.49, Prithvi 3.33.
+  - Frozen label-free rows, from their own Sen1Floods11 `valid` (`temperatures.json`):
+    - U-Net trHM 1.82–2.22;
+    - TerraMind trFDA 1.24–1.52;
+    - Prithvi source 2.62–3.23.
+  - In-domain source models: U-Net 2.02–2.12, TerraMind 1.13–1.36, Prithvi 2.80–3.23.
+  - TerraMind is the closest to calibrated everywhere.
+  - Exception in the reliability diagrams (Peru-trained, dev): TerraMind's two lowest-confidence bins lie above the diagonal (confidence 0.517 → accuracy 0.569; 0.550 → 0.566).
 - **ECE reduction: supported on `peru-test`.** Ensemble plus Sen1Floods11 temperature lowers ECE against single models for every frozen row (all pixels and near edges; `calibration.md`). Point estimates only; no CIs (Chapter I §1.4).
 - **AUROC > 0.5: holds overall for every frozen phase-D row on `peru-test` (0.598–0.783 single).**
   - Fails for Peru-trained Prithvi on `peru-test` (0.439 single, 0.456 ensemble).
