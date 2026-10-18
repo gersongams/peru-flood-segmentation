@@ -2494,3 +2494,19 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 **Wording fixed.** 2017 label caveat added in the §3.2 synthesis, the HE1b 2017 sentence, the HE2 summary and the `tab:contrastacion` note; "una U-Net de otro estudio" (Kaushik); ensembles tied to Lakshminarayanan's uncertainty claim, not ECE; "otra agrupación" (Banerjee) removed as unsupported; "no siempre se traslada"; AUROC range labelled as individual models; units (%) on published values; PANGAEA locator matches Chapter II; HE1b now states the conservative bound (−0.022 and 0.102 → 0.080), labelled as an approximation and not a CI.
 
 **Feeds.** Chapter III §3.2–3.3.
+
+## 2026-10-17: Thesis figures (Chapter III)
+
+**What was done.** The authors asked for figures. Seven were made, in a shared style (`scripts/figures/style.py`: Arial like the text, Paul Tol colour-blind-safe palette, A4 text width 15.5 cm, vector PDF in `thesis/E_IMAGENES/`, PNG previews in git-ignored `outputs/figures_preview/`). Each figure has its own script in `scripts/figures/`; every plotted number is read from result files, none typed by hand.
+
+- **Figura 3.1, flow diagram** (`E_IMAGENES/fig_metodologia.tex`, TikZ): data → training → adaptation and selection → single evaluation. Counts from Chapter I §1.4 and Tabla 3.1. Needed `\usetikzlibrary{babel}` (Spanish babel shorthands break TikZ arrows).
+- **`fig_brecha`**: peru-test IoU, origen → adapted (U-Net trHM, TerraMind trFDA) → Peru-trained, with per-row bootstrap CIs (`bootstrap_groups.csv`) and `gap_closed` (88 %, 44 %). Caption warns that per-row CIs do not compare rows.
+- **`fig_comparacion_modelos`**: error maps (TP/FP/FN/ignored) for 8 columns × 4 test chips; 3-seed ensemble (mean probability > 0.5), raw logits. **Selection rule** (fixed before looking at tiles): among the 37 test chips with ≥ 5 % water, the chip nearest the 0.125/0.375/0.625/0.875 quantiles of Δ = IoU(U-Net trHM) − IoU(U-Net source), each location once; doubtful chips kept as in the `full` table. A spatial-block constraint was tried and rejected (it pushed the 0.875 pick to a chip with negative Δ). Per-tile IoU is per chip, not comparable with pooled IoU; a self-check reproduces `peru-test_chip_counts.csv` seed-0 counts.
+- **`fig_incertidumbre`**: U-Net trHM, chips at the 0.1/0.5/0.9 quantiles of its per-chip IoU; uncertainty = mutual information between seeds, H(p̄) − (1/3)Σ H(pₛ), bits, colour scale capped at 0.5 (4.2 % of row b above). Predictive entropy was rejected because it repeats the probability panel. In row a (IoU 0.040) the Peru-trained U-Net also fails (0.001), so the label there may be at fault; stated in the note.
+- **`fig_validacion_prueba`**: per configuration, IoU on validation (`peru-dev_check_groups.csv`, which holds the recomputed AdaBN U-Net 0.8993), 2023 test (full) and 2017 test (101 chips); `s1f11_ft` rows omitted.
+- **`fig_fiabilidad`**: a) reliability diagrams of the Peru-trained models on dev (`reliability_bins.csv`, single, seeds pooled; from the 2026-10-14 calibration pass, same checkpoints, dev IoU 0.9416 vs 0.9415); b) test ECE single / temperature / ensemble+temperature for the Tabla 3.8 rows. Temperature = Sen1Floods11-fitted (`temp_s1f`), except Peru-trained U-Net (`temp_dev`, marked *).
+- **`fig_prueba_ic`**: paired differences from `bootstrap_diffs.csv`, a − b as in the file; `p_a_not_better` not shown. The file has no TerraMind trFDA − Peru-trained row; the note says so.
+
+**Grey-scale check (WRITING_RULES §8).** The first error palette made TP/FN and FP/ignored indistinguishable in grey. Changed to TP #1A4B8C, FP #F2A33A, FN #D6457A, ignored #E4E4E4 (grey levels 0.27 / 0.68 / 0.46 / 0.89).
+
+**Feeds.** Chapter III §3.1.1, §3.1.7, §3.1.8, §3.3; defence slides.

@@ -22,7 +22,7 @@ MODEL_NAME = {"unet": "U-Net", "terramind_v1_base": "TerraMind v1-B", "prithvi_e
 SPLIT = {"train": "#4477AA", "dev": "#CCBB44", "test": "#EE6677", "2017": "#AA3377"}
 SPLIT_NAME = {"train": "Entrenamiento", "dev": "Validación", "test": "Prueba", "2017": "Prueba 2017"}
 # Error maps: correct water, false positive (commission), false negative (omission), ignored.
-TP, FP, FN, IGNORE = "#1F6FB2", "#F28E2B", "#C2185B", "#BDBDBD"
+TP, FP, FN, IGNORE = "#1A4B8C", "#F2A33A", "#D6457A", "#E4E4E4"  # grey levels 0.27 / 0.68 / 0.46 / 0.89
 GREY = "#6E6E6E"
 LIGHT = "#E6E6E6"
 INK = "#222222"
