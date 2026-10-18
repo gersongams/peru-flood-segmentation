@@ -15,7 +15,7 @@ z > 0. The 95 % CI is a chip bootstrap of the seed mean (`scripts/bootstrap_froz
 
 | Model | Ours `test` water IoU (95 % CI) | Ours `test` mIoU | Published water IoU / mIoU | Source | Gap water IoU / mIoU |
 |---|---|---|---|---|---|
-| Prithvi-EO-2.0 300M (6 HLS bands) | 82.03 ± 1.15 (75.1–87.3) | 89.66 ± 0.66 | 82.2 (std 0.6) / 89.7 (0.3) | Prithvi-EO-2.0, Table IV, p. 12 | **−0.17 / −0.04** |
+| Prithvi-EO-2.0 300M (6 HLS bands) | 82.03 ± 1.15 (75.0–87.3) | 89.66 ± 0.66 | 82.2 (std 0.6) / 89.7 (0.3) | Prithvi-EO-2.0, Table IV, p. 12 | **−0.17 / −0.04** |
 | TerraMind v1-B (S2 L1C, 13 bands) | 81.85 ± 1.36 (75.4–86.9) | 89.54 ± 0.79 | 82.26 / 89.70 | TerraMind, Table 8, p. 8 (split and S2 level not stated) | **−0.41 / −0.16** |
 | U-Net, ResNet-34 (13 bands) | 83.31 ± 0.49 (76.0–88.9) | 90.42 ± 0.28 | 84.03 / 90.80 ([19], quoted in Prithvi-CAFE) | Prithvi-CAFE, Table 1, p. 6 (setup unverified) | −0.72 / −0.38 |
 | | | | 80.69 / 88.84 ([16], quoted in Prithvi-CAFE) | same | +2.62 / +1.58 |

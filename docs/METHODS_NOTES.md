@@ -2383,3 +2383,40 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 - Final source audit of cited numbers. Chapter II has had three independent passes; ISO 25010 and the paywalled items are still pending.
 
 **Feeds.** Ch. III, Ch. IV, Annex 3.
+
+## 2026-10-17: Chapter III §3.1 drafted; number audit and corrections to the result docs
+
+**What was done.**
+- §3.1.1–3.1.8 of Chapter III were drafted: data, models, adaptation protocol, and the Sen1Floods11, dev, test and calibration results. Thesis commits `218d84e` and `6cd161d`, plus the corrections below.
+- The claim ledger and the proposed hypothesis verdicts are in `docs/chapter3_backbone.md`.
+- §3.2 and §3.3 are not written yet. The verdicts go to the authors first.
+- §3.1.9 (system) is a commented placeholder until the system is measured (WRITING_RULES §11.11).
+
+**New derived numbers, post hoc.**
+- `scripts/error_shares_dev.py` → `outputs/phaseD/analysis/error_shares.csv`: share of pixels and of errors per stratum on `peru-dev`, from the existing `strata.csv`. No model was run.
+- Errors per stratum are computed as water_px·(1 − recall) + dry_px·FPR, using seed-mean rates.
+- They feed Tabla 3.4 and the HE2 strata verdict.
+
+**Audit.**
+- An independent pass recomputed about 400 numbers and claims in the draft from the primary files: result CSVs, manifests, run configs and `temperatures.json`, not the summary docs.
+- It found 21 items: 11 rounding errors, 1 false claim and 9 wording issues. All were fixed in the thesis.
+- Report: session scratchpad `audit_c3.md`. The main cause was double rounding: a 4-decimal value in the docs rounded again to 3 decimals.
+- Examples:
+  - Peru-trained U-Net dev 0.94147 → 0.941, not 0.942;
+  - U-Net trHM `peru-test` 0.79848 → 0.798, not 0.799;
+  - TerraMind trFDA dev 0.83646 → 0.836;
+  - Prithvi Sen1Floods11 `test` CI low 0.7505 → 0.750.
+
+**Errors corrected in the result docs**, so later writing does not inherit them:
+- **`docs/phaseD_test.md`:**
+  - The headline now gives 0.798 for U-Net trHM.
+  - The Peru-trained U-Net CI low is 0.732 (was 0.733).
+  - Prithvi source precision is 0.798 (was 0.799).
+  - "Every row drops 0.10–0.13 from dev to test" was false. Only the primary and Peru-trained rows drop 0.097–0.130; U-Net AdaBN drops 0.169, U-Net source 0.260 and TerraMind source 0.077.
+  - "Without doubtful chips … no ordering changes" was false. TerraMind trFDA and test-time HM (0.003 apart) swap in both variants. The rises are 0.005–0.016 (6 chips excluded) and 0.002–0.007 (3 chips).
+- **`docs/published_comparison.md`:** Prithvi `test` CI 75.0–87.3 (was 75.1).
+- **`docs/calibration_dev.md`, not edited, noted here:** "All raw models lie below the diagonal at every confidence level" does not hold for TerraMind's two lowest-confidence bins (0.517 → accuracy 0.569; 0.550 → 0.566; `reliability_bins.csv`).
+- **The Sen1Floods11 in-domain temperatures quoted in the chapter are now the final source models'** (`temperatures.json`, s1f11_src): U-Net 2.02–2.12, TerraMind 1.13–1.36, Prithvi 2.80–3.23. The earlier 1.73 / 1.01 / 2.80 belong to the pre-sweep seed-0 models.
+- **Chapter I and Chapter II do not contain the affected values** (checked by search).
+
+**Feeds.** Chapter III §3.1; §3.3 verdicts (`docs/chapter3_backbone.md`).

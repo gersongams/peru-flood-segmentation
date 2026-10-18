@@ -8,7 +8,7 @@ Method, checks and corrections: METHODS_NOTES 2026-10-16 "One-time test evaluati
 ## Headline
 
 - **2023 event (`peru-test`, 172 chips):** U-Net trained on Sen1Floods11 with training-time
-  histogram matching to unlabelled Peru imagery reaches **0.799 ± 0.005** water IoU, 0.030
+  histogram matching to unlabelled Peru imagery reaches **0.798 ± 0.005** water IoU (0.79848; written 0.799 until 2026-10-17), 0.030
   [0.013, 0.048] below the Peru-trained U-Net (0.828) and 0.22 above U-Net source-only (0.576). It is
   the best label-free row, 0.058 [0.013, 0.105] above the best source model (Prithvi, 0.741).
 - **2017 event (`peru-2017-test`, 101 chips not touching 2023 train):** the order reverses. Every
@@ -23,25 +23,25 @@ Method, checks and corrections: METHODS_NOTES 2026-10-16 "One-time test evaluati
 
 | Row | IoU | 95 % CI | tolerant IoU | precision | recall | gap closed | dev IoU |
 |---|---|---|---|---|---|---|---|
-| U-Net trHM (primary) | 0.7985 ± 0.0048 | 0.704–0.865 | 0.848 | 0.952 | 0.832 | 88 % | 0.912 |
+| U-Net trHM (primary) | 0.7985 ± 0.0048 (0.79848) | 0.704–0.865 | 0.848 | 0.952 | 0.832 | 88 % | 0.912 |
 | TerraMind trFDA (primary) | 0.7085 ± 0.0200 | 0.618–0.779 | 0.764 | 0.928 | 0.750 | 44 % | 0.837 |
-| Prithvi source-only (primary) | 0.7405 ± 0.0136 | 0.664–0.796 | 0.777 | 0.799 | 0.911 | — | 0.870 |
+| Prithvi source-only (primary) | 0.7405 ± 0.0136 | 0.664–0.796 | 0.777 | 0.798 | 0.911 | — | 0.870 |
 | TerraMind trHM (secondary) | 0.7209 ± 0.0053 | 0.609–0.802 | 0.769 | 0.896 | 0.787 | 50 % | 0.844 |
 | U-Net AdaBN (secondary) | 0.7308 ± 0.0127 | 0.625–0.812 | 0.758 | 0.795 | 0.901 | 61 % | 0.899 |
 | TerraMind test-time HM (secondary) | 0.7055 ± 0.0006 | 0.587–0.790 | 0.746 | 0.860 | 0.797 | 42 % | 0.809 |
 | U-Net source-only | 0.5763 ± 0.0369 | 0.467–0.669 | 0.582 | 0.597 | 0.947 | — | 0.836 |
 | TerraMind source-only | 0.6261 ± 0.0552 | 0.515–0.714 | 0.640 | 0.668 | 0.911 | — | 0.703 |
-| Peru-trained U-Net | 0.8280 ± 0.0023 | 0.733–0.895 | 0.861 | 0.966 | 0.853 | — | 0.942 |
+| Peru-trained U-Net | 0.8280 ± 0.0023 | 0.732–0.895 | 0.861 | 0.966 | 0.853 | — | 0.942 |
 | Peru-trained TerraMind | 0.8149 ± 0.0023 | 0.718–0.885 | 0.852 | 0.960 | 0.843 | — | 0.927 |
 | Peru-trained Prithvi | 0.8244 ± 0.0066 | 0.731–0.890 | 0.866 | 0.966 | 0.850 | — | 0.922 |
 
 Wide CIs: a few large chips carry much of the water. Paired differences (same resampled chips) are
 much tighter: see `outputs/phaseD/test/bootstrap_diffs.csv`. Without doubtful-label chips (166 or
-169 chips) every row rises by 0.004–0.016 and no ordering changes.
+169 chips) every row rises by 0.005–0.016 (all-blobs variant; 0.002–0.007 without near-cloud blobs). One ordering changes in both variants: TerraMind trFDA and test-time HM (0.003 apart) swap. Corrected 2026-10-17; the earlier text said "no ordering changes".
 
-**Dev → test.** Every row drops 0.10–0.13, the Peru-trained ones too (U-Net 0.942 → 0.828; recall
+**Dev → test.** The primary and Peru-trained rows drop 0.10–0.13 (U-Net 0.941 → 0.828; recall
 0.97 → 0.85), so the test blocks are harder or labelled differently; this is not an adaptation
-effect. Gap closed rises for U-Net trHM (72 % → 88 %) mostly because source-only fell further.
+effect. Other rows differ: U-Net AdaBN −0.169, U-Net source −0.260, TerraMind source −0.077 (corrected 2026-10-17; the earlier text said every row dropped 0.10–0.13). Gap closed rises for U-Net trHM (72 % → 88 %) mostly because source-only fell further.
 
 **Pre-registered TerraMind rule (FDA over HM).** On `peru-test` trHM − trFDA = +0.013 [−0.022, 0.044],
 not separable; on 2017 trHM is better (+0.035 [0.012, 0.066]). The primary stays trFDA (no choice is
