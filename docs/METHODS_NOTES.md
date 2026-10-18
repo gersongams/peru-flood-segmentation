@@ -2534,3 +2534,14 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 **Not changed:** tables that split a sentence across a page break (pp. 26–27, 30–31, 44–45) — normal float placement that will move as text changes; fix at final layout. The system suggestions (3.1.9–3.1.11, 3.2.6, model choice for the app declared as informed by the test results) go to `docs/NEXT_STEPS.md`.
 
 **Feeds.** Chapter III §3.1.1, 3.1.3, 3.1.5, 3.1.7, 3.1.8, 3.2, 3.3.
+
+## 2026-10-18: Chapter III second review (comparative) — fixes
+
+**Source.** The reviewer compared the new Chapter III PDF with the previous one: most points resolved; four remaining.
+
+**Applied.**
+- **HE1b wording:** the drop-difference contrast is now described as not in the initial plan and not pre-registered confirmatory evidence; Prithvi "respaldada", TerraMind "sensible a la variación entre semillas y a la dependencia espacial … no concluyente"; Tabla 3.9 verdict "Se confirma parcialmente (Prithvi; intervalo post hoc)".
+- **Self-training causal wording (§3.2.2):** "se debe sobre todo a esa pasada" → "en el protocolo de esta investigación, el diagnóstico sugiere que la pasada de AdaBN contribuyó de forma importante…; no se extrapola a los otros trabajos".
+- **Layout:** Tabla 3.9 split a sentence. A `\FloatBarrier` after the §3.3 intro gave two half-empty float pages, so Figura 3.8 now sits `[H]` after the 1b paragraph and Tabla 3.9 `[H]` at the end of §3.3.2 (before §3.3.3), both at paragraph breaks.
+
+**Kept (authors' decisions or already in place).** *Buffer* stays (authors chose it 2026-10-17; the reviewer calls it optional). 2017 nuance ("worse against that reference"), 2a as exploratory and the AdaBN cause as an unproven hypothesis are already in the text. The uncertainty map the app shows is a system decision (NEXT_STEPS). Annex 3 should keep the AdaBN diagnostic artefacts (`outputs/phaseD/test/peru-dev_check_compare.csv`, METHODS_NOTES 2026-10-16 "Phase-D freeze").

@@ -29,7 +29,8 @@ Chapters I–II: drafted, three external reviews applied. Chapter III: §3.1.1�
    their own words (WRITING_RULES §9); review the figures.
 5. **Rest of the thesis:** Chapter IV (exactly 3 conclusions + 3 recommendations; the third
    depends on the system), Introducción, Resumen and Abstract (≤ 250 words, past tense),
-   Annex 3 (reproducibility: `configs/frozen.yaml`, EXPERIMENT_LOG, protocol). Before
+   Annex 3 (reproducibility: `configs/frozen.yaml`, EXPERIMENT_LOG, protocol; include the AdaBN
+   non-reproduction diagnostic, `outputs/phaseD/test/peru-dev_check_compare.csv`). Before
    submission: Annex 1 font size against UNI rules; final source audit (ISO 25010, paywalled items).
 
 
