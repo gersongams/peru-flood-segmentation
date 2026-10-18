@@ -1,4 +1,27 @@
-# Next steps (handoff, 2026-10-16)
+# Next steps (handoff, updated 2026-10-17)
+
+## Thesis status and pending work (2026-10-17)
+
+Chapters I–II: drafted, three external reviews applied. Chapter III: §3.1.1–3.1.8, §3.2, §3.3
+(HE1, HE2) drafted, audited and pushed, with 8 figures (`scripts/figures/`). Pending, in order:
+
+1. **2017 optimism, quantified (small, local).** The 2017 labels keep only pixels where EMS and
+   MNDWI agree. Chapter III states the caveat but gives no number (whole-thesis review,
+   2026-10-17). Compute from existing data how much of the EMS-labelled area is dropped and how
+   that could inflate the 2017 IoU; add one sentence + `% fuente:` to §3.1.7 (2017 subsection).
+2. **The system (objective 3, HE3).** Build it, then measure RF1–RF7 and the time per tile with
+   `docs/system_evaluation_protocol.md` (6 tiles × 3 repetitions, median ≤ 15 min per tile; report
+   all times and the maximum). No result text before measuring (WRITING_RULES §11.11).
+3. **Chapter III parts that wait for the system:** §3.1.9 (now a commented placeholder);
+   §3.3.3 contrast of HE3 and of the general hypothesis; the HE3 row of Tabla 3.9; one line in
+   the §3.2 synthesis. All marked `% PENDIENTE` in `Capitulo3.tex`.
+4. **Authors:** rewrite §3.2 and the reasoning paragraphs of §3.3 (1b, 2a, 2b, HE2 summary) in
+   their own words (WRITING_RULES §9); review the figures.
+5. **Rest of the thesis:** Chapter IV (exactly 3 conclusions + 3 recommendations; the third
+   depends on the system), Introducción, Resumen and Abstract (≤ 250 words, past tense),
+   Annex 3 (reproducibility: `configs/frozen.yaml`, EXPERIMENT_LOG, protocol). Before
+   submission: Annex 1 font size against UNI rules; final source audit (ISO 25010, paywalled items).
+
 
 Status 2026-10-15: phase C is done; phase D is done up to the dev analysis (section 1 below). Local `main` is ahead of GitHub (not pushed). All RunPod pods are deleted. Results and provenance are in `docs/EXPERIMENT_LOG.md`, `docs/failure_analysis_dev.md` and `docs/uncertainty_dev.md`. Open tasks are in OpenSpec change `plan-flood-research` (`openspec/changes/plan-flood-research/tasks.md`).
 

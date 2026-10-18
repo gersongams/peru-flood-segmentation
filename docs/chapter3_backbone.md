@@ -15,8 +15,10 @@ Started 2026-10-17. This file is the ledger for `thesis/2_CAPITULO3/Capitulo3.te
 | 3.1.7 Test (one pass) | `peru-test`, `peru-2017-test`, paired differences, drop from Sen1Floods11 | `docs/phaseD_test.md`, `outputs/phaseD/test/*.csv` |
 | 3.1.8 Calibration and uncertainty | dev temperatures and ensembles; test ECE and AUROC | `docs/uncertainty_dev.md`, `docs/calibration_dev.md`, `outputs/phaseD/test/calibration.md` |
 | 3.1.9 System | **pending**: commented placeholder only (WRITING_RULES §11.11) | — |
-| 3.3 Contrastación | verdicts below | — |
-| 3.2 Discusión | after the authors see the verdicts; the authors rewrite it (§9) | — |
+| 3.3 Contrastación | **drafted 2026-10-17** (HE1, HE2); HE3 and general hypothesis pending the system | verdicts below |
+| 3.2 Discusión | **drafted 2026-10-17**; the authors rewrite it (§9); one synthesis line pending the system | Chapter II literature |
+
+**Pending in Chapter III** (also in `docs/NEXT_STEPS.md`): (1) quantify the 2017 optimism from concordant-only labels, one sentence in §3.1.7; (2) §3.1.9 system, §3.3.3 HE3 + general hypothesis, Tabla 3.9 HE3 row, §3.2 synthesis line — after the system is built and measured; (3) authors rewrite §3.2 and the §3.3 reasoning paragraphs.
 
 ## Number traps (decided)
 
