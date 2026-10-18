@@ -15,6 +15,16 @@ Chapters I–II: drafted, three external reviews applied. Chapter III: §3.1.1�
 3. **Chapter III parts that wait for the system:** §3.1.9 (now a commented placeholder);
    §3.3.3 contrast of HE3 and of the general hypothesis; the HE3 row of Tabla 3.9; one line in
    the §3.2 synthesis. All marked `% PENDIENTE` in `Capitulo3.tex`.
+   Chapter III review (2026-10-17) suggestions for the system part: split it into 3.1.9 development
+   (architecture, modules, model choice), 3.1.10 full-scene processing (L1C download, DN → reflectance,
+   bands, cloud/no-data masks, tiling, ensemble inference, mosaic, calibration, exports), 3.1.11
+   functional and timing evaluation (RF1–RF7 evidence, 6 tiles × 3, keep tile IDs, hardware,
+   connection, versions, cache state, logs), 3.2.6 discussion of the system; async jobs with
+   progress for full tiles (~121 M pixels). Decide which uncertainty the app shows (predictive entropy
+   or mutual information) and say so. The default model choice (e.g. U-Net trHM, best label-free on
+   2023 test; Prithvi source best on 2017) is informed by the test results: declare it as such and
+   do not present those results as an independent validation of the choice. Optional, only with a
+   suitable reference: a complementary full-scene evaluation (partitions are water-enriched).
 4. **Authors:** rewrite §3.2 and the reasoning paragraphs of §3.3 (1b, 2a, 2b, HE2 summary) in
    their own words (WRITING_RULES §9); review the figures.
 5. **Rest of the thesis:** Chapter IV (exactly 3 conclusions + 3 recommendations; the third
