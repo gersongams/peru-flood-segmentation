@@ -20,10 +20,12 @@ Chapters I–II: drafted, three external reviews applied. Chapter III: §3.1.1�
    bands, cloud/no-data masks, tiling, ensemble inference, mosaic, calibration, exports), 3.1.11
    functional and timing evaluation (RF1–RF7 evidence, 6 tiles × 3, keep tile IDs, hardware,
    connection, versions, cache state, logs), 3.2.6 discussion of the system; async jobs with
-   progress for full tiles (~121 M pixels). Decide which uncertainty the app shows (predictive entropy
-   or mutual information) and say so. The default model choice (e.g. U-Net trHM, best label-free on
-   2023 test; Prithvi source best on 2017) is informed by the test results: declare it as such and
-   do not present those results as an independent validation of the choice. Optional, only with a
+   progress for full tiles (~121 M pixels). **Decided 2026-10-18 (METHODS_NOTES):** the app shows seed std
+   as uncertainty (as in the protocol); default model = Peru-trained U-Net, trHM as optional
+   comparison layer; events limited to Yaku 2023 and Niño Costero 2017. The model choice is
+   informed by the test results: declare it as such and do not present those results as an
+   independent validation of the choice. UI: 6 screens (Visor, Nuevo análisis, Referencia, Línea
+   de tiempo, Exportar, Evidencia), analyst-tool style, palette of `app/src/styles.css`. Optional, only with a
    suitable reference: a complementary full-scene evaluation (partitions are water-enriched).
 4. **Authors:** rewrite §3.2 and the reasoning paragraphs of §3.3 (1b, 2a, 2b, HE2 summary) in
    their own words (WRITING_RULES §9); review the figures.

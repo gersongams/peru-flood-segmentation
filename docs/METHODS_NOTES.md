@@ -2545,3 +2545,45 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 - **Layout:** Tabla 3.9 split a sentence. A `\FloatBarrier` after the §3.3 intro gave two half-empty float pages, so Figura 3.8 now sits `[H]` after the 1b paragraph and Tabla 3.9 `[H]` at the end of §3.3.2 (before §3.3.3), both at paragraph breaks.
 
 **Kept (authors' decisions or already in place).** *Buffer* stays (authors chose it 2026-10-17; the reviewer calls it optional). 2017 nuance ("worse against that reference"), 2a as exploratory and the AdaBN cause as an unproven hypothesis are already in the text. The uncertainty map the app shows is a system decision (NEXT_STEPS). Annex 3 should keep the AdaBN diagnostic artefacts (`outputs/phaseD/test/peru-dev_check_compare.csv`, METHODS_NOTES 2026-10-16 "Phase-D freeze").
+
+## 2026-10-18: System UI design and three system decisions (authors)
+
+**What was done.** Before writing app code, the authors reviewed clickable prototypes of the
+system (6 desktop screens, Spanish UI; design canvas, not in the repo). Audience chosen: an
+analyst/operator tool (map-first, dense), not a guided demo or a public viewer; visual direction:
+the warm palette already in `app/src/styles.css`. Screens and the requirements they cover:
+Visor (RF3, RF4), Nuevo análisis + job progress with timer against 15 min (RF1, RF2, HE3),
+Referencia with swipe comparison and IoU / precision / recall for the view, the UNOSAT extent or
+the `peru-test` chips (RF5), Línea de tiempo with "área inundada" vs "agua detectada" and the
+pre-event image (RF6), Exportar GeoTIFF / GeoJSON + `metadatos.json` with model sha256 and source
+product (RF7), Evidencia with the frozen test IoU and the known limits.
+
+**Decisions (authors, 2026-10-18).**
+1. **Default model: Peru-trained U-Net** (`peru/unet`, 3-seed ensemble, frozen checkpoints in
+   `configs/frozen.yaml`). It is the best `peru-test` row (0.828 ± 0.002; `docs/phaseD_test.md`).
+   U-Net trHM (0.798 ± 0.005, best label-free row) is offered as an optional comparison layer.
+   - Alternatives: U-Net trHM as default (suggested in NEXT_STEPS; fits the label-free story but
+     is 0.030 lower on 2023); Prithvi source-only (best on 2017, 0.937, but 0.741 on 2023, where
+     most of the system's target extent lies).
+   - **Integrity:** the choice was made with the test results known. The thesis and the app's
+     Evidencia screen must say so and must not present those results as an independent validation
+     of the choice (NEXT_STEPS, Chapter III review 2026-10-17).
+2. **Uncertainty shown: seed standard deviation** of the probability, as already fixed in
+   `docs/system_evaluation_protocol.md` §1 (2026-10-17). This closes the open item "predictive
+   entropy or mutual information". Alternatives: predictive entropy of the ensemble (the score
+   behind the reported AUROC; better ranking of errors but mixes in aleatoric uncertainty);
+   mutual information (dev AUROC 0.750–0.785 for the Peru-trained ensembles,
+   `outputs/analysis_dev/uncertainty.csv`). Kept seed std because the protocol was fixed with it
+   before implementation, it is directly interpretable (σ of p across seeds), and changing it now
+   would alter a pre-registered RF4 test. Caveat for the text: the AUROC figures in §3.1.8 are for
+   entropy / MI, not for σ; the app must not quote them as the quality of its uncertainty layer.
+3. **Events limited to Yaku 2023 and Niño Costero 2017.** An "other event" option (any start
+   date, no reference map) was dropped: it is outside the RF1 test and has no reference for RF5.
+
+**UI wording rules carried into the app.** "Área inundada" only for the RF6 quantity, otherwise
+"agua detectada" (WRITING_RULES §11.12); every on-screen fact carries its source; map metrics are
+labelled as not the thesis numbers (those come from the frozen pass); limits stated on screen
+(research prototype, preliminary UNOSAT labels, faint-water misses, low uncertainty on
+low-contrast water, worse calibration near edges).
+
+**Feeds.** Chapter III §3.1.9 (development: modules, model choice, uncertainty layer), §3.2.6.
