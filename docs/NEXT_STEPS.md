@@ -9,7 +9,14 @@ Chapters I–II: drafted, three external reviews applied. Chapter III: §3.1.1�
    MNDWI agree. Chapter III states the caveat but gives no number (whole-thesis review,
    2026-10-17). Compute from existing data how much of the EMS-labelled area is dropped and how
    that could inflate the 2017 IoU; add one sentence + `% fuente:` to §3.1.7 (2017 subsection).
-2. **The system (objective 3, HE3).** Build it, then measure RF1–RF7 and the time per tile with
+2. **The system (objective 3, HE3).** Built 2026-10-18 (`src/floodseg/system/`, `app/`; run:
+   `uv run uvicorn floodseg.system.server:app --port 8000` + `cd app && pnpm dev`). Working with
+   real data on 17MNP: RF1–RF4, RF5 (2023 only), RF6 (17MNP pre-event done), RF7. Left: authors'
+   decisions in METHODS_NOTES 2026-10-18 (RF6 pre-event rules, sea in total water, 2017 event
+   start); RF5 3-decimal check vs `score_frozen.py`; 2017 EMS reference; trHM comparison layer;
+   pre-event scenes for the other 5 tiles; RF1 rectangle check in `server.log`; timing harness
+   (`timing_runs.csv`, `networkQuality`, assert `archive_reused == false`, tagged commit); stale
+   "no thesis result" docstrings in `scripts/viewer/`. Then measure RF1–RF7 and the time per tile with
    `docs/system_evaluation_protocol.md` (6 tiles × 3 repetitions, median ≤ 15 min per tile; report
    all times and the maximum). No result text before measuring (WRITING_RULES §11.11).
 3. **Chapter III parts that wait for the system:** §3.1.9 (now a commented placeholder);
