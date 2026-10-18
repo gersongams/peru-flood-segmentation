@@ -49,7 +49,7 @@ Started 2026-10-17. This file is the ledger for `thesis/2_CAPITULO3/Capitulo3.te
   - U-Net − Prithvi = −0.164 [−0.229, −0.102];
   - U-Net − TerraMind = −0.050 [−0.093, 0.002].
 - **Verdict: supported for Prithvi.** On Sen1Floods11 no difference was detected, and in Peru Prithvi is clearly above U-Net.
-- **Not established for TerraMind.** The point estimate goes the hypothesised way, but the Peru CI includes 0, and its margin (0.065) is about one TerraMind seed std on `peru-test` (0.055).
+- **Not established for TerraMind.** The point estimate goes the hypothesised way, but the Peru CI includes 0, and its margin (0.064; full precision 0.2568 − 0.1924) is about one TerraMind seed std on `peru-test` (0.055).
 - 2017 (101 chips), source-only: U-Net − Prithvi −0.020 [−0.048, 0.002]; U-Net − TerraMind −0.017 [−0.066, 0.022]. Not separable.
 
 ### HE2. Errors, adaptation, calibration
@@ -83,9 +83,9 @@ Mapping of the named strata (pre-specified strata families): cloud edges = dista
 | *not named:* label edge ≤ 1 px (2.9 %) | 13.48 | 6.43 | 20.06 | yes, all |
 | *not named:* permanent water (2.5 %) | 2.62 | 1.32 | 3.28 | U-Net and Prithvi |
 
-The 5–20 px band alone gives 0.77 / 1.76 / 0.77 (Tabla 3.4); the < 5 px band alone reaches 4.41 for TerraMind but holds 0.11 % of pixels and 0.47 % of its errors. Neither changes the verdict.
+The cloud-edge stratum is the pooled < 20 px band, as defined in `docs/failure_analysis_dev.md` Finding 4 and approved with the "bordes de nubes" wording; `scripts/error_shares_dev.py` now writes it as a "<20 px" row, and Tabla 3.4 uses it. The sub-bands are not separate strata: 5–20 px alone gives 0.77 / 1.76 / 0.77, and < 5 px alone 4.41 for TerraMind (0.11 % of pixels).
 
-**Verdict: not supported for the named strata.** Errors do concentrate in few strata, but in the label edge and permanent water. Of the three named strata only flooded vegetation reaches 2× (two of three models) and it holds under 1 % of the errors. Desert or coast matters only as where the source models' false positives sit (FPR source 0.026 vs Peru 0.003, U-Net). Complementary: the Peru-trained models show the same pattern (edge 20.35–23.04×, permanent water 4.85–5.79×, herbaceous wetland 4.60–4.78×, cloud < 20 px 0.93–1.14×).
+**Verdict: partly supported** (applying the approved ≥ 2× rule literally). Errors concentrate in few strata, mostly the label edge and permanent water, which are not named. Of the three named strata only flooded vegetation reaches 2×, for two of three models; that it holds under 1 % of the errors is interpretation, not part of the criterion. Desert or coast matters only as where the source models' false positives sit (FPR source 0.026 vs Peru 0.003, U-Net). Complementary: the Peru-trained models show the same pattern (edge 20.35–23.04×, permanent water 4.85–5.79×, herbaceous wetland 4.60–4.78×, cloud < 20 px 0.93–1.14×).
 
 **(b) Unsupervised adaptation raises water IoU over the unadapted model (CI > 0) without reaching the Peru-trained model.**
 - **2023 `peru-test`:**

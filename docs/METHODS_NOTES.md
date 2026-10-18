@@ -2442,3 +2442,21 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 **Caveats.** Dev only, descriptive, no CI; criterion fixed after seeing results, to be reported as post hoc in §3.3.
 
 **Feeds.** Chapter III §3.3 (HE2a), §3.2.
+
+## 2026-10-17: Chapter III §3.3 (Contrastación) drafted; HE2(a) verdict corrected
+
+**What was done.** §3.3 was written in `thesis/2_CAPITULO3/Capitulo3.tex` with a summary table (`tab:contrastacion`). Each specific hypothesis is split into the claims it contains (1a, 1b, 2a, 2b, 2c), each contrasted separately. Verdict terms are defined once: *se confirma*, *no se confirma*, *se refuta* (CI excludes 0 in the opposite direction), *no pudo contrastarse*. HE3 and the general hypothesis: one sentence saying they are pending the system measurement, plus a commented placeholder (WRITING_RULES §11.11).
+
+**Correction to the entry "HE2(a) operationalized" above.**
+- The verdict recorded there ("not supported for the named strata") did not apply the approved ≥ 2× rule literally. Herbaceous wetland is 3.27× (U-Net) and 4.32× (Prithvi), so one named stratum meets the rule for two models. Corrected verdict: **partly supported**. The "< 1 % of errors" point is interpretation, not a criterion.
+- The note that the < 5 px cloud band "does not change the verdict" was wrong under ≥ 2× (TerraMind 4.41). The cloud-edge stratum is the pooled < 20 px band, fixed before this analysis (`docs/failure_analysis_dev.md` Finding 4; "bordes de nubes" entry, 2026-10-17). Pooled ratios 0.78 / 1.80 / 0.77.
+- `scripts/error_shares_dev.py` now adds the pooled "<20 px" row to `error_shares.csv`. Tabla 3.4 and the §3.1.5 text now use it: 8.4 % of pixels; Peru-trained 9.6 / 8.0 / 7.8 % of errors, source 6.5 / 15.1 / 6.5 % (was the 5–20 px band, 8.3 %).
+
+**Other number checks.**
+- HE1b TerraMind vs U-Net drop difference is 0.064 at full precision (0.2568 − 0.1924), not 0.065; ledger fixed.
+- TerraMind trFDA − Peru-trained TerraMind on `peru-test` is 0.106 (0.8150 − 0.7085); no paired CI computed, and none was added after the test pass.
+- HE2c on `peru-test`: temperature alone and ensemble alone each lower ECE versus single in all six frozen rows, all pixels and near edges. The combination is not always lowest (U-Net trHM 0.60 vs 0.48 % with temperature alone). Frozen-row temperatures (per seed and ensemble) 1.82–2.22 / 1.24–1.52 / 2.62–3.23 (`temperatures.json`).
+
+**Verdicts in the thesis.** 1a coherent (no difference detected; CIs reach 0.062 / 0.051, no equivalence margin); 1b partly (Prithvi yes, TerraMind not established); 2a partly (post hoc criterion, dev); 2b confirmed on 2023 for U-Net and TerraMind, refuted on 2017 (label caveat), not testable for Prithvi; 2c confirmed for the frozen rows, with exceptions outside them (Peru-trained Prithvi AUROC 0.439; dev low-contrast and < 1 ha strata); HE2 overall partly; HE3 pending.
+
+**Feeds.** Chapter III §3.3; §3.2 next.
