@@ -2659,10 +2659,11 @@ chips of that date).
 Pre-event image: candidates = all L1C acquisitions of the tile in the 60 days before the event
 start; each ranked on a 200 m Process API preview (B02, B11, dataMask, harmonized DN) by its
 thick-cloud share among valid pixels. Two operational details not spelled out in the protocol,
-fixed now before any measurement: (1) candidates with < 50 % of the tile valid are skipped —
+implemented provisionally and **pending the authors' confirmation** (no measurement yet): (1) candidates with < 50 % of the tile valid are skipped —
 they are the adjacent orbit, which covers only about 25 % of 17MNP, and would count as "clear"
 with almost no data; (2) ties go to the date closest to the event. 17MNP: 23 candidates
-(2023-01-03 to 2023-03-03); chosen 2023-01-26 (thick cloud 0.04 %, valid 94 %); record
+(2023-01-03 to 2023-03-03); chosen 2023-01-26 (thick cloud 0.04 %, valid 94 %), narrowly ahead
+of 2023-03-02 (0.05 %), so the reference image is 37 days before the event rather than 2; record
 `outputs/system/scenes/preevent_17MNP_2023-03-04.json`. Preview cost: 23 requests at 549 × 549 px,
 3 bands (a few processing units in total). The pre-event scene is processed like any scene and
 cached; it is outside the HE3 timer.
@@ -2681,3 +2682,36 @@ the exact tile bounds (499 980, 9 290 200, 609 780, 9 400 000); GeoJSON opens in
 polygons, area 786.2 km² = the RF6 flooded area. Build time 22 s, 48 MB.
 
 **Feeds.** Chapter III §3.1.9–3.1.11.
+
+
+## 2026-10-18: System checks after review — RF5 reference consistency, seams, archive reuse, tile generation
+
+**RF5 reference consistency.** On the 49 `peru-test` chips fully inside 17MNP (2023-03-22), the
+system map scores IoU 0.6171 against the chip label files and 0.6171 against the tile-rasterized
+UNOSAT reference (with the system mask): the tile rasterization reproduces the labels. The frozen
+per-seed IoU on the same chips is 0.6152 / 0.6162 / 0.6123 (mean 0.6146). The test-partition
+scope of the app gives 0.7007 because it also includes the in-tile parts of border test chips
+(0.53 M px, IoU 0.998, mostly lagoon). The gap to the thesis 0.828 (172 chips, two dates,
+per-seed pooled) is subset difficulty, not an error. The RF5 3-decimal check against
+`scripts/score_frozen.py` still has to be implemented with score_frozen's pooling.
+
+**Seams of the chip-aligned windows (measured).** On 17MNP 2023-03-22, the mean absolute change
+of probability between adjacent pixels is 0.018 across window edges vs 0.0035 elsewhere (columns;
+rows 0.018 vs 0.0033); uncertainty 0.013 vs 0.0023. The water mask (p > 0.5) changes across a
+window edge at 1.5 % of edge pixels vs 0.35 % elsewhere. Small but measurable; the cost of the
+2026-10-18 window decision. To report in the thesis with the decision.
+
+**Archive reuse.** `pipeline.run` reused a product archive left on disk (development
+convenience). It is now opt-in (`--reuse-archive`, CLI only); the app path always downloads unless
+the scene outputs are cached, and `meta.json` records `archive_reused`. The timing harness must
+assert `archive_reused == false`.
+
+**"Tile generation" inside the HE3 timer.** The protocol's timed path includes "tile generation
+for the map". In this system it is the build of the COG overviews inside the `write` stage; map
+tiles are then rendered on request from the COGs (rio-tiler), as for any cached scene. The timer
+stops when the COGs are closed, i.e. when the map can be served.
+
+**Open for the authors:** RF6 pre-event rules (50 % valid, tie → latest); whether "agua
+detectada" should exclude the sea; the 2017 event start date for RF6 (the server's 2017-03-15 is
+the timeline range, not a sourced event start; the Niño Costero rains began earlier, so a 60-day
+window ending on 2017-03-14 could pick a flooded image).

@@ -10,7 +10,7 @@ Outputs in outputs/system/scenes/<tile>_<date>/:
   meta.json        product, offsets, model checkpoints, commit, stage times
 The product archive is deleted after processing; the outputs are the cache (RF2b).
 
-    uv run python -m floodseg.system.pipeline 17MNP 2023-03-22
+    uv run python -m floodseg.system.pipeline 17MNP 2023-03-22 [--keep-archive] [--reuse-archive]
 """
 
 import json
@@ -86,7 +86,7 @@ def _rgb(stack: np.ndarray, nodata: np.ndarray) -> np.ndarray:
 
 
 def run(tile: str, date: str, ensemble: Ensemble, progress: Progress | None = None,
-        keep_archive: bool = False) -> dict:
+        keep_archive: bool = False, reuse_archive: bool = False) -> dict:
     """Process one tile and date end to end. Returns the meta dict (also written to meta.json)."""
     say = progress or (lambda s, f, d="": None)
     out = scene_dir(tile, date)
@@ -112,8 +112,9 @@ def run(tile: str, date: str, ensemble: Ensemble, progress: Progress | None = No
 
     archive = DOWNLOADS / f"{product['Name']}.zip"
     say("download", 0.0, product["Name"])
-    reused = archive.exists()  # development only: timed runs start from an empty cache (clear())
+    reused = reuse_archive and archive.exists()  # development only (CLI flag); the app always downloads
     if not reused:
+        archive.unlink(missing_ok=True)
         cdse.download(product, archive, tok, lambda d, n: say("download", d / n if n else 0.0, f"{d >> 20} / {n >> 20} MB"))
     t = mark("download", t)
 
@@ -171,6 +172,7 @@ def clear(tile: str, date: str) -> None:
 if __name__ == "__main__":
     tile, date = sys.argv[1], sys.argv[2]
     keep = "--keep-archive" in sys.argv
+    reuse = "--reuse-archive" in sys.argv
     ens = Ensemble("peru/unet")
     last = {}
 
@@ -179,5 +181,5 @@ if __name__ == "__main__":
             last[stage] = frac
             print(f"[{datetime.now():%H:%M:%S}] {stage:<10} {frac:6.1%} {detail}", flush=True)
 
-    m = run(tile, date, ens, show, keep_archive=keep)
+    m = run(tile, date, ens, show, keep_archive=keep, reuse_archive=reuse)
     print(json.dumps({k: m[k] for k in ("product", "times_s", "total_s", "pixels")}, indent=2))
