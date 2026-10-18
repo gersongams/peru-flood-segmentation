@@ -40,7 +40,7 @@ Started 2026-10-17. This file is the ledger for `thesis/2_CAPITULO3/Capitulo3.te
 **(a)** "In Sen1Floods11 no significant difference is expected (95 % CI)."
 - Evidence on Sen1Floods11 `test`:
   - U-Net − Prithvi = +0.013 [−0.022, 0.062];
-  - U-Net − TerraMind = +0.015 [−0.019, 0.051] (`bootstrap_diffs.csv`, `test`).
+  - U-Net − TerraMind = +0.015 [−0.018, 0.051] (`bootstrap_diffs.csv`, `test`).
 - **Verdict: consistent with the hypothesis.** Both CIs include 0. Write "no se detectó una diferencia" (§11.8), not equivalence.
 
 **(b)** "In Peru the foundation models show a smaller IoU drop than U-Net."
@@ -78,7 +78,7 @@ Started 2026-10-17. This file is the ledger for `thesis/2_CAPITULO3/Capitulo3.te
 **(c) Uncalibrated probabilities are overconfident; temperature scaling and ensembles reduce ECE; error AUROC > 0.5.**
 - **Overconfidence: supported for U-Net and Prithvi.**
   - Fitted T > 1 for every Peru-trained model on dev: U-Net 2.35, TerraMind 1.49, Prithvi 3.33.
-  - In-domain on Sen1Floods11 `valid`, TerraMind is close to calibrated (T 1.01).
+  - In-domain on Sen1Floods11 `valid`, the final source models are overconfident too (T: U-Net 2.02–2.12, TerraMind 1.13–1.36, Prithvi 2.80–3.23; `temperatures.json`). TerraMind is the closest to calibrated, but not calibrated. (The 1.01 quoted earlier belongs to the pre-sweep seed-0 model.)
 - **ECE reduction: supported on `peru-test`.** Ensemble plus Sen1Floods11 temperature lowers ECE against single models for every frozen row (all pixels and near edges; `calibration.md`). Point estimates only; no CIs (Chapter I §1.4).
 - **AUROC > 0.5: holds overall for every frozen phase-D row on `peru-test` (0.598–0.783 single).**
   - Fails for Peru-trained Prithvi on `peru-test` (0.439 single, 0.456 ensemble).
