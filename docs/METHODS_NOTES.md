@@ -2475,3 +2475,22 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 **Also.** The §3.3 verdict terms used `\emph`; replaced with «» (WRITING_RULES §9: no italics except foreign words). Table 3.6 group headers changed from italic to bold for the same reason.
 
 **Feeds.** Chapter III §3.2. The authors rewrite §3.2 in their own words (§9).
+
+## 2026-10-17: Claim audit of Chapter III §3.2–3.3 and fixes
+
+**What was done.** An independent audit recomputed every number in §3.2 and §3.3 from the primary files and checked every citation against Chapter II and the literature notes. Numbers: no double rounding, no sign errors, no CI from the wrong row. It found 9 claim-scope errors and 7 wording issues; all were fixed (thesis commit after `8ed04d2`).
+
+**Errors fixed.**
+- Prithvi "no method improved it": only AdaBN and histogram matching (test and training time) were run on Prithvi; now "los métodos probados".
+- Fine-tuned vs Peru-only "indistinguishable in every model" holds on the 2023 test only; on 2017 (101 chips) U-Net −0.015 [−0.033, −0.001] and Prithvi +0.002 [0.0003, 0.0036] exclude 0. Now scoped to 2023.
+- HE2a "largest concentrations … and permanent water": false by ratio (herbaceous wetland and the 2–3 px edge band are higher; TerraMind permanent water 1.32 < 2). Rewritten: edge ≤ 1 px is the largest concentration (13.48 / 6.43 / 20.06; 38.8 / 18.5 / 57.8 % of errors); permanent water described by error share (6.5 / 3.3 / 8.1 %) with its ratios.
+- Dry-soil brightness 1.38–1.68 SD is peru-dev only, visible bands and B12; scoped.
+- High-confidence errors (AUROC 0.41–0.56) are the Peru-trained U-Net and Prithvi only; scoped.
+- Self-training vs literature: without the evaluation-time AdaBN pass, self-training beat the source model in both backbones (0.877 vs 0.836; 0.758 vs 0.703), so the "rest of the drop" sentence had no referent. Rewritten: the contradiction is mostly the AdaBN pass; the remaining gain was smaller than alignment.
+- Shastry: their 74 % is area underestimated against a hydraulic model and their "vegetation" is NLCD classes, not herbaceous wetland. Rewritten as "not testable here" (under-cloud pixels excluded; image-derived labels do not record hidden water).
+- Kolluru: the same model under-detected against DSWx-HLS (Chapter II), so the error direction depends on the reference; rewritten.
+- HE2c exceptions: Peru-trained Prithvi also fails on 2017 (AUROC 0.390, ensemble 0.419; `calibration.md`, no_2023_train_overlap); added with the label caveat.
+
+**Wording fixed.** 2017 label caveat added in the §3.2 synthesis, the HE1b 2017 sentence, the HE2 summary and the `tab:contrastacion` note; "una U-Net de otro estudio" (Kaushik); ensembles tied to Lakshminarayanan's uncertainty claim, not ECE; "otra agrupación" (Banerjee) removed as unsupported; "no siempre se traslada"; AUROC range labelled as individual models; units (%) on published values; PANGAEA locator matches Chapter II; HE1b now states the conservative bound (−0.022 and 0.102 → 0.080), labelled as an approximation and not a CI.
+
+**Feeds.** Chapter III §3.2–3.3.
