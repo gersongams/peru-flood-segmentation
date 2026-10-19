@@ -39,6 +39,11 @@
       <a class="t-back" href="/">← Volver a la aplicación</a>
     </aside>
     <div class="t-cursor" id="t-cursor" hidden></div>
+    <figure class="t-mini" aria-label="Minimapa de la zona">
+      <canvas id="t-mini" width="440" height="440" title="Haz clic para centrar la vista"></canvas>
+      <figcaption><span>Zona satelital · 50 × 50 km</span><span id="t-mini-date" class="mono"></span></figcaption>
+      <span class="t-north" aria-hidden="true">N</span>
+    </figure>
     <div class="t-attr">Copernicus DEM GLO-30 · Contiene datos modificados de Copernicus Sentinel (2023) · Arrastra para girar, rueda para acercar</div>
     <script type="module" src="/src/terrain/main.ts"></script>
   </body>

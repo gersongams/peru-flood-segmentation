@@ -143,6 +143,97 @@ async function main() {
     return { w: img.width, h: img.height, data: ctx.getImageData(0, 0, img.width, img.height).data };
   }));
 
+  // ---------- minimap: satellite image + water of the current date + camera footprint
+  const mini = $("t-mini") as HTMLCanvasElement;
+  const mctx = mini.getContext("2d")!;
+  const M = mini.width;
+  const rgbImg = await createImageBitmap(await (await fetch(`${BASE}rgb.jpg`)).blob(), { resizeWidth: M, resizeHeight: M });
+  // Water layers at minimap resolution (downscale the masks first; ~190 k pixels each).
+  const small = await Promise.all(meta.dates.map(async (d) => {
+    const bmp = await createImageBitmap(await (await fetch(`${BASE}water_${d.date}.png`)).blob(), { resizeWidth: M, resizeHeight: M, resizeQuality: "medium" });
+    const c = new OffscreenCanvas(M, M);
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(bmp, 0, 0);
+    return ctx.getImageData(0, 0, M, M).data;
+  }));
+  const waterLayers = small.map((m, k) => {
+    const c = new OffscreenCanvas(M, M);
+    const img = new ImageData(M, M);
+    for (let i = 0; i < M * M; i++) {
+      if (m[i * 4] <= 127) continue;
+      const old = k > 0 && small[0][i * 4] > 127;
+      const o = i * 4;
+      img.data[o] = old ? 143 : 29; img.data[o + 1] = old ? 187 : 79; img.data[o + 2] = old ? 227 : 154; img.data[o + 3] = 235;
+    }
+    c.getContext("2d")!.putImageData(img, 0, 0);
+    return c;
+  });
+  // World (x east, z south, km, centred) <-> minimap pixels.
+  const toMini = (x: number, z: number): [number, number] => [((x + W / 2) / W) * M, ((z + H / 2) / H) * M];
+  const ground0 = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const corner = new THREE.Vector3();
+  const footprint = (): [number, number][] => {
+    const pts: [number, number][] = [];
+    for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+      ray.setFromCamera(new THREE.Vector2(cx, cy), camera);
+      if (ray.ray.intersectPlane(ground0, corner) && corner.distanceTo(camera.position) < 300) pts.push(toMini(corner.x, corner.z));
+      else {
+        // Ray above the horizon: clamp to a far point along its horizontal direction.
+        const d = ray.ray.direction.clone().setY(0).normalize().multiplyScalar(200).add(camera.position);
+        pts.push(toMini(d.x, d.z));
+      }
+    }
+    return pts;
+  };
+  const drawMini = () => {
+    mctx.clearRect(0, 0, M, M);
+    mctx.drawImage(rgbImg, 0, 0);
+    mctx.globalAlpha = 0.9;
+    mctx.drawImage(waterLayers[current], 0, 0);
+    mctx.globalAlpha = 1;
+    const fp = footprint();
+    mctx.save();
+    mctx.beginPath();
+    mctx.rect(0, 0, M, M);
+    mctx.clip();
+    mctx.beginPath();
+    fp.forEach(([x, y], k) => (k ? mctx.lineTo(x, y) : mctx.moveTo(x, y)));
+    mctx.closePath();
+    mctx.fillStyle = "rgba(255, 255, 255, 0.16)";
+    mctx.fill();
+    mctx.lineWidth = 5;
+    mctx.strokeStyle = "#c8553d";
+    mctx.stroke();
+    mctx.restore();
+    // Camera position and heading.
+    const [px, py] = toMini(camera.position.x, camera.position.z);
+    const [tx, ty] = toMini(controls.target.x, controls.target.z);
+    const ang = Math.atan2(ty - py, tx - px);
+    const cx = Math.min(M - 10, Math.max(10, px)), cy = Math.min(M - 10, Math.max(10, py));
+    mctx.save();
+    mctx.translate(cx, cy);
+    mctx.rotate(ang);
+    mctx.beginPath();
+    mctx.moveTo(14, 0); mctx.lineTo(-8, -9); mctx.lineTo(-4, 0); mctx.lineTo(-8, 9); mctx.closePath();
+    mctx.fillStyle = "#2a2520";
+    mctx.strokeStyle = "#fff";
+    mctx.lineWidth = 2;
+    mctx.fill(); mctx.stroke();
+    mctx.restore();
+    mctx.beginPath();
+    mctx.arc(tx, ty, 5, 0, Math.PI * 2);
+    mctx.fillStyle = "#c8553d";
+    mctx.fill();
+  };
+  mini.addEventListener("click", (e) => {
+    const r = mini.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * W - W / 2;
+    const z = ((e.clientY - r.top) / r.height) * H - H / 2;
+    const dx = x - controls.target.x, dz = z - controls.target.z;
+    controls.target.x += dx; controls.target.z += dz;
+    camera.position.x += dx; camera.position.z += dz;
+  });
+
   // ---------- date controls and playback
   let current = 1 < meta.dates.length ? 1 : 0;
   const datesEl = $("t-dates");
@@ -160,6 +251,7 @@ async function main() {
     waterMat.uniforms.uT.value = 0;
     anim = { from: current, to: i, t0: performance.now() };
     current = i;
+    $("t-mini-date").textContent = meta.dates[i].label;
     buttons.forEach((b, k) => b.classList.toggle("on", k === i));
     const d = meta.dates[i];
     $("t-water").textContent = `${d.water_km2.toLocaleString("es-PE")} km²`;
@@ -229,8 +321,9 @@ async function main() {
       if (t >= 1) anim = null;
     }
     controls.update();
+    drawMini();
     renderer.render(scene, camera);
   });
 }
 
-main();
+main().catch((e) => console.error("terrain:", e));
