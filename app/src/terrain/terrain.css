@@ -1,0 +1,37 @@
+:root {
+  --bg: #ece6dc;
+  --panel: rgba(246, 242, 235, 0.95);
+  --line: #ddd4c6;
+  --ink: #2a2520;
+  --ink-2: #6b6257;
+  --water: #1d4f9a;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  color: var(--ink);
+  font-size: 13px;
+}
+html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
+#scene { position: fixed; inset: 0; }
+.mono { font-family: "IBM Plex Mono", monospace; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+.t-panel { position: fixed; top: 16px; left: 16px; width: 300px; max-width: calc(100% - 32px); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: 0 6px 24px rgba(60, 45, 30, 0.14); display: flex; flex-direction: column; gap: 8px; }
+.t-kicker { font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.t-panel h1 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+.t-sub { margin: 0 0 4px; color: var(--ink-2); line-height: 1.45; }
+.t-label { font-weight: 600; margin-top: 6px; display: flex; justify-content: space-between; }
+.t-seg { display: flex; gap: 2px; background: #efe9df; padding: 3px; border-radius: 9px; border: 1px solid var(--line); }
+.t-seg button { flex: 1; border: 0; background: transparent; padding: 8px 6px; border-radius: 7px; color: var(--ink-2); font-weight: 500; }
+.t-seg button.on { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(60, 45, 30, 0.12); }
+.t-btn { min-height: 38px; border-radius: 9px; border: 0; background: var(--ink); color: #f6f2eb; font-weight: 600; }
+input[type="range"] { width: 100%; accent-color: var(--ink); }
+.t-stat { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.t-stat > div { background: #efe9df; border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+.t-lbl { display: block; color: var(--ink-2); font-size: 11.5px; }
+.t-val { font-family: "IBM Plex Mono", monospace; font-size: 17px; font-weight: 500; }
+.t-new { color: var(--water); }
+.t-legend { display: flex; flex-direction: column; gap: 5px; color: var(--ink-2); font-size: 12px; margin-top: 4px; }
+.t-legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 7px; vertical-align: -1px; }
+.t-back { color: var(--water); font-weight: 600; text-decoration: none; margin-top: 4px; }
+.t-cursor { position: fixed; pointer-events: none; background: rgba(36, 32, 28, 0.92); color: #f3eee6; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.5; font-family: "IBM Plex Mono", monospace; transform: translate(14px, 14px); }
+.t-attr { position: fixed; right: 12px; bottom: 10px; font-size: 11px; color: var(--ink-2); background: rgba(246, 242, 235, 0.85); padding: 4px 8px; border-radius: 6px; }
+@media (max-width: 700px) { .t-panel { top: auto; bottom: 36px; width: auto; right: 16px; } }

@@ -34,3 +34,4 @@ app/node_modules/
 app/dist/
 app/public/data
 .playwright-mcp/
+app/public/terrain/

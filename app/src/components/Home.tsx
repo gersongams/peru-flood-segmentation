@@ -37,6 +37,7 @@ export default function Home({ event, scenes, go }: Props) {
               {scenes.length ? "Ver el mapa del evento" : "Empezar un análisis"}
             </button>
             <button className="btn" style={{ minHeight: 44 }} onClick={() => go("nuevo")}>Procesar otra zona o fecha</button>
+            <a className="btn" style={{ minHeight: 44, textDecoration: "none", color: "inherit" }} href="/terrain.html">Vista 3D de Bajo Piura (demo)</a>
           </div>
           {scenes.length > 0 && (
             <p className="hint" style={{ marginTop: 12 }}>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bajo Piura en 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="scene"></div>
+    <aside class="t-panel" aria-label="Controles">
+      <div class="t-kicker">Prototipo · vista 3D</div>
+      <h1 id="t-title">Bajo Piura y Sechura</h1>
+      <p class="t-sub">Relieve Copernicus DEM (30 m) con el agua detectada por la IA en cada fecha Sentinel-2.</p>
+
+      <div class="t-label">Fecha</div>
+      <div class="t-seg" id="t-dates" role="group" aria-label="Fecha"></div>
+      <button id="t-play" class="t-btn">▶ Reproducir</button>
+
+      <div class="t-stat">
+        <div><span class="t-lbl">Agua detectada</span><span class="t-val" id="t-water">—</span></div>
+        <div><span class="t-lbl">Aumento vs. pre-evento</span><span class="t-val t-new" id="t-new">—</span></div>
+      </div>
+
+      <label class="t-label" for="t-exag">Exageración vertical <span id="t-exag-v" class="mono"></span></label>
+      <input id="t-exag" type="range" min="1" max="80" value="30" />
+
+      <div class="t-label">Suelo</div>
+      <div class="t-seg" id="t-style" role="group" aria-label="Estilo del suelo">
+        <button data-style="sat" class="on">Satélite</button>
+        <button data-style="relief">Relieve</button>
+      </div>
+
+      <div class="t-legend">
+        <span><i style="background:#1d4f9a"></i>Agua nueva (inundación)</span>
+        <span><i style="background:#8fbbe3"></i>Agua ya presente antes del evento</span>
+      </div>
+      <a class="t-back" href="/">← Volver a la aplicación</a>
+    </aside>
+    <div class="t-cursor" id="t-cursor" hidden></div>
+    <div class="t-attr">Copernicus DEM GLO-30 · Contiene datos modificados de Copernicus Sentinel (2023) · Arrastra para girar, rueda para acercar</div>
+    <script type="module" src="/src/terrain/main.ts"></script>
+  </body>
+</html>
