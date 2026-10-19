@@ -2715,3 +2715,16 @@ stops when the COGs are closed, i.e. when the map can be served.
 detectada" should exclude the sea; the 2017 event start date for RF6 (the server's 2017-03-15 is
 the timeline range, not a sourced event start; the Niño Costero rains began earlier, so a 60-day
 window ending on 2017-03-14 could pick a flooded image).
+
+## 2026-10-18: 3D terrain spike (visualization only, no thesis result)
+
+At the authors' request, a Three.js view of Bajo Piura / Sechura (`app/terrain.html`, data from
+`scripts/system/terrain_export.py`). Zone: UTM 17S 515 000–565 000 E, 9 335 000–9 385 000 N
+(50 × 50 km, inside 17MNP, around the Sechura depression). Relief: Copernicus DEM GLO-30
+(`data/aux/cop_dem`), bilinear to a 512 × 512 grid (~98 m), sea clamped to 0 m; elevation range
+0–101 m, shown with adjustable vertical exaggeration (default ×30). Ground texture: Sentinel-2
+true colour of the clear pre-event scene (2023-01-26). Water per date: system water map
+(p > 0.5, valid pixels) of 2023-01-26, 2023-03-22 and 2023-04-01; 38.8 / 400.7 / 401.3 km² inside
+the zone. The panel's "aumento" is the difference of totals, not the RF6 flooded area (which is
+pixel-wise and valid in both dates); it is labelled so. GLO-30 is a surface model (DSM), so
+dunes and vegetation are part of the relief. Not part of RF1–RF7 or HE3.
