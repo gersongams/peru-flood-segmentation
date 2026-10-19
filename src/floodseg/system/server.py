@@ -59,6 +59,14 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
+def _compare_ensemble() -> Ensemble:
+    """The label-free comparison model (trHM), loaded on first use."""
+    if _state.get("compare") is None:
+        _state["compare"] = Ensemble("trhm/unet")
+        log.info("comparison model loaded: trhm/unet")
+    return _state["compare"]
+
+
 @app.on_event("startup")
 def _load_models() -> None:
     t = time.perf_counter()
@@ -74,6 +82,7 @@ class JobRequest(BaseModel):
     tile: str
     date: str
     bounds: list[float] | None = None  # view rectangle [W, S, E, N], WGS84 (logged; the whole tile is processed)
+    compare: bool = False  # also run the label-free model (trHM) after the timed path
 
 
 def _run_job(job: dict) -> None:
@@ -88,7 +97,8 @@ def _run_job(job: dict) -> None:
     with _run_lock:
         job["status"] = "running"
         try:
-            meta = pipeline.run(job["tile"], job["date"], _state["ensemble"], progress)
+            meta = pipeline.run(job["tile"], job["date"], _state["ensemble"], progress,
+                                compare=_compare_ensemble() if job.get("compare") else None)
             job["status"], job["scene"] = "done", f"{job['tile']}_{job['date']}"
             job["product"] = meta["product"]
         except Exception as e:  # reported to the app; external errors are retried by the operator
@@ -108,9 +118,10 @@ def create_job(req: JobRequest) -> dict:
         raise HTTPException(400, f"unknown event {req.event}")
     jid = uuid.uuid4().hex[:12]
     cached = pipeline.is_cached(req.tile, req.date)
-    job = {"id": jid, "event": req.event, "tile": req.tile, "date": req.date, "bounds": req.bounds,
+    stage_ids = pipeline.STAGES + (["compare"] if req.compare else [])
+    job = {"id": jid, "event": req.event, "tile": req.tile, "date": req.date, "bounds": req.bounds, "compare": req.compare,
            "received": received, "t0": t0, "cached": cached, "status": "queued", "error": None,
-           "stages": {s: {"status": "pending", "fraction": 0.0, "detail": "", "seconds": None} for s in pipeline.STAGES}}
+           "stages": {s: {"status": "pending", "fraction": 0.0, "detail": "", "seconds": None} for s in stage_ids}}
     _jobs[jid] = job
     log.info("job %s received tile=%s date=%s bounds=%s cached=%s", jid, req.tile, req.date, req.bounds, cached)
     if cached:  # RF2b: load from the cache, no download
@@ -197,6 +208,7 @@ def scenes() -> list[dict]:
     for d in sorted(pipeline.SCENES.glob("*/meta.json")):
         m = json.loads(d.read_text())
         out.append({"scene": d.parent.name, **{k: m[k] for k in ("tile", "date", "product", "pixels", "total_s")},
+                    "comparison": m.get("comparison"),
                     "bounds": _bounds_wgs84(d.parent.name)})
     return out
 
@@ -209,7 +221,8 @@ def _bounds_wgs84(scene: str) -> list[float]:
 
 # ---------------------------------------------------------------- map tiles
 
-LAYERS = {"rgb": "rgb.tif", "probability": "probability.tif", "uncertainty": "uncertainty.tif", "mask": "mask.tif"}
+LAYERS = {"rgb": "rgb.tif", "probability": "probability.tif", "uncertainty": "uncertainty.tif", "mask": "mask.tif",
+          "compare": "probability_compare.tif"}
 _EMPTY = None
 
 
@@ -229,6 +242,7 @@ def _ramp(v: np.ndarray, stops: list[tuple[float, tuple]]) -> np.ndarray:
 
 
 WATER = [(0.0, (150, 210, 245, 150)), (0.5, (60, 140, 220, 220)), (1.0, (14, 60, 160, 240))]
+COMPARE = [(0.0, (196, 181, 240, 150)), (0.5, (124, 92, 214, 220)), (1.0, (76, 40, 160, 240))]
 UNCERT = [(0.0, (253, 200, 120, 0)), (0.1, (253, 200, 120, 170)), (0.5, (150, 30, 90, 235))]
 
 
@@ -243,6 +257,11 @@ def _colorize(layer: str, data: np.ndarray, valid: np.ndarray) -> np.ndarray:
     if layer == "probability":
         p = v / pipeline.SCALE
         rgba = _ramp((p - 0.5) / 0.5, WATER)
+        rgba[(p <= 0.5) | ~valid] = 0
+        return rgba
+    if layer == "compare":
+        p = v / pipeline.SCALE
+        rgba = _ramp((p - 0.5) / 0.5, COMPARE)
         rgba[(p <= 0.5) | ~valid] = 0
         return rgba
     if layer == "uncertainty":
@@ -308,6 +327,8 @@ def tile(scene: str, layer: str, z: int, x: int, y: int) -> Response:
         raise HTTPException(404, f"unknown layer {layer}")
     path = pipeline.SCENES / scene / LAYERS[layer]
     if not path.exists():
+        if layer == "compare":
+            return Response(_empty_png(), media_type="image/png")
         raise HTTPException(404, f"no scene {scene}")
     try:
         with Reader(str(path)) as r:
@@ -316,7 +337,7 @@ def tile(scene: str, layer: str, z: int, x: int, y: int) -> Response:
         return Response(_empty_png(), media_type="image/png")
     data = img.data
     valid = np.asarray(img.mask) > 0
-    if layer in ("probability", "uncertainty"):
+    if layer in ("probability", "uncertainty", "compare"):
         valid &= data[0] != pipeline.NODATA16
     return _png(_colorize(layer, data, valid))
 
@@ -492,3 +513,14 @@ def export_scene(scene: str, layers: str = ",".join(export.LAYERS), bbox: str | 
     log.info("export %s layers=%s bbox=%s bytes=%d seconds=%.1f", scene, layers, bbox, len(data), time.perf_counter() - t0)
     return Response(data, media_type="application/zip",
                     headers={"Content-Disposition": f'attachment; filename="{scene}.zip"'})
+
+
+@lru_cache(maxsize=4)
+def _frozen(group: str) -> dict:
+    return reference.frozen_chip_metrics(group, "test")
+
+
+@app.get("/api/frozen-metrics")
+def frozen_metrics() -> dict:
+    """RF5: metrics of the selected model on all peru-test chips, computed by the system."""
+    return _frozen("peru/unet")

@@ -588,3 +588,17 @@ notebook". Commit: see this entry's commit.
 - Mac M4 Max, MPS; commit: uncommitted working tree (`git_commit` in `meta.json` ends in
   `-dirty`). These runs only check the pipeline; the timed HE3 runs follow the protocol at a tagged
   commit.
+
+## 2026-10-18 — System: RF5 chip check, trHM comparison run, pre-event and 1 Apr scenes
+
+- `uv run python scripts/system_rf5_check.py` → `outputs/system_eval/rf/rf5_chips.json`: the
+  system's counting code on all 172 `peru-test` chips (frozen `peru/unet` logits, chip labels,
+  per-seed pooled, mean over seeds) gives IoU 0.828048, precision 0.966298, recall 0.852683 —
+  identical to `outputs/phaseD/test/peru-test_groups.csv` (`full`). RF5 chip test: pass.
+- Through the app/API (server at the working tree of this day, uncommitted at run time):
+  17MNP 2023-04-01 (163 s; download 101.8 s), pre-event selection + 17MNP 2023-01-26 (197.5 s, of
+  which ranking 54.5 s), 17MNP 2023-03-22 re-run with the comparison model (timed path 428.8 s,
+  download 361.2 s; trHM after the timer 41.1 s). Server logs `outputs/system/server.log`,
+  `outputs/system/jobs.jsonl`; scene metadata `outputs/system/scenes/*/meta.json`.
+- Development runs, not the HE3 measurement. The measurement script is `scripts/system_timing.py`
+  (refuses to run on an untagged or dirty tree).

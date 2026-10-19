@@ -17,7 +17,7 @@ interface Props {
   onView?: (bounds: [number, number, number, number]) => void;
 }
 
-const ALL_IDS = ["rgb", "probability", "uncertainty", "mask", "reference", "errors"];
+const ALL_IDS = ["rgb", "probability", "compare", "uncertainty", "mask", "reference", "errors", "flood"];
 
 const BASEMAP: maplibregl.StyleSpecification = {
   version: 8,

@@ -2728,3 +2728,31 @@ true colour of the clear pre-event scene (2023-01-26). Water per date: system wa
 the zone. The panel's "aumento" is the difference of totals, not the RF6 flooded area (which is
 pixel-wise and valid in both dates); it is labelled so. GLO-30 is a surface model (DSM), so
 dunes and vegetation are part of the relief. Not part of RF1–RF7 or HE3.
+
+## 2026-10-18: RF5 chip check passes; HE3 timing harness written; trHM comparison layer
+
+**RF5 (chips).** `floodseg.system.reference.frozen_chip_metrics` counts tp / fp / fn with its own
+code (water if z > 0, labelled pixels, pooled over chips per seed, mean over seeds, as
+`scripts/score_frozen.py`). On all 172 `peru-test` chips with the frozen `peru/unet` logits:
+IoU 0.828048, precision 0.966298, recall 0.852683, equal to the thesis evaluator to 6 decimals
+(`outputs/system_eval/rf/rf5_chips.json`). The app shows these numbers in Referencia ("Todos los
+recortes de prueba"). The overlay part of RF5 (reference on the map with metrics) was shown
+working earlier the same day; RF5 is complete for 2023. 2017 (EMS) is still missing.
+
+**HE3 timing harness** (`scripts/system_timing.py`), written to the protocol §2: 6 tiles × 3
+repetitions interleaved (≥ 10 min between runs of the same tile), cache cleared before each run,
+`networkQuality -s -c` before each run (downlink in Mbps), job sent to the warm server as the app
+does, timer = server timestamps (request received → GeoTIFFs written), external failures retried
+at most 3 times and logged (`timing_failures.csv`), any other failure stops the run as a system
+failure, `archive_reused` must be false, refuses an untagged or dirty tree. Output
+`outputs/system_eval/timing_runs.csv` with the protocol columns plus stage times and product.
+Not run yet. Observation for planning: on this machine `networkQuality` reports ~560 Mbps while
+CDSE downloads ran at 2–8 MB/s (download 86–361 s per tile), so the CDSE side sets the time.
+
+**trHM comparison layer** (authors' decision 2026-10-18: default model + optional comparison).
+Opt-in per request ("Opciones avanzadas"). The second ensemble (`trhm/unet`, sha256 checked,
+loaded on first use) runs on the same in-memory stack **after** the HE3 timer stops (the stop
+stamp is written when the selected model's GeoTIFFs are closed) and writes
+`probability_compare.tif`; `meta.json` records it under `comparison`. Shown in purple as "IA sin
+etiquetas peruanas", off by default. 17MNP 2023-03-22: comparison water 1 437.7 km² vs 1 390.7 km²
+for the main model (valid pixels, sea included). Display only; no metric or selection uses it.

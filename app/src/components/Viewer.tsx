@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type Flood, type Scene } from "../api";
-import { LAYERS, type FloodEvent, type LayerId } from "../config";
+import { COMPARE_LAYER, LAYERS, type FloodEvent, type LayerId } from "../config";
 import { fmtDate, km2, num } from "../format";
 import { Info } from "./Icons";
 import MapView, { type LayerState } from "./MapView";
@@ -15,7 +15,7 @@ interface Props {
   onView?: (b: [number, number, number, number]) => void;
 }
 
-const initial = Object.fromEntries(LAYERS.map((l) => [l.id, { on: l.defaultOn, opacity: l.defaultOpacity }])) as Record<LayerId, LayerState>;
+const initial = Object.fromEntries([...LAYERS, COMPARE_LAYER].map((l) => [l.id, { on: l.defaultOn, opacity: l.defaultOpacity }])) as Record<LayerId, LayerState>;
 
 export default function Viewer({ event, scenes, scene, onScene, onNew, onView }: Props) {
   const [layers, setLayers] = useState(initial);
@@ -26,13 +26,15 @@ export default function Viewer({ event, scenes, scene, onScene, onNew, onView }:
     if (scene) api.flood(scene.scene).then(setFlood).catch(() => setFlood(null));
   }, [scene]);
   const px = scene?.pixels;
+  // Draw order bottom → top; the comparison layer sits under the main water layer.
+  const defs = scene?.comparison ? [LAYERS[0], COMPARE_LAYER, ...LAYERS.slice(1)] : LAYERS;
   const total = px ? px.valid + px.cloud + px.nodata : 0;
 
   return (
     <div className="viewer">
       <div className="main">
         <div className="mapwrap">
-          <MapView scene={scene} layers={layers} center={event.center} zoom={event.zoom} onView={onView} />
+          <MapView scene={scene} layers={layers} layerIds={defs.map((l) => l.id)} center={event.center} zoom={event.zoom} onView={onView} />
           {scene ? (
             <div className="ov floating datechip" style={{ left: 56 }}>
               <div className="d">{fmtDate(scene.date)}</div>
@@ -74,7 +76,7 @@ export default function Viewer({ event, scenes, scene, onScene, onNew, onView }:
         <aside className="side">
           <div className="card">
             <h3>Capas</h3>
-            {LAYERS.slice().reverse().map((l) => (
+            {defs.slice().reverse().map((l) => (
               <div key={l.id} className={`layer ${layers[l.id].on ? "" : "off"}`}>
                 <input type="checkbox" id={`ly-${l.id}`} checked={layers[l.id].on} onChange={(e) => set(l.id, { on: e.target.checked })} />
                 <div className="swatch" style={{ background: l.swatch }} />

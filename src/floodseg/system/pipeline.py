@@ -35,7 +35,7 @@ SCENES = REPO / "outputs" / "system" / "scenes"
 DOWNLOADS = REPO / "data" / "system" / "downloads"
 SCALE = 10_000
 NODATA16 = 65535
-STAGES = ["auth", "catalog", "download", "read", "mask", "inference", "write"]
+STAGES = ["auth", "catalog", "download", "read", "mask", "inference", "write"]  # timed path; "compare" is optional
 
 Progress = Callable[[str, float, str], None]  # (stage, fraction 0–1, detail)
 
@@ -86,7 +86,7 @@ def _rgb(stack: np.ndarray, nodata: np.ndarray) -> np.ndarray:
 
 
 def run(tile: str, date: str, ensemble: Ensemble, progress: Progress | None = None,
-        keep_archive: bool = False, reuse_archive: bool = False) -> dict:
+        keep_archive: bool = False, reuse_archive: bool = False, compare: Ensemble | None = None) -> dict:
     """Process one tile and date end to end. Returns the meta dict (also written to meta.json)."""
     say = progress or (lambda s, f, d="": None)
     out = scene_dir(tile, date)
@@ -139,7 +139,17 @@ def run(tile: str, date: str, ensemble: Ensemble, progress: Progress | None = No
     _write_cog(out / "mask.tif", mask, profile, None, "nearest")
     _write_cog(out / "rgb.tif", _rgb(stack, nodata), profile, None, "average")
     t = mark("write", t)
-    stamps["stop"] = _now()
+    stamps["stop"] = _now()  # HE3 timer stop: the selected model's GeoTIFFs are written
+    total_s = round(time.perf_counter() - t0, 2)
+
+    comparison = None
+    if compare is not None:  # optional second model, after the timer (protocol: only the selected model is timed)
+        say("compare", 0.0, compare.group_id)
+        p2, _ = compare.predict_tile(stack, nodata, profile["transform"], progress=lambda d, n: say("compare", d / n, f"{d} / {n} ventanas"))
+        _write_cog(out / "probability_compare.tif", _quantize(p2, nodata), profile, NODATA16, "average")
+        t = mark("compare", t)
+        comparison = {"model_group": compare.group_id, "checkpoints": compare.checkpoints, "seconds": times["compare"],
+                      "water_valid": int(((p2 > 0.5) & (mask == 0)).sum())}
 
     valid = mask == 0
     meta = {
@@ -151,7 +161,7 @@ def run(tile: str, date: str, ensemble: Ensemble, progress: Progress | None = No
         "water_rule": "probability > 0.5",
         "pixels": {"valid": int(valid.sum()), "cloud": int((mask == 1).sum()), "nodata": int(nodata.sum()),
                    "water_valid": int(((prob > 0.5) & valid).sum())},
-        "times_s": times, "total_s": round(time.perf_counter() - t0, 2), "timestamps": stamps,
+        "times_s": times, "total_s": total_s, "timestamps": stamps, "comparison": comparison,
         "git_commit": _commit(), "device": ensemble.device, "python": sys.version.split()[0],
         "platform": platform.platform(),
     }

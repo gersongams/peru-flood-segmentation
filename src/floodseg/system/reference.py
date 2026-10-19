@@ -121,3 +121,31 @@ def metrics(scene: str, bbox_utm: tuple[float, float, float, float] | None = Non
         "reference_water_km2": int(true.sum()) * km2,
         "partition_share": share,  # share of the scored pixels in each split partition (before `part`)
     }
+
+
+def frozen_chip_metrics(group: str = "peru/unet", split: str = "test") -> dict:
+    """RF5 check (protocol §3): the system's metric code on the Peru chips of one split, with
+    the frozen pass's logits and the chip labels, pooled like scripts/score_frozen.py (per seed:
+    water if z > 0, labelled pixels only, counts pooled over all chips; then mean ± std over the
+    seeds). Independent counting code, so a match checks the system's metric computation."""
+    import pandas as pd
+    regime, model = group.split("/")
+    root = REPO / "outputs" / ("logits_test" if split == "test" else "frozen_check/logits_dev") / regime / model
+    u = REPO / "data" / "peru" / "unosat2023"
+    stems = (u / "splits" / f"{split}.txt").read_text().split()
+    per_seed = {}
+    for seed_dir in sorted(p for p in root.iterdir() if p.is_dir()):
+        tp = fp = fn = 0
+        for st in stems:
+            with rasterio.open(u / "label" / f"{st}.tif") as src:
+                y = src.read(1)
+            pred = np.load(seed_dir / f"{st}.npy") > 0
+            lab = y != -1
+            water = y == 1
+            tp += int((pred & water & lab).sum())
+            fp += int((pred & ~water & lab).sum())
+            fn += int((~pred & water & lab).sum())
+        per_seed[seed_dir.name] = {"iou": tp / (tp + fp + fn), "precision": tp / (tp + fp), "recall": tp / (tp + fn)}
+    df = pd.DataFrame(per_seed).T
+    return {"group": group, "split": f"peru-{split}", "chips": len(stems), "seeds": per_seed,
+            **{f"{k}_mean": float(df[k].mean()) for k in df}, **{f"{k}_std": float(df[k].std()) for k in df}}

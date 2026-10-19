@@ -76,7 +76,7 @@ export const EVENTS: Record<EventId, FloodEvent> = {
   },
 };
 
-export type LayerId = "rgb" | "probability" | "uncertainty" | "mask";
+export type LayerId = "rgb" | "probability" | "uncertainty" | "mask" | "compare";
 
 export interface LayerDef {
   id: LayerId;
@@ -94,6 +94,9 @@ export const LAYERS: LayerDef[] = [
   { id: "uncertainty", name: "Incertidumbre", hint: "Desacuerdo entre semillas (σ)", swatch: "linear-gradient(135deg,#fdc878,#961e5a)", defaultOn: false, defaultOpacity: 0.85 },
   { id: "mask", name: "Nubes (sin resultado)", hint: "Bajo la nube el satélite no ve el suelo", swatch: "#e6e1d8", defaultOn: true, defaultOpacity: 0.5 },
 ];
+
+// Optional comparison layer: the label-free model, only for scenes processed with it.
+export const COMPARE_LAYER: LayerDef = { id: "compare", name: "IA sin etiquetas peruanas", hint: "U-Net trHM · comparación, no es el modelo principal", swatch: "linear-gradient(135deg,#c4b5f0,#4c28a0)", defaultOn: false, defaultOpacity: 0.85 };
 
 // MGRS tiles over each event's reference extent, with their share of UNOSAT's analysed extent
 // (docs/system_evaluation_protocol.md §2).

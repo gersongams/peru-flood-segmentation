@@ -10,6 +10,7 @@ interface Props {
   onDone: (scene: string) => void;
 }
 
+const COMPARE_STAGE = { id: "compare" as StageId, name: "Modelo de comparación", detail: "U-Net sin etiquetas peruanas (trHM), fuera del tiempo medido" };
 const STAGES: { id: StageId; name: string; detail: string }[] = [
   { id: "auth", name: "Autenticación en Copernicus", detail: "Copernicus Data Space Ecosystem" },
   { id: "catalog", name: "Búsqueda en el catálogo", detail: "Producto S2 L1C de la tesela y la fecha" },
@@ -32,6 +33,7 @@ export default function NewAnalysis({ eventId, onEvent, onDone }: Props) {
   const [bounds, setBounds] = useState<Bounds | null>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [compare, setCompare] = useState(false);
 
   useEffect(() => setTile(TILES[eventId][0].id), [eventId]);
 
@@ -65,7 +67,7 @@ export default function NewAnalysis({ eventId, onEvent, onDone }: Props) {
     if (!date) return;
     setSubmitError(null);
     try {
-      setJob(await api.createJob({ event: eventId, tile, date, bounds: bounds ?? undefined }));
+      setJob(await api.createJob({ event: eventId, tile, date, bounds: bounds ?? undefined, compare }));
     } catch (e) {
       setSubmitError(String(e));
     }
@@ -133,6 +135,14 @@ export default function NewAnalysis({ eventId, onEvent, onDone }: Props) {
           <b>Imagen pre-evento.</b> El área inundada se calcula contra la imagen más despejada de la misma tesela en los 60 días anteriores al inicio del evento ({fmtDate(EVENTS[eventId].events[0]?.date ?? ev.range[0])}).
         </div>
 
+        <details className="note">
+          <summary style={{ cursor: "pointer", fontWeight: 600 }}>Opciones avanzadas</summary>
+          <label style={{ display: "flex", gap: 8, alignItems: "flex-start", marginTop: 8 }}>
+            <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} style={{ marginTop: 3 }} />
+            <span>Añadir capa de comparación: <b>U-Net sin etiquetas peruanas (trHM)</b>. Se calcula después del mapa principal y no cuenta en el tiempo de procesamiento.</span>
+          </label>
+        </details>
+
         {submitError && <div className="error">{submitError}</div>}
         <button type="submit" className="btn primary" disabled={!date || !!running}>
           {running ? "Procesando…" : `Procesar tesela ${tile}`}
@@ -168,7 +178,7 @@ export default function NewAnalysis({ eventId, onEvent, onDone }: Props) {
             {job.cached && <div className="note">Esta tesela y fecha ya estaban procesadas: se abren desde la caché, sin descargar ni volver a ejecutar el modelo.</div>}
             {!job.cached && <div className="progress"><div style={{ width: `${Math.round(doneFrac * 100)}%` }} /></div>}
             {!job.cached && <ol className="stages">
-              {STAGES.map((s) => {
+              {(job.stages.compare ? [...STAGES, COMPARE_STAGE] : STAGES).map((s) => {
                 const st = job.stages[s.id];
                 return (
                   <li key={s.id} className={st.status}>

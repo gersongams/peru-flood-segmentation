@@ -1,6 +1,6 @@
 // Client for the FastAPI backend (floodseg.system.server), proxied at /api by Vite.
 
-export type StageId = "select" | "auth" | "catalog" | "download" | "read" | "mask" | "inference" | "write";
+export type StageId = "select" | "compare" | "auth" | "catalog" | "download" | "read" | "mask" | "inference" | "write";
 export type StageStatus = "pending" | "running" | "done" | "cached";
 
 export interface Stage {
@@ -34,6 +34,7 @@ export interface Scene {
   pixels: { valid: number; cloud: number; nodata: number; water_valid: number };
   total_s: number;
   bounds: [number, number, number, number];
+  comparison: { model_group: string; seconds: number; water_valid: number } | null;
 }
 
 export interface Acquisition {
@@ -89,7 +90,7 @@ export const api = {
     get<Acquisition[]>(`/api/acquisitions?tile=${tile}&start=${start}&end=${end}`),
   job: (id: string) => get<Job>(`/api/jobs/${id}`),
   pixel: (scene: string, lon: number, lat: number) => get<Pixel>(`/api/pixel/${scene}?lon=${lon}&lat=${lat}`),
-  createJob: async (body: { event: string; tile: string; date: string; bounds?: number[] }): Promise<Job> => {
+  createJob: async (body: { event: string; tile: string; date: string; bounds?: number[]; compare?: boolean }): Promise<Job> => {
     const r = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
     return r.json();
@@ -106,5 +107,6 @@ export const api = {
     if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
     return r.json();
   },
+  frozen: () => get<{ chips: number; iou_mean: number; iou_std: number; precision_mean: number; recall_mean: number }>("/api/frozen-metrics"),
   tileUrl: (scene: string, layer: string) => `${location.origin}/api/tiles/${scene}/${layer}/{z}/{x}/{y}.png`,
 };

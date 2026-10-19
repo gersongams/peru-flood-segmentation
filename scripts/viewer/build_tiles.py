@@ -1,4 +1,8 @@
-"""Flood viewer, Stage 1: mosaic the per-chip viewer outputs and write PMTiles per date and layer.
+"""Superseded (2026-10-18): the paused chip-based viewer; the system now processes whole tiles
+(src/floodseg/system/). Kept for the record. The "viewer data only / no thesis result" rule
+below was replaced on 2026-10-16 (METHODS_NOTES "Thesis reframed around a system").
+
+Flood viewer, Stage 1: mosaic the per-chip viewer outputs and write PMTiles per date and layer.
 
 Viewer data only (docs/METHODS_NOTES.md 2026-10-16 "Flood viewer"); the areas written to
 stats.json are viewer figures, not thesis results.

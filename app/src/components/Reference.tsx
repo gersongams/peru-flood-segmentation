@@ -27,6 +27,10 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [show, setShow] = useState<"errors" | "reference">("errors");
   const withRef = scenes.filter((s) => event.dates.includes(s.date));
+  const [frozen, setFrozen] = useState<Awaited<ReturnType<typeof api.frozen>> | null>(null);
+  useEffect(() => {
+    api.frozen().then(setFrozen).catch(() => setFrozen(null));
+  }, []);
 
   useEffect(() => {
     if (!scene) return;
@@ -126,6 +130,15 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
                   </div>
                 </div>
               )}
+              <div className="card">
+                <h3>Todos los recortes de prueba <span className="muted">{frozen ? `${frozen.chips} recortes, 2 fechas` : "…"}</span></h3>
+                <div className="stats" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+                  <div className="stat"><div className="lbl">IoU</div><div className="val water">{frozen ? frozen.iou_mean.toFixed(3) : "—"}</div><div className="sub">± {frozen ? frozen.iou_std.toFixed(3) : "—"} (3 semillas)</div></div>
+                  <div className="stat"><div className="lbl">Precisión</div><div className="val">{frozen ? frozen.precision_mean.toFixed(3) : "—"}</div></div>
+                  <div className="stat"><div className="lbl">Exhaustividad</div><div className="val">{frozen ? frozen.recall_mean.toFixed(3) : "—"}</div></div>
+                </div>
+                <p className="hint" style={{ margin: "8px 0 0" }}>Calculado por el sistema sobre los recortes peru-test con las predicciones de la evaluación congelada; coincide con la cifra de la tesis.</p>
+              </div>
               <div className="card">
                 <div className="note">
                   <b>Cómo leer estas cifras.</b> UNOSAT es un mapa preliminar, sin validación de campo: un desacuerdo puede ser error de la IA o de la referencia. Las cifras de la tesis provienen de la evaluación congelada (pestaña Evidencia), no de esta pantalla.
