@@ -89,7 +89,7 @@ async function main() {
 
   // Skirt: a dark base under the block so it reads as a cut-out model.
   const base = new THREE.Mesh(new THREE.BoxGeometry(W, 0.6, H), new THREE.MeshStandardMaterial({ color: "#5b4d3d", roughness: 1 }));
-  base.position.y = -0.3;
+  base.position.y = -0.33; // top 30 m below sea level: no z-fighting with ground at 0 m
   scene.add(base);
 
   // ---------- water: same surface, cross-fade between two dates, new vs pre-existing water
@@ -118,9 +118,9 @@ async function main() {
       varying vec2 vUv; varying vec3 vN; varying vec3 vW;
       void main() {
         float a = mix(texture2D(uA, vUv).r, texture2D(uB, vUv).r, uT);
-        float alpha = smoothstep(0.35, 0.65, a);
+        float alpha = smoothstep(0.47, 0.53, a); // textures hold probability: draw the p = 0.5 contour
         if (alpha < 0.01) discard;
-        float before = smoothstep(0.35, 0.65, texture2D(uPre, vUv).r);
+        float before = smoothstep(0.47, 0.53, texture2D(uPre, vUv).r);
         vec3 col = mix(uNew, uOld, before);
         float ripple = 0.04 * sin(vW.x * 9.0 + uTime * 1.3) * sin(vW.z * 7.0 - uTime * 1.1);
         vec3 v = normalize(cameraPosition - vW);
@@ -134,13 +134,17 @@ async function main() {
   water.renderOrder = 1;
   scene.add(water);
 
-  // Pixel data of the water masks for the cursor readout.
+  // Water masks for the cursor readout: one byte per pixel, half the texture resolution (~24 m).
   const masks = await Promise.all(meta.dates.map(async (d) => {
-    const img = await createImageBitmap(await (await fetch(`${BASE}water_${d.date}.png`)).blob());
-    const c = new OffscreenCanvas(img.width, img.height);
+    const n = 2048;
+    const img = await createImageBitmap(await (await fetch(`${BASE}water_${d.date}.png`)).blob(), { resizeWidth: n, resizeHeight: n, resizeQuality: "medium" });
+    const c = new OffscreenCanvas(n, n);
     const ctx = c.getContext("2d")!;
     ctx.drawImage(img, 0, 0);
-    return { w: img.width, h: img.height, data: ctx.getImageData(0, 0, img.width, img.height).data };
+    const rgba = ctx.getImageData(0, 0, n, n).data;
+    const data = new Uint8Array(n * n);
+    for (let i = 0; i < n * n; i++) data[i] = rgba[i * 4];
+    return { w: n, h: n, data };
   }));
 
   // ---------- minimap: satellite image + water of the current date + camera footprint
@@ -288,14 +292,55 @@ async function main() {
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const tip = $("t-cursor");
-  renderer.domElement.addEventListener("pointermove", (e) => {
+  // Height of the displaced surface at world (x, z), bilinear on the DEM grid.
+  const surface = (x: number, z: number) => {
+    const fx = Math.min(G - 1.001, Math.max(0, ((x + W / 2) / W) * (G - 1)));
+    const fz = Math.min(G - 1.001, Math.max(0, ((z + H / 2) / H) * (G - 1)));
+    const c = Math.floor(fx), r = Math.floor(fz), a = fx - c, b = fz - r;
+    const h = heights[r * G + c] * (1 - a) * (1 - b) + heights[r * G + c + 1] * a * (1 - b)
+      + heights[(r + 1) * G + c] * (1 - a) * b + heights[(r + 1) * G + c + 1] * a * b;
+    return (h / 1000) * exag;
+  };
+  // Ray against the height field: march in ~half-cell steps, then bisect. Replaces a raycast
+  // against the 524 k-triangle mesh, which stalled frames on every pointer move.
+  const top = (meta.height_max / 1000) * 80 + 0.01;
+  const p = new THREE.Vector3();
+  const pick = (): { u: number; v: number } | null => {
+    const o = ray.ray.origin, d = ray.ray.direction;
+    if (d.y >= 0 && o.y > top) return null;
+    let t = o.y > top ? (top - o.y) / d.y : 0;
+    const step = W / G / 2, tMax = t + 300;
+    for (; t < tMax; t += step) {
+      ray.ray.at(t, p);
+      if (p.y < 0) break; // below the base: the ray left through the bottom
+      if (Math.abs(p.x) > W / 2 + step || Math.abs(p.z) > H / 2 + step) continue;
+      if (p.y <= surface(p.x, p.z)) break;
+    }
+    if (t >= tMax) return null;
+    let lo = t - step, hi = t;
+    for (let k = 0; k < 10; k++) {
+      const mid = (lo + hi) / 2;
+      ray.ray.at(mid, p);
+      if (p.y <= surface(p.x, p.z)) hi = mid; else lo = mid;
+    }
+    ray.ray.at(hi, p);
+    if (Math.abs(p.x) > W / 2 || Math.abs(p.z) > H / 2) return null;
+    return { u: (p.x + W / 2) / W, v: (p.z + H / 2) / H };
+  };
+  let pending: PointerEvent | null = null;
+  renderer.domElement.addEventListener("pointermove", (e) => (pending = e));
+  const readout = () => {
+    const e = pending;
+    pending = null;
+    if (!e) return;
+    if (e.buttons) { tip.hidden = true; return; } // dragging: skip the readout
     ndc.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObject(ground)[0];
-    if (!hit || !hit.uv) { tip.hidden = true; return; }
-    const u = hit.uv.x, v = 1 - hit.uv.y; // v = 0 at the north edge
+    const hit = pick();
+    if (!hit) { tip.hidden = true; return; }
+    const u = hit.u, v = hit.v; // v = 0 at the north edge
     const gi = Math.min(G - 1, Math.round(v * (G - 1))) * G + Math.min(G - 1, Math.round(u * (G - 1)));
-    const at = (m: (typeof masks)[number]) => m.data[(Math.min(m.h - 1, Math.floor(v * m.h)) * m.w + Math.min(m.w - 1, Math.floor(u * m.w))) * 4] > 127;
+    const at = (m: (typeof masks)[number]) => m.data[Math.min(m.h - 1, Math.floor(v * m.h)) * m.w + Math.min(m.w - 1, Math.floor(u * m.w))] > 127;
     const [lon0, lat0, lon1, lat1] = meta.bounds_wgs84;
     const lon = lon0 + u * (lon1 - lon0), lat = lat1 - v * (lat1 - lat0);
     const now = at(masks[current]), before = at(masks[0]);
@@ -303,8 +348,8 @@ async function main() {
     tip.style.left = `${e.clientX}px`;
     tip.style.top = `${e.clientY}px`;
     tip.hidden = false;
-  });
-  renderer.domElement.addEventListener("pointerleave", () => (tip.hidden = true));
+  };
+  renderer.domElement.addEventListener("pointerleave", () => { pending = null; tip.hidden = true; });
 
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -312,16 +357,38 @@ async function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
+  // Minimap: redraw only when the camera or the date changed.
+  let miniKey = "";
+  const miniState = () => [camera.position.x, camera.position.y, camera.position.z, controls.target.x, controls.target.z, current]
+    .map((n) => n.toFixed(3)).join(",");
+
+  // Pixel ratio: start at the screen's (max 2) and step down if frames run slow.
+  let ratio = Math.min(window.devicePixelRatio, 2);
+  let frames = 0, slow = 0, last = performance.now();
+
   const clock = new THREE.Clock();
   renderer.setAnimationLoop(() => {
+    const now = performance.now();
+    if (now - last > 22) slow++;
+    frames++;
+    last = now;
+    if (frames === 90) {
+      if (slow > 30 && ratio > 1) {
+        ratio = Math.max(1, ratio - 0.5);
+        renderer.setPixelRatio(ratio);
+      }
+      frames = slow = 0;
+    }
     waterMat.uniforms.uTime.value = clock.getElapsedTime();
     if (anim) {
-      const t = Math.min(1, (performance.now() - anim.t0) / 1200);
+      const t = Math.min(1, (now - anim.t0) / 1200);
       waterMat.uniforms.uT.value = t * t * (3 - 2 * t);
       if (t >= 1) anim = null;
     }
     controls.update();
-    drawMini();
+    const key = miniState();
+    if (key !== miniKey) { miniKey = key; drawMini(); }
+    readout();
     renderer.render(scene, camera);
   });
 }

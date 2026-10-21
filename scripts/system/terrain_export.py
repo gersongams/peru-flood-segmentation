@@ -5,7 +5,8 @@ Inputs: Copernicus DEM GLO-30 tiles in data/aux/cop_dem (elevation), and the sys
 Outputs in app/public/terrain/piura/ (git-ignored, derived data):
   height.bin        float32 little-endian, GRID × GRID, metres, north-up, row 0 = north
   rgb.jpg           Sentinel-2 true colour of the reference date (TEX × TEX)
-  water_<date>.png  water (p > 0.5, valid) as alpha, per date (TEX × TEX)
+  water_<date>.png  water probability on valid pixels (0 elsewhere), per date (TEX × TEX); the
+                    page draws the p = 0.5 contour, so edges are smooth below the pixel size
   meta.json         bounds (UTM 17S and WGS84), size in metres, grid sizes, dates, height range
 
     uv run python scripts/system/terrain_export.py
@@ -29,7 +30,7 @@ NAME = "piura"
 BOUNDS = (515_000, 9_335_000, 565_000, 9_385_000)
 EPSG = 32717
 GRID = 512   # height samples per side (~98 m)
-TEX = 2048   # texture pixels per side (~24 m)
+TEX = 4096   # texture pixels per side (~12 m)
 SCENES = {"2023-01-26": "pre-evento", "2023-03-22": "22 mar 2023", "2023-04-01": "1 abr 2023"}
 RGB_DATE = "2023-01-26"  # clear pre-event image as the ground texture
 OUT = REPO / "app" / "public" / "terrain" / NAME
@@ -64,7 +65,7 @@ def main() -> None:
         rgb = src.read(window=win, out_shape=(3, TEX, TEX), resampling=Resampling.average)
     Image.fromarray(np.moveaxis(rgb, 0, -1)).save(OUT / "rgb.jpg", quality=88)
 
-    # Water per date: p > 0.5 on valid pixels, as an alpha mask (average → soft edges).
+    # Water per date: probability on valid pixels; the page thresholds it at 0.5 (km² below: p > 0.5).
     dates = []
     for date, label in SCENES.items():
         d = REPO / "outputs" / "system" / "scenes" / f"17MNP_{date}"
@@ -74,8 +75,10 @@ def main() -> None:
             win = rasterio.windows.from_bounds(*win_bounds, src.transform)
             p = src.read(1, window=win)
             mk = m.read(1, window=win)
-        water = ((p > 5000) & (p != 65535) & (mk == 0)).astype(np.float32)
-        img = Image.fromarray((water * 255).astype(np.uint8)).resize((TEX, TEX), Image.BILINEAR)
+        ok = (p != 65535) & (mk == 0)
+        water = ((p > 5000) & ok).astype(np.float32)
+        prob = np.where(ok, p / 10000, 0).astype(np.float32)
+        img = Image.fromarray(np.round(prob * 255).astype(np.uint8)).resize((TEX, TEX), Image.BILINEAR)
         img.save(OUT / f"water_{date}.png")
         dates.append({"date": date, "label": label, "water_km2": round(float(water.sum()) * 100 / 1e6, 1)})
 
