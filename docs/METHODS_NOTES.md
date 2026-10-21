@@ -2728,6 +2728,10 @@ true colour of the clear pre-event scene (2023-01-26). Water per date: system wa
 the zone. The panel's "aumento" is the difference of totals, not the RF6 flooded area (which is
 pixel-wise and valid in both dates); it is labelled so. GLO-30 is a surface model (DSM), so
 dunes and vegetation are part of the relief. Not part of RF1–RF7 or HE3.
+Addendum 2026-10-20: textures 4096 px (~12 m); the water texture holds the probability (0 on
+cloud / no-data) and the page draws its 0.5 contour, so the drawn water is the same p > 0.5 map
+with sub-pixel edges (km² unchanged). Hover picking now marches the ray over the height grid
+instead of raycasting the mesh (frames over 50 ms in a scripted orbit/zoom/hover test: 179 → 0).
 
 ## 2026-10-18: RF5 chip check passes; HE3 timing harness written; trHM comparison layer
 
