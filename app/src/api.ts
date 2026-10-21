@@ -63,7 +63,7 @@ export interface Metrics {
   fp_km2: number;
   fn_km2: number;
   reference_water_km2: number;
-  partition_share: Record<"train" | "dev" | "test" | "buffer", number>;
+  partition_share: Record<"train" | "dev" | "test" | "buffer" | "test_near_train", number>;
 }
 
 export interface Flood {
@@ -107,6 +107,6 @@ export const api = {
     if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
     return r.json();
   },
-  frozen: () => get<{ chips: number; iou_mean: number; iou_std: number; precision_mean: number; recall_mean: number }>("/api/frozen-metrics"),
+  frozen: (event: string) => get<{ chips: number; iou_mean: number; iou_std: number; precision_mean: number; recall_mean: number }>(`/api/frozen-metrics?event=${event}`),
   tileUrl: (scene: string, layer: string) => `${location.origin}/api/tiles/${scene}/${layer}/{z}/{x}/{y}.png`,
 };

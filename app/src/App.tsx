@@ -25,7 +25,7 @@ const TABS: { id: Tab; label: string }[] = [
 const INTRO: Partial<Record<Tab, [string, string]>> = {
   visor: ["Visor:", "agua detectada por la IA (azul) sobre la imagen satelital. Pasa el cursor para ver la probabilidad y la incertidumbre de cada píxel."],
   nuevo: ["Nuevo análisis:", "elige tesela y fecha; el sistema descarga la imagen de Copernicus y genera el mapa de agua en unos minutos."],
-  referencia: ["Referencia:", "compara el mapa de la IA con el mapa experto de UNOSAT: aciertos, agua falsa y agua omitida."],
+  referencia: ["Referencia:", "compara el mapa de la IA con el mapa experto (UNOSAT en 2023, Copernicus EMS en 2017): aciertos, agua falsa y agua omitida."],
   linea: ["Línea de tiempo:", "área inundada por fecha = agua nueva respecto de una imagen anterior al evento."],
   evidencia: ["Evidencia:", "qué tan bien funciona cada modelo en datos de prueba y qué límites tiene."],
 };

@@ -602,3 +602,25 @@ notebook". Commit: see this entry's commit.
   `outputs/system/jobs.jsonl`; scene metadata `outputs/system/scenes/*/meta.json`.
 - Development runs, not the HE3 measurement. The measurement script is `scripts/system_timing.py`
   (refuses to run on an untagged or dirty tree).
+
+## 2026-10-20 — System: 2017 scenes, EMS reference, RF1 and RF5 (2017) checks
+
+- `uv run python -m floodseg.system.pipeline <tile> 2017-04-07 --keep-archive` (archive kept only
+  to build the EMS reference, deleted afterwards):
+  17MNP `S2A_MSIL1C_20170407T153621_N0500_R068_T17MNP_20230907T220406.SAFE`: download 319.1 s,
+  read 12.6, mask 3.0, inference 30.2, write 6.9; total 374.2 s.
+  17MNQ `S2A_MSIL1C_20170407T153621_N0500_R068_T17MNQ_20230907T220406.SAFE`: download 207.5 s,
+  read 8.3, mask 2.2, inference 23.0, write 7.0; total 251.2 s (31.0 M no-data pixels: orbit edge).
+  Outputs `outputs/system/scenes/17MN{P,Q}_2017-04-07/` (`git_commit` ab04bc8-dirty).
+- `uv run python scripts/system_rf5_check.py` → `outputs/system_eval/rf/rf5_chips.json`: peru-test
+  (172 chips) unchanged; peru-2017-test `no_2023_train_overlap` (101 chips): IoU 0.878004,
+  precision 0.999948, recall 0.878044, identical to `outputs/phaseD/test/peru-2017-test_groups.csv`.
+  Pass for both.
+- `uv run python scripts/system_ref2017_check.py 17MNP_2017-04-07 17MNQ_2017-04-07` →
+  `outputs/system_eval/rf/rf5_ref2017.json`: scene reference vs chip labels on 159 / 41 chips,
+  agreement 1.0 on 32 304 181 / 8 435 547 pixels scored by both. Scene metrics (ensemble mean,
+  p > 0.5) on the 17MNP no-overlap test chips: IoU 0.881, precision 0.9996, recall 0.881.
+- RF1: in the app (Nuevo análisis, Yaku 2023, 17MNP, Shift-drag rectangle, 2023-03-22) job
+  `258b4948ad1e` logged `tile=17MNP date=2023-03-22 bounds=[-80.778, -6.161, -80.266, -5.652]`
+  (served from cache); rectangle inside the 17MNP footprint → `outputs/system_eval/rf/rf1.json`, pass.
+

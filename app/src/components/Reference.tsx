@@ -12,10 +12,10 @@ interface Props {
 }
 
 type Scope = "view" | "tile" | "test";
-const SCOPES: { id: Scope; label: string; note: string }[] = [
-  { id: "view", label: "Vista actual", note: "Área visible del mapa, dentro de la extensión que analizó UNOSAT." },
-  { id: "tile", label: "Tesela completa", note: "Toda la extensión analizada dentro de la tesela." },
-  { id: "test", label: "Recortes de prueba", note: "Solo píxeles de los recortes de peru-test: zonas que el modelo no vio al entrenar ni al seleccionarse." },
+const SCOPES: { id: Scope; label: string; note: string; note2017: string }[] = [
+  { id: "view", label: "Vista actual", note: "Área visible del mapa, dentro de la extensión que analizó UNOSAT.", note2017: "Área visible del mapa, dentro de las zonas que delineó EMS (Salinas, Parachique, Piura)." },
+  { id: "tile", label: "Tesela completa", note: "Toda la extensión analizada dentro de la tesela.", note2017: "Todas las zonas EMS dentro de la tesela." },
+  { id: "test", label: "Recortes de prueba", note: "Solo píxeles de los recortes de peru-test: zonas que el modelo no vio al entrenar ni al seleccionarse.", note2017: "Solo recortes de peru-2017-test que no tocan ningún lugar de entrenamiento de 2023 (la cifra principal de 2017)." },
 ];
 const IDS = ["rgb", "reference", "errors", "mask"];
 
@@ -27,10 +27,13 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [show, setShow] = useState<"errors" | "reference">("errors");
   const withRef = scenes.filter((s) => event.dates.includes(s.date));
+  const is2017 = event.id === "nino2017";
+  const refName = is2017 ? "EMS" : "UNOSAT";
   const [frozen, setFrozen] = useState<Awaited<ReturnType<typeof api.frozen>> | null>(null);
   useEffect(() => {
-    api.frozen().then(setFrozen).catch(() => setFrozen(null));
-  }, []);
+    setFrozen(null);
+    api.frozen(event.id).then(setFrozen).catch(() => setFrozen(null));
+  }, [event.id]);
 
   useEffect(() => {
     if (!scene) return;
@@ -66,7 +69,7 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
           <div className="ov floating" style={{ top: 14, left: 56, padding: 4 }}>
             <div className="seg" style={{ border: 0 }}>
               <button className={show === "errors" ? "on" : ""} onClick={() => setShow("errors")}>Errores de la IA</button>
-              <button className={show === "reference" ? "on" : ""} onClick={() => setShow("reference")}>Referencia UNOSAT</button>
+              <button className={show === "reference" ? "on" : ""} onClick={() => setShow("reference")}>Referencia {refName}</button>
             </div>
           </div>
           <div className="ov floating legend">
@@ -77,7 +80,7 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
                 <div className="row"><span className="dot" style={{ width: 14, height: 14, borderRadius: 3, background: "#e9a21b" }} />Agua omitida: referencia sí, IA no</div>
               </>
             ) : (
-              <div className="row" style={{ marginTop: 0 }}><span className="dot" style={{ width: 14, height: 14, borderRadius: 3, background: "rgba(0,164,154,0.6)" }} />Agua según UNOSAT (inundación + agua previa)</div>
+              <div className="row" style={{ marginTop: 0 }}><span className="dot" style={{ width: 14, height: 14, borderRadius: 3, background: "rgba(0,164,154,0.6)" }} />{is2017 ? "Agua según EMS que también se ve en la imagen (MNDWI > 0)" : "Agua según UNOSAT (inundación + agua previa)"}</div>
             )}
           </div>
         </div>
@@ -96,7 +99,7 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
                 <div className="seg" role="group" aria-label="Ámbito del cálculo" style={{ width: "100%" }}>
                   {SCOPES.map((s) => <button key={s.id} style={{ flex: 1 }} className={scope === s.id ? "on" : ""} onClick={() => setScope(s.id)}>{s.label}</button>)}
                 </div>
-                <div className="hint" style={{ marginTop: 6 }}>{SCOPES.find((s) => s.id === scope)!.note}</div>
+                <div className="hint" style={{ marginTop: 6 }}>{SCOPES.find((s) => s.id === scope)![is2017 ? "note2017" : "note"]}</div>
               </>
             )}
           </div>
@@ -123,7 +126,14 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
                   <dt>Agua de referencia evaluada</dt><dd className="mono">{m ? `${num(m.reference_water_km2)} km²` : "—"}</dd>
                 </dl>
               </div>
-              {m && scope !== "test" && (
+              {m && scope !== "test" && is2017 && (
+                <div className="card">
+                  <div className="note">
+                    <b>Ningún píxel de 2017 se usó para entrenar.</b> {Math.round(100 * m.partition_share.test_near_train)} % de estos píxeles cae en recortes que tocan lugares de entrenamiento de 2023; la cifra principal de 2017 los excluye («Recortes de prueba»).
+                  </div>
+                </div>
+              )}
+              {m && scope !== "test" && !is2017 && (
                 <div className="card">
                   <div className="note warn">
                     <b>{Math.round(100 * m.partition_share.train)} % de estos píxeles está en zonas de entrenamiento</b> (dev {Math.round(100 * m.partition_share.dev)} %, prueba {Math.round(100 * m.partition_share.test)} %). Ahí el acuerdo es optimista; para una cifra sin ese sesgo usa «Recortes de prueba».
@@ -131,17 +141,19 @@ export default function Reference({ event, scenes, scene, onScene }: Props) {
                 </div>
               )}
               <div className="card">
-                <h3>Todos los recortes de prueba <span className="muted">{frozen ? `${frozen.chips} recortes, 2 fechas` : "…"}</span></h3>
+                <h3>Todos los recortes de prueba <span className="muted">{frozen ? `${frozen.chips} recortes, ${is2017 ? "7 abr 2017" : "2 fechas"}` : "…"}</span></h3>
                 <div className="stats" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
                   <div className="stat"><div className="lbl">IoU</div><div className="val water">{frozen ? frozen.iou_mean.toFixed(3) : "—"}</div><div className="sub">± {frozen ? frozen.iou_std.toFixed(3) : "—"} (3 semillas)</div></div>
                   <div className="stat"><div className="lbl">Precisión</div><div className="val">{frozen ? frozen.precision_mean.toFixed(3) : "—"}</div></div>
                   <div className="stat"><div className="lbl">Exhaustividad</div><div className="val">{frozen ? frozen.recall_mean.toFixed(3) : "—"}</div></div>
                 </div>
-                <p className="hint" style={{ margin: "8px 0 0" }}>Calculado por el sistema sobre los recortes peru-test con las predicciones de la evaluación congelada; coincide con la cifra de la tesis.</p>
+                <p className="hint" style={{ margin: "8px 0 0" }}>Calculado por el sistema sobre los recortes {is2017 ? "peru-2017-test alejados de los lugares de entrenamiento de 2023" : "peru-test"} con las predicciones de la evaluación congelada; coincide con la cifra de la tesis.</p>
               </div>
               <div className="card">
                 <div className="note">
-                  <b>Cómo leer estas cifras.</b> UNOSAT es un mapa preliminar, sin validación de campo: un desacuerdo puede ser error de la IA o de la referencia. Las cifras de la tesis provienen de la evaluación congelada (pestaña Evidencia), no de esta pantalla.
+                  <b>Cómo leer estas cifras.</b> {is2017
+                    ? "EMS se delineó sobre radar del 23 al 30 de marzo, antes de la imagen del 7 de abril; por eso solo se evalúan los píxeles donde EMS y un índice de agua de la propia imagen (MNDWI) coinciden. Los casos dudosos quedan fuera, así que el acuerdo tiende a ser alto."
+                    : "UNOSAT es un mapa preliminar, sin validación de campo: un desacuerdo puede ser error de la IA o de la referencia."} Las cifras de la tesis provienen de la evaluación congelada (pestaña Evidencia), no de esta pantalla.
                 </div>
               </div>
             </>

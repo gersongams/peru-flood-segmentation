@@ -358,7 +358,7 @@ def scene_metrics(scene: str, bbox: str | None = None, part: str | None = None) 
         xs, ys = zip(*(t.transform(a, b) for a, b in [(w, s_), (e, s_), (e, n), (w, n)]))
         box = (min(xs), min(ys), max(xs), max(ys))
     _ensure_reference(scene)
-    return {"available": True, "reference": "UNOSAT FL20230321PER", **reference.metrics(scene, box, part)}
+    return {"available": True, "reference": reference.source(date), **reference.metrics(scene, box, part)}
 
 
 # ---------------------------------------------------------------- pixel readout
@@ -516,11 +516,12 @@ def export_scene(scene: str, layers: str = ",".join(export.LAYERS), bbox: str | 
 
 
 @lru_cache(maxsize=4)
-def _frozen(group: str) -> dict:
-    return reference.frozen_chip_metrics(group, "test")
+def _frozen(group: str, split: str) -> dict:
+    return reference.frozen_chip_metrics(group, split)
 
 
 @app.get("/api/frozen-metrics")
-def frozen_metrics() -> dict:
-    """RF5: metrics of the selected model on all peru-test chips, computed by the system."""
-    return _frozen("peru/unet")
+def frozen_metrics(event: str = "yaku2023") -> dict:
+    """RF5: metrics of the selected model on all test chips of the event (peru-test for 2023;
+    peru-2017-test, chips away from 2023 training locations, for 2017), computed by the system."""
+    return _frozen("peru/unet", "2017-test" if event == "nino2017" else "test")

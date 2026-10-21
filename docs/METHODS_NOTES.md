@@ -2756,3 +2756,48 @@ stamp is written when the selected model's GeoTIFFs are closed) and writes
 `probability_compare.tif`; `meta.json` records it under `comparison`. Shown in purple as "IA sin
 etiquetas peruanas", off by default. 17MNP 2023-03-22: comparison water 1 437.7 km² vs 1 390.7 km²
 for the main model (valid pixels, sea included). Display only; no metric or selection uses it.
+
+## 2026-10-20: System RF5 for 2017 (EMS scene reference) and RF1 check
+
+**Why.** RF5 asks for the expert reference on the map with agreement metrics; for 2017 the
+reference is Copernicus EMS EMSR199. The app had it only for UNOSAT 2023.
+
+**Scene reference (`floodseg.system.reference`, `_ems`).** Same rule as the 2017 test labels
+(`scripts/build_peru_emsr2017.py`), because EMS was drawn on radar of 23–30 Mar and the image is
+of 7 Apr: water = inside EMS water (crisis_information + hydrography polygons) and MNDWI > 0;
+dry = outside EMS water and MNDWI ≤ 0; ignore = disagreement or outside the AOIs (Salinas,
+Parachique, Piura). MNDWI = (B03 − B11) / (B03 + B11 + 1e-6) on the scene's own 13-band stack
+(offset-harmonized DN, B11 nearest-upsampled to 10 m, as the chips). The system's cloud /
+no-data mask is applied at scoring time, as for 2023. One difference from the chips: the chip
+builder used only the first AOI's polygons and extent where AOIs overlap; the scene uses the
+union of the three AOIs. Building the reference needs the product archive (B03, B11), so the two
+2017 scenes were run with `--keep-archive`; the reference is cached as `reference.tif` and the
+archives were deleted. Partitions: every 2017 chip is test; chips that touch a 2023 `peru-train`
+location get their own code (`test_near_train`), so the app's "Recortes de prueba" scope on 2017
+equals the main 2017 subset (`no_2023_train_overlap`).
+
+**Checks.** (1) Scene reference vs chip labels (`scripts/system_ref2017_check.py`): 159 chips on
+17MNP and 41 on 17MNQ; agreement 1.0 on all pixels scored by both (32.3 M and 8.4 M). Pixels scored
+only by the scene: 1 266 025 (17MNP) and 125 772 (17MNQ), from the AOI-union difference above;
+scored only by the chips: 133 and 162 (cloud-mask edge). This also confirms the L1C stack of the
+reprocessed 2017 product (baseline N0500, offset −1000) matches the Process API chips.
+(2) Chip metrics (`scripts/system_rf5_check.py`): the system's counting code on the 101
+no-overlap chips with the frozen logits gives IoU 0.878004, precision 0.999948, recall 0.878044,
+identical to `score_frozen.py` (`outputs/system_eval/rf/rf5_chips.json`). (3) Scene-level on the
+17MNP no-overlap chips: IoU 0.881 (ensemble mean probability, union AOIs; not a thesis number).
+(4) A straight-edged water body south of Sechura looked like sea on the map; Natural Earth 10 m
+ocean puts 0.0 % of the 2017 chip reference water (and 0.0008 km² of the scene's) in the sea. It
+is the temporary 2017 Sechura lagoon (La Niña), cut by the AOI boundary.
+
+**App.** Referencia is event-aware: EMS labels, the MNDWI-agreement caveat ("solo se evalúan los
+píxeles donde EMS y la imagen coinciden; el acuerdo tiende a ser alto"), the 2017 chip numbers in
+"Todos los recortes de prueba", and a note that no 2017 pixel was used for training (40 % of the
+pixels in the default view are in chips near 2023 training locations).
+
+**RF1.** In the app: event Yaku 2023, tile 17MNP, Shift-drag rectangle, date 2023-03-22, process.
+`server.log`: `job 258b4948ad1e received tile=17MNP date=2023-03-22 bounds=[-80.7779, -6.1611,
+-80.2658, -5.6517] cached=True`. The rectangle in UTM 17S (524 573, 9 318 928, 581 309, 9 375 290)
+is inside the 17MNP footprint (`outputs/system_eval/rf/rf1.json`). Pass.
+
+**Feeds:** thesis §3.1.9 (system development and RF checks), Tabla of RF results.
+

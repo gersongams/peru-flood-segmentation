@@ -11,11 +11,12 @@ Chapters I–II: drafted, three external reviews applied. Chapter III: §3.1.1�
    that could inflate the 2017 IoU; add one sentence + `% fuente:` to §3.1.7 (2017 subsection).
 2. **The system (objective 3, HE3).** Built 2026-10-18 (`src/floodseg/system/`, `app/`; run:
    `uv run uvicorn floodseg.system.server:app --port 8000` + `cd app && pnpm dev`). Working with
-   real data on 17MNP: RF1–RF4, RF5 for 2023 (chip check passes exactly), RF6 (17MNP), RF7, optional
-   trHM comparison layer, 3D terrain spike (`app/terrain.html`). Left: authors' decisions in
-   METHODS_NOTES 2026-10-18 (RF6 pre-event rules, sea in total water, 2017 event start); 2017 EMS
-   reference; pre-event scenes for the other 5 tiles; RF1 rectangle check in `server.log`; tag the
-   system and run `scripts/system_timing.py` (HE3). Then measure RF1–RF7 and the time per tile with
+   real data on 17MNP: RF1 (rectangle reaches the log, 2026-10-20), RF2–RF4, RF5 for 2023 and 2017
+   (chip checks pass exactly; EMS scene reference on 17MNP/17MNQ 2017-04-07), RF6 (17MNP), RF7,
+   optional trHM comparison layer, 3D terrain spike (`app/terrain.html`). Left: authors' decisions
+   in METHODS_NOTES 2026-10-18 (RF6 pre-event rules, sea in total water, 2017 event start);
+   pre-event scenes for the other 5 tiles (after the RF6 decision); tag the system and run
+   `scripts/system_timing.py` (HE3). Then measure RF1–RF7 and the time per tile with
    `docs/system_evaluation_protocol.md` (6 tiles × 3 repetitions, median ≤ 15 min per tile; report
    all times and the maximum). No result text before measuring (WRITING_RULES §11.11).
 3. **Chapter III parts that wait for the system:** §3.1.9 (now a commented placeholder);
