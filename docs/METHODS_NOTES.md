@@ -2805,3 +2805,44 @@ is inside the 17MNP footprint (`outputs/system_eval/rf/rf1.json`). Pass.
 
 **Feeds:** thesis §3.1.9 (system development and RF checks), Tabla of RF results.
 
+## 2026-10-21: 3D incident view (FireTrace-style redesign), photo timeline, spread rate
+
+At the authors' request (layout like the FireTrace app: place, calendar, view; Layers / Analysis /
+Evidence; incident overview; weather and flood behaviour; timeline player with key events; flooded
+area; rate of spread). Decided with the authors: the 3D page becomes the incident view (the 2D app
+stays for analysis and export) and 5 more 17MNP dates are processed. Light theme (warm paper) at the
+authors' request after a dark first version. Display only: no thesis metric comes from this page.
+
+**Photo timeline** (`scripts/system/terrain_frames.py`). Sentinel-2 delivers no daily photos: 17MNP is
+seen every ~2.5 days in 2023 (two orbits, R068 full, R111 ~30 % of the zone) and less often in 2017
+(17 acquisitions Jan–May). Every acquisition Jan–May of 2017 and 2023 is requested for the zone
+(B04/B03/B02, s2cloudless CLP, dataMask). Cloud rule for display: CLP > 0.8 dilated 2 px. Binary CLM
+was rejected: it flagged 28–33 % of clear-looking desert frames and 27 % of the AI water of
+2023-03-22. CLP > 0.8 still flags ~21 % of that water. Ground image "Sin nubes": per pixel, the
+observation of median brightness among its last 3 clear observations. Rejected: last clear pixel
+(mottled: CLP misses cloud edges and every shadow) and stricter CLP thresholds (0.5, 0.3: white
+patches). Cost: changes appear after 1–2 clear observations (labelled on the page); the AI water
+layer is always of its own date. "Foto del día" shows the raw acquisition.
+
+**Zone statistics** (`terrain_export.py`, docstring has the definitions). Comparable date: ≤ 20 % of
+the zone without a result; the 4 R111 dates are 69–78 % without result, mostly swath edge, so they
+are shown but kept out of totals and spread. Flooded area = RF6 definition against 2023-01-26
+(pending authors' RF6 decision; no 2017 pre-event scene until a sourced 2017 event start exists).
+Rate of spread between consecutive comparable dates, on pixels valid at both and at the pre-event
+date: newly flooded, receded, net per day. Results in EXPERIMENT_LOG 2026-10-21 (net −2.9 then
++1.6 km²/day). Caveat: a lower bound on change (cloud gaps), and two steps only.
+
+**Weather and flood behaviour.** ERA5 daily precipitation (Open-Meteo archive) at the zone centre and
+GloFAS v4 daily discharge (Open-Meteo flood API) at the Río Piura cell nearest Piura city: the cell
+at the zone centre gave ≤ 1.2 m³/s (not the main river); a 9 × 9 grid search around Piura found the
+river cells (peak 1 204 m³/s in 2023). Both are models; GloFAS 2017 peaks at 2 569 m³/s against
+INDECI's 3 800 m³/s, so the page labels them as models, not measurements.
+
+**Key events and facts** come from `app/src/config.ts` (each with its source). Corrections made while
+building: the "sin dato" layer was first called "nubes", but most of it on R111 dates is the swath
+edge; renamed "nubes o fuera de la pasada". 2017 water is labelled "agua detectada" (no pre-event
+image), not "agua nueva". The 2017 zone includes a sliver of sea counted as water (same open
+decision as the 2023 sea question).
+
+**Feeds:** thesis §3.1.9 (system), only as a description of the interface; no numbers from it.
+

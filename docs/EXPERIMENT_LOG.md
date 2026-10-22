@@ -624,3 +624,23 @@ notebook". Commit: see this entry's commit.
   `258b4948ad1e` logged `tile=17MNP date=2023-03-22 bounds=[-80.778, -6.161, -80.266, -5.652]`
   (served from cache); rectangle inside the 17MNP footprint → `outputs/system_eval/rf/rf1.json`, pass.
 
+## 2026-10-21 — System: 5 more 17MNP dates (2023) and the 3D view photo timeline
+
+- `uv run python -m floodseg.system.pipeline 17MNP <date>` (commit be562e2, clean for these files):
+  2023-03-15 (R111, 57.3 s), 2023-03-25 (R111, 128.4 s), 2023-03-27 (R068, 143.3 s),
+  2023-03-30 (R111, 54.1 s), 2023-04-09 (R111, 73.2 s). The R111 orbit covers only ~30 % of the 3D
+  zone (swath edge). Outputs `outputs/system/scenes/17MNP_<date>/`.
+- `uv run python scripts/system/terrain_export.py` → `app/public/terrain/piura/` (meta.json with zone
+  statistics, water_<date>.png, weather.json). Zone statistics per date (km², zone of 50 × 50 km):
+  2023-03-22 flooded 384.2 (observed 93.8 %), 2023-03-27 flooded 364.8 (86.4 %), 2023-04-01 flooded
+  374.4 (93.6 %); partial dates (≥ 69 % without result) not comparable. Spread on pixels valid at
+  both comparable dates and at the pre-event date (~82 % of the zone): 22 → 27 Mar +17.6 / −32.0 km²,
+  net −2.9 km²/day; 27 Mar → 1 Apr +33.7 / −25.5 km², net +1.6 km²/day. Reference in the zone: UNOSAT
+  22 Mar IoU 0.960, 1 Apr 0.963; EMS 2017-04-07 IoU 0.914 (zone mostly 2023 training locations).
+- `uv run python scripts/system/terrain_frames.py` → 77 acquisitions of 17MNP (Jan–May 2017: 17;
+  Jan–May 2023: 60), 2048 px frames and composites; 18 clear (CLP > 0.8 share ≤ 0.2, valid ≥ 0.9).
+  Process API ~21 PU per frame. Raw responses cached in `data/system/frames_cache` (1.0 GB).
+- Weather: ERA5 daily precipitation at (−5.79, −80.64) and GloFAS v4 discharge at (−5.175, −80.675)
+  via Open-Meteo, retrieved 2026-10-21. GloFAS 2017 peak 2 569 m³/s vs INDECI 3 800 m³/s (27 Mar 2017,
+  Compendio 2017 p. 28): the model is low; shown as a model, not a measurement.
+
