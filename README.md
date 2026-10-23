@@ -65,6 +65,23 @@ Headline from `docs/phaseD_test.md`:
     here.
   - No method wins both events.
 
+## Flood analysis app
+
+A web app (objective 3 of the thesis) processes a whole Sentinel-2 tile from CDSE with the
+Peru-trained U-Net. It shows:
+- the water map, the model's uncertainty and the clouds;
+- the flooded area against a pre-event image;
+- agreement with the UNOSAT and EMS expert maps.
+
+It also exports GeoTIFF and GeoJSON. The 3D incident view below covers Bajo Piura and Sechura.
+It combines the AI water per date, a Sentinel-2 photo timeline for 2017 and 2023, rainfall and
+river flow, and the event's key dates.
+
+![3D incident view: Cyclone Yaku, 22 March 2023](docs/images/incident_view_3d.jpg)
+
+Code: `src/floodseg/system/` (FastAPI backend) and `app/` (React, MapLibre and Three.js). How to
+run it: [`app/README.md`](app/README.md).
+
 ## Repository layout
 
 | Path | Contents |
@@ -72,6 +89,8 @@ Headline from `docs/phaseD_test.md`:
 | `src/floodseg/` | Library: datasets, normalization, metrics, input alignment (histogram matching, FDA), AdaBN, self-training |
 | `configs/` | TerraTorch model configs; `frozen.yaml` (test-time freeze); pools |
 | `scripts/` | Data building, training helpers, analyses, frozen evaluation and scoring; `scripts/cloud/` holds the RunPod helpers |
+| `src/floodseg/system/` | Flood analysis system: CDSE download, full-tile inference, reference metrics, flooded area, export, FastAPI server |
+| `app/` | Web app (React, MapLibre) and the 3D incident view (Three.js) |
 | `tests/` | pytest suite (`uv run pytest`) |
 | `notebooks/` | Executed notebooks, e.g. [`feature_engineering.ipynb`](notebooks/feature_engineering.ipynb) (Spanish) |
 | `docs/` | Plan, references, data card, experiment log, methods notes, write-ups |
