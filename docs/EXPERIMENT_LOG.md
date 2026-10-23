@@ -590,8 +590,22 @@ bit-identical to Peru v1. No training.
 
 ## 2026-10-23 — Baseline-and-variants notebook (course progress, week 6; no new runs)
 
+*Revised the same day (data A/B as the main experiment): see the entry below.*
+
 `uv run python notebooks/build_baseline_nb.py` → `notebooks/baseline_variantes.ipynb` (executed),
 figures and tables in `docs/figs/sprint6/`. Reads only `notebooks/results/sprint6_results.csv`
 (values transcribed from the entries of 2026-10-13/14 and 2026-10-14 above and from
 `docs/phaseD_dev.md` / `docs/phaseD_test.md`); no training, no evaluation, no file under `data/`.
 Results: METHODS_NOTES 2026-10-23 "Baseline-and-variants notebook". Commit: see this entry's commit.
+
+## 2026-10-23 — Week-6 notebook revised: data A/B experiment (course progress, week 6; no new runs)
+
+`uv run python notebooks/build_baseline_nb.py` → `notebooks/baseline_variantes.ipynb` (executed).
+Figures and tables in `docs/figs/sprint6/`: `fig_ab_datos`, `fig_anexo_modelos`, `tabla_ab*.csv`,
+`tabla_anexo_modelos.csv`. The old figures and tables were removed.
+- The three rows are existing runs: `outputs/s1f11_src_unet` (commit `8a8fee4`), and
+  `outputs/s1f11_trhm_unet` and `outputs/s1f11_trfda_unet` (commit `e8001a4`). Their values were
+  transcribed into `notebooks/results/sprint6_results.csv`.
+- No training, no evaluation, and no file under `data/` read.
+
+Results: METHODS_NOTES 2026-10-23 "Week-6 revision". Commit: see this entry's commit.

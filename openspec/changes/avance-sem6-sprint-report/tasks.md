@@ -57,6 +57,46 @@
 - [x] 6.1 Add week 6 to the README "Course deliverables" table (branch, notebook, report). Verify: the links resolve to existing files.
 - [x] 6.2 Integration check. `uv run pytest` passes. `git status` shows only the intended files. `configs/frozen.yaml` and `src/` are unchanged (`git diff --stat main -- configs src` is empty). Commit on `avance-sem6-sprint`.
 
+## 7. Data-variant revision (2026-10-23, after the class slides on A/B experiments)
+
+Groups 1–6 built the model comparison, which now becomes the annex. This group replaces the main experiment with the data A/B test (design decision 1).
+
+- [x] 7.1 Extend `notebooks/results/sprint6_results.csv`:
+  - rename the existing experiment `A` to `annex`;
+  - add the columns `exp_id`, `change`, `run_dir` and `config`;
+  - add experiment `AB` rows, with the source of each:
+    - per-seed dev IoU of `UNet_s1f11_raw` (EXPERIMENT_LOG 2026-10-15) and of `UNet_s1f11_trHM` / `UNet_s1f11_trFDA_b0.01` (EXPERIMENT_LOG 2026-10-16);
+    - dev mean ± std, precision and recall where recorded (METHODS_NOTES 2026-10-16 "Pod session 2 results");
+    - `peru-test` and `peru-2017-test` for raw and trHM, plus the paired difference trHM − Peru-trained (`docs/phaseD_test.md`);
+    - cost/latency rows: HM 0.11 and FDA 0.26 s/chip; 5.8 vs ≈ 25 s/epoch; source U-Net wall clock 336–648 s per run; $0.89/h.
+
+  Verify: every row has a source, and each recomputed dev mean ± std equals the log to 4 decimals.
+- [x] 7.2 Rewrite `notebooks/build_baseline_nb.py`. Main part:
+  1. context and central metric;
+  2. design (shared settings, plus the one change of each variant);
+  3. standard A/B table;
+  4. single chart;
+  5. validation;
+  6. decision;
+  7. check against `outputs/` for every regime present.
+
+  Annex: the existing model comparison, shortened. Verify: the notebook builds with no error outputs, the builder still refuses a row without a source, and `rg 'data/' notebooks/build_baseline_nb.py` shows no read of `data/`.
+- [x] 7.3 Regenerate `docs/figs/sprint6/`: the A/B chart (`fig_ab_datos.png/.pdf`), the A/B tables, and the annex figures. Remove figures that are no longer used. Verify: every figure the report links exists, and no file in the folder is unreferenced.
+- [x] 7.4 Rewrite `docs/informe_sprint_sem6.md` with the structure of design decision 7:
+  - keep the EDA and FE summaries;
+  - add the validation, decision and reproducibility sections, the latter with commands, data snapshot and library versions from `uv.lock`;
+  - add risks and next steps, the demo script and the annex.
+
+  Verify: every number appears in the CSV or a cited document; the citation keys exist in `docs/literature_thesis.bib`; `rg '<[a-z]'` finds no HTML.
+- [x] 7.5 Update the documentation: amend the METHODS_NOTES and EXPERIMENT_LOG entries of 2026-10-23 (data A/B as the main experiment, models as annex, and the reason: class slides and the one-change rule), and reword the week-6 README row. Verify: the entries name the slides, the three experiment IDs and the rejected design.
+- [x] 7.6 Integration check:
+  - `pandoc -f markdown -t latex --natbib docs/informe_sprint_sem6.md` finishes without errors, with every table and figure in the output;
+  - `uv run pytest` passes;
+  - `git diff --stat main -- configs src` is empty;
+  - `openspec validate avance-sem6-sprint-report --strict` passes.
+
+  Commit on `avance-sem6-sprint`.
+
 ## Workflow follow-up
 
 - Push `avance-sem6-sprint` to GitHub only with the authors' approval.

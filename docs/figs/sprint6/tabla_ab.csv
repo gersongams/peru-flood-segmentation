@@ -1,0 +1,4 @@
+rol,ID,qué cambió,IoU dev (media ± de),semillas 0/1/2,precisión dev,recall dev,IoU peru-test,costo / latencia,log
+Baseline,UNet_s1f11_raw,nada (imágenes crudas),0.8364 ± 0.0224,0.8433/0.8545/0.8114,0.848,0.985,"0.576 [0.467, 0.669]","5.8 s/época; 336–648 s por corrida (RTX 4090, 0.89 USD/h); inferencia sin costo extra",outputs/s1f11_src_unet/unet/lightning_logs/seed<s>
+Var1,UNet_s1f11_trHM,histogramas igualados a Perú,0.9118 ± 0.0026,0.9148/0.9098/0.9108,0.962,0.946,"0.798 [0.704, 0.865]",+0.11 s/recorte en CPU (≈ 25 s/época con 4 procesos de carga; se usaron 8); inferencia igual,outputs/s1f11_trhm_unet/unet/lightning_logs/seed<s>
+Var2,UNet_s1f11_trFDA_b0.01,amplitud de Fourier de Perú,0.6151 ± 0.1122,0.7251/0.5009/0.6193,no registrado,no registrado,no evaluado (descartado en dev),+0.26 s/recorte en CPU; inferencia igual,outputs/s1f11_trfda_unet/unet/lightning_logs/seed<s>

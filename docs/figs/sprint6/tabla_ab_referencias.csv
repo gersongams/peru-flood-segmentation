@@ -1,0 +1,5 @@
+referencia,por qué no es una variante,etiquetas usadas,partición,IoU de agua
+MNDWI_s1f11_t0.15,"umbral sin aprendizaje; etiquetas de Sen1Floods11 (semana 5, 1/4 de los píxeles)",sen1floods11-train,peru-dev,0.8358
+MNDWI_pool_otsu,"umbral sin aprendizaje, sin etiquetas",ninguna,peru-dev,0.5718
+UNet_peru,"usa etiquetas de Perú, tasa 1e-4 y selección en peru-dev (cota superior)",peru-train,peru-dev,0.9415
+UNet_peru,"usa etiquetas de Perú, tasa 1e-4 y selección en peru-dev (cota superior)",peru-train,peru-test,0.828

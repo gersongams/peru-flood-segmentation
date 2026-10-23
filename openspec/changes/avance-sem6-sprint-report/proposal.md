@@ -1,48 +1,78 @@
 ## Why
 
-The course's week-6 deliverable is a sprint report: EDA, feature engineering, and an experiment
-with a baseline and one or two variants. Weeks 4 (EDA) and 5 (feature engineering) are already
-done and executed (`notebooks/eda.ipynb`, `notebooks/feature_engineering.ipynb`). The
-baseline-plus-variants experiment also exists: it was trained, scored on `peru-dev` with 3 seeds,
-and evaluated once on the test sets (`docs/EXPERIMENT_LOG.md`, `docs/phaseD_dev.md`,
-`docs/phaseD_test.md`). But no notebook presents it, and no single document ties the three parts
-together. The report starts as Markdown and will later be converted to LaTeX.
+The course's week-6 deliverable is a sprint report covering EDA, feature engineering, and an A/B
+experiment: a baseline and at most two variants. The class slides ("Experimentos A/B, validación
+reforzada y reporte comparativo", Proyecto de Investigación 2) set the rules:
+- **one change per variant**, with the same splits, seeds and data;
+- a standard table with the central metric, secondary metrics, cost/latency, a one-line note
+  and the log path;
+- one single chart;
+- a validation section without leakage ("divide primero, transforma después");
+- an adopt/discard decision;
+- reproducibility (commands, data snapshot, library versions);
+- risks and next steps;
+- a demo draft for the presentation.
+
+The authors asked for the variants to be **variants of the data**. Week 5 found that the
+bottleneck is the dry-land shift between Sen1Floods11 and Peru, not missing features. So the
+natural week-6 test is to change only the training data and see what that recovers. That
+experiment already exists in the project: 3 seeds on `peru-dev`, the adopted variant evaluated
+once on test (`docs/phaseD_dev.md`, `docs/phaseD_test.md`). No notebook presents it yet. Weeks 4
+and 5 are done (`notebooks/eda.ipynb`, `notebooks/feature_engineering.ipynb`). The report starts
+as Markdown and will later be converted to LaTeX.
 
 ## What Changes
 
-- New branch `avance-sem6-sprint` from `main`, with the same layout as `avance-sem4-eda` and
-  `avance-sem5-feature-engineering`: executed Spanish notebook plus its `build_*_nb.py`, a
-  write-up in `docs/`, METHODS_NOTES and EXPERIMENT_LOG entries, and a README row.
-- New notebook `notebooks/baseline_variantes.ipynb` (Spanish, executed), built by
-  `notebooks/build_baseline_nb.py`. It presents results that already exist; it trains nothing
-  and evaluates no test split again:
-  - **One experiment, with Peru labels:** baseline U-Net (ResNet-34) against variant 1
-    TerraMind v1-B and variant 2 Prithvi-EO-2.0 300M, all trained on `peru-train`. The MNDWI
-    threshold is a non-learned reference row. `peru-dev` per seed, plus the one-time
-    `peru-test` and `peru-2017-test` scores already on record.
-  - The label-free adaptation results (phase D) are out of scope for this deliverable (authors'
-    decision, 2026-10-23).
-- New tracked results table `notebooks/results/sprint6_results.csv`, with one row per value and its
-  source (log entry, write-up table, commit). The notebook reads it. When `outputs/` is
-  present, the notebook also checks the table against the run summaries.
-- New sprint report `docs/informe_sprint_sem6.md` (Spanish), written so it converts easily to
-  LaTeX: objectives, data, EDA, feature engineering, experiment, discussion, threats to
-  validity, next steps.
+- Branch `avance-sem6-sprint` from `main`, with the layout of `avance-sem4-eda` and
+  `avance-sem5-feature-engineering`: an executed Spanish notebook plus its `build_*_nb.py`, a
+  write-up in `docs/`, METHODS_NOTES and EXPERIMENT_LOG entries, and a README row. Already
+  created.
+- **The experiment becomes an A/B test of the data** (replacing the model comparison). The model
+  is fixed: a U-Net with a ResNet-34 encoder, trained on Sen1Floods11 `train` with one identical
+  config (LR 3e-4, batch 8, Dice, D4, early stopping on `valid`) and 3 seeds. Only the training
+  images change:
+  - **Baseline `UNet_s1f11_raw`:** raw Sen1Floods11 images.
+  - **Var1 `UNet_s1f11_trHM`:** training images histogram-matched, per band, to the unlabelled
+    `peru-train` images.
+  - **Var2 `UNet_s1f11_trFDA_b0.01`:** the low-frequency Fourier amplitude of each training image
+    replaced by that of a random unlabelled `peru-train` image.
+  - The decision was taken on `peru-dev`: Var1 adopted, Var2 discarded. Only the adopted variant
+    and the baseline have test scores, from the one-time pass.
+  - Reference rows, not variants: the Peru-trained U-Net (upper bound, uses Peru labels) and the
+    MNDWI thresholds.
+- **The model comparison moves to a short annex.** Peru-trained U-Net vs TerraMind v1-B vs
+  Prithvi-EO-2.0, as already built.
+- The tracked results table `notebooks/results/sprint6_results.csv` gains the data-variant rows
+  and the columns the slides ask for: experiment ID, what changed, run directory, config and
+  cost/latency.
+- The sprint report `docs/informe_sprint_sem6.md` follows the slides' "Entrega sprint semana 6"
+  structure:
+  - context;
+  - baseline;
+  - A/B variants;
+  - standard table and single chart;
+  - validation;
+  - decision;
+  - reproducibility;
+  - risks and next steps.
+
+  It adds a demo script for the week-6 presentation.
 
 ## Capabilities
 
 ### New Capabilities
 - `course-progress-reports`: weekly course deliverables (branch, executed notebook, write-up)
-  that present project results without changing the frozen thesis comparison.
+  that present project results, traceable to their sources, without changing the frozen thesis
+  comparison. For week 6, an A/B report that follows the course's format.
 
 ### Modified Capabilities
 None.
 
 ## Impact
 
-- New files only: notebook, builder, CSV, report, OpenSpec change. No change to `src/`,
-  `configs/`, `configs/frozen.yaml` or the data.
-- No training and no new evaluation. The test numbers shown are the ones from the one-time
-  pass of 2026-10-16.
-- Docs: new entries in `docs/METHODS_NOTES.md` and `docs/EXPERIMENT_LOG.md` (no new runs), and a
-  README row under "Course deliverables".
+- New and revised files only: notebook, builder, CSV, figures, report, OpenSpec change. No
+  change to `src/`, `configs/`, `configs/frozen.yaml` or the data.
+- No training and no new evaluation. The test numbers are those of the one-time pass of
+  2026-10-16. Var2 has no test score because it was discarded on dev.
+- Docs: updated entries in `docs/METHODS_NOTES.md` and `docs/EXPERIMENT_LOG.md` (no new runs), and
+  the week-6 README row reworded.
