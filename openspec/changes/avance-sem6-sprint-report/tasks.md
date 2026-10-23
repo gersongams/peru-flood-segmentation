@@ -50,7 +50,7 @@
 
   Verify: every number appears in `sprint6_results.csv` or in a cited project document.
 - [x] 5.2 Citations as BibTeX keys only if they exist in `thesis/3_3_BIBLIOGRAFIA/library.bib` (after `cd thesis && git pull`) or `docs/REFERENCES.md`; otherwise write "(referencia pendiente)". Verify: a grep of the bracketed keys in the report against `library.bib` finds no missing key.
-- [ ] 5.3 Check that the report converts to LaTeX. Verify: `pandoc -f markdown -t latex docs/informe_sprint_sem6.md` finishes without errors (install pandoc only with the user's OK), and the report contains no raw HTML (`rg '<[a-z]' docs/informe_sprint_sem6.md` is empty).
+- [x] 5.3 Check that the report converts to LaTeX. Verify: `pandoc -f markdown -t latex docs/informe_sprint_sem6.md` finishes without errors (install pandoc only with the user's OK), and the report contains no raw HTML (`rg '<[a-z]' docs/informe_sprint_sem6.md` is empty).
 
 ## 6. Branch wrap-up
 
