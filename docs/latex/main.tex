@@ -1,0 +1,39 @@
+% Documento independiente para compilar el informe de sprint de la semana 6 en Overleaf.
+% Compila con pdfLaTeX o XeLaTeX. Archivos que deben estar en el proyecto:
+%   main.tex                  (este archivo)
+%   informe_sprint_sem6.tex   (el capítulo)
+%   sprint6_refs.bib          (las referencias)
+%   E_IMAGENES/6_Sprint/fig_ab_datos.pdf
+%   E_IMAGENES/6_Sprint/fig_anexo_modelos.pdf
+% En la tesis no se usa este archivo: allí basta con \input{informe_sprint_sem6} dentro de main.tex.
+
+\documentclass[11pt,a4paper]{report}
+
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi
+\usepackage[spanish,es-nodecimaldot,es-noshorthands,es-tabla]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+
+\title{Informe de sprint, semana 6: EDA, ingeniería de características y experimento A/B de los datos}
+\author{Gerson Andre Garrido Mansilla \and Renzo Elvis Cerron Tome}
+\date{23 de octubre de 2026}
+
+\begin{document}
+
+\maketitle
+
+\input{informe_sprint_sem6}
+
+\bibliographystyle{plain}
+\bibliography{sprint6_refs}
+
+\end{document}
