@@ -2545,3 +2545,70 @@ It asks for no new text changes in Chapters I–II and recommends stopping edito
 - **Layout:** Tabla 3.9 split a sentence. A `\FloatBarrier` after the §3.3 intro gave two half-empty float pages, so Figura 3.8 now sits `[H]` after the 1b paragraph and Tabla 3.9 `[H]` at the end of §3.3.2 (before §3.3.3), both at paragraph breaks.
 
 **Kept (authors' decisions or already in place).** *Buffer* stays (authors chose it 2026-10-17; the reviewer calls it optional). 2017 nuance ("worse against that reference"), 2a as exploratory and the AdaBN cause as an unproven hypothesis are already in the text. The uncertainty map the app shows is a system decision (NEXT_STEPS). Annex 3 should keep the AdaBN diagnostic artefacts (`outputs/phaseD/test/peru-dev_check_compare.csv`, METHODS_NOTES 2026-10-16 "Phase-D freeze").
+
+## 2026-10-23 — Baseline-and-variants notebook and sprint report (course progress, week 6; no new runs)
+
+**What and why.** The course's week-6 deliverable is a sprint report: EDA, feature engineering,
+and an experiment with a baseline and one or two variants. The experiment already existed (phase
+C, Peru-trained models, 3 seeds, one-time test pass), but no notebook presented it.
+`notebooks/baseline_variantes.ipynb` (Spanish, executed; built by `notebooks/build_baseline_nb.py`)
+presents it, and `docs/informe_sprint_sem6.md` ties weeks 4–6 together. Branch
+`avance-sem6-sprint`; plan in OpenSpec change `avance-sem6-sprint-report`.
+
+**Method.**
+- **Experiment.** Baseline U-Net (ResNet-34, ImageNet, 13 L1C bands); variant 1 TerraMind v1-B
+  (13 L1C bands); variant 2 Prithvi-EO-2.0 300M (6 HLS bands). All three are trained on
+  `peru-train` with the configs at commit `45270f1`, unchanged since (`git log 45270f1..HEAD --
+  configs/` is empty for these files). Shared settings: Dice loss with ignore −1, AdamW,
+  ReduceLROnPlateau, D4 augmentation, max 100 epochs, early stopping on dev water IoU
+  (patience 20). Each model keeps its official LR and batch size: U-Net 1e-4 / 8, TerraMind
+  2e-5 / 8, Prithvi 1e-4 / 4. MNDWI threshold rows are non-learned references, not variants.
+- **Numbers.** Transcribed into `notebooks/results/sprint6_results.csv` (67 values; each row names
+  its log entry or write-up and, where recorded, the run commit):
+  - dev per seed and mean ± std: EXPERIMENT_LOG 2026-10-13/14;
+  - MNDWI rows: `docs/phaseD_dev.md`, plus the week-5 train-fitted threshold;
+  - edge-tolerant differences: entry 2026-10-14;
+  - TerraMind 200-epoch check: EXPERIMENT_LOG 2026-10-14;
+  - `peru-test` and `peru-2017-test` aggregates: `docs/phaseD_test.md`.
+- **Why a transcribed table.** `outputs/` is not on this machine. The notebook runs on any
+  clone. If `outputs/phaseD/dev_table_runs.csv` (regime `peru`) exists, it checks the per-seed
+  dev IoU against it, with a tolerance of 1e-4.
+- **Guards.** The builder refuses a row without a source (tested with a copy that had one source
+  removed: it stops and names the row). The notebook reads no file under `data/`.
+- **Figures and tables.** PNG and PDF figures and CSV tables are written to `docs/figs/sprint6/`
+  for the report and the later LaTeX version.
+
+**Checks.**
+- Dev mean ± sample std recomputed from the 3 seeds equals the logged values to 4 decimals for
+  all three models.
+- Inconsistency found between documents: Prithvi's dev std is 0.00066. EXPERIMENT_LOG rounds it
+  to 0.0007, while `docs/phaseD_dev.md` writes 0.0006 (truncated). The notebook uses 0.0007.
+- While drafting, three claims were corrected against their sources:
+  - The 200-epoch check shows the 100-epoch cap did **not** limit TerraMind (best 0.9270 at
+    epoch 77 vs 0.9275 at epoch 92, seed 0), so "possibly under-trained" was dropped.
+  - Prithvi (0.9218) is **below** the train-fitted MNDWI threshold (0.9237), not above it.
+    TerraMind is +0.003 and U-Net +0.018. The threshold was scored on 1/4 of the dev pixels,
+    so the comparison is approximate.
+  - The share of the U-Net's lead that lies in the 1-px label-edge band is 73 % (vs TerraMind)
+    and 86 % (vs Prithvi) for Peru-only runs. The earlier "75–100 %" also covered the
+    Sen1Floods11 → Peru runs.
+
+**Results** (no new numbers; sources above).
+- Dev water IoU: U-Net 0.9415 ± 0.0019, TerraMind 0.9265 ± 0.0025, Prithvi 0.9218 ± 0.0007.
+- `peru-test`: 0.828 / 0.815 / 0.824. The CIs overlap, and no paired differences were computed
+  between these rows, so no test ranking is claimed.
+- `peru-2017-test` (101 chips): 0.878 / 0.892 / 0.878.
+
+**Alternatives rejected.**
+- A new variant (U-Net + MNDWI input channel): 6–12 h of training, and its test score could not
+  be reported because the test pass is closed.
+- Including the label-free phase-D experiment: the authors kept the deliverable to one
+  experiment (2026-10-23).
+
+**Caveats.**
+- Test values are aggregates only (per-seed test values are not in the tracked documents).
+- Single spatial split.
+- Hyperparameters are each model's official ones, not tuned for Peru.
+
+**Thesis use.** Chapter III results (model comparison with Peru labels). Course deliverable:
+branch `avance-sem6-sprint`.

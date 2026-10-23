@@ -41,14 +41,14 @@
        histogram matching). The authors kept the deliverable to one experiment (2026-10-23).
        The report mentions it only as next work.
 2. **Source of numbers: a tracked CSV transcribed from the logs.** File
-   `notebooks/data/sprint6_results.csv`, in long format with columns `experiment, role, model,
+   `notebooks/results/sprint6_results.csv`, in long format with columns `experiment, role, model,
    method, train_data, split, seed, metric, value, source, commit`. The rows are transcribed
    from the documents listed in Context.
    - Alternative rejected: reading `outputs/` directly. It is absent here, and copying it from
      the other machine would block the deliverable.
    - Mitigation: an optional check cell compares the CSV with
-     `outputs/runs_cloud/summary_peru_dev.csv` and `outputs/phaseD/dev_table_runs.csv` when they
-     exist (spec: "Notebook runs with outputs").
+     `outputs/phaseD/dev_table_runs.csv` (regime `peru`) when it
+     exists (spec: "Notebook runs with outputs").
 3. **Test values are aggregate only.** `docs/phaseD_test.md` records mean ± std, the CI,
    precision and recall per row, but not per-seed test values. The CSV stores them with
    `seed = mean` / `std` / `ci_low` / `ci_high`. The notebook shows them as recorded and does
@@ -58,10 +58,11 @@
    files, so the LaTeX version can `\includegraphics` them. Figures follow the existing shared
    figure style if it is importable (commit `7dc9620`); otherwise they use matplotlib defaults.
 5. **Report language and form.** Spanish, as in the EDA and FE notebooks. Only pandoc-safe
-   Markdown, as the spec requires. Citations are written as BibTeX keys in brackets (for
-   example `[bonafilia_sen1floods11_2020]`), so they map to `\cite{}` later. No key is invented:
-   a key is used only if it already exists in `thesis/3_3_BIBLIOGRAFIA/library.bib` or
-   `docs/REFERENCES.md`. Otherwise the text says "(referencia pendiente)".
+   Markdown, as the spec requires. Citations use pandoc syntax (for example
+   `[@bonafilia_sen1floods11_2020]`), which `pandoc --natbib` turns into `\citep{}`. No key is
+   invented: a key is used only if it already exists in `thesis/3_3_BIBLIOGRAFIA/library.bib` or
+   in `docs/literature_thesis.bib` (the project's thesis bibliography, used when `thesis/` is not
+   cloned). Otherwise the text says "(referencia pendiente)".
 6. **Branch base.** `avance-sem6-sprint` starts from `main`, which already contains the week-4 and
    week-5 notebooks. The branch is pushed only with the authors' approval.
 

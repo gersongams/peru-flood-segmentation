@@ -1,0 +1,68 @@
+experiment,role,model,method,train_data,split,seed,metric,value,source,commit
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,0,iou_water,0.9397,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,1,iou_water,0.9434,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,2,iou_water,0.9414,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,mean,iou_water,0.9415,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,std,iou_water,0.0019,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,mean,miou,0.9665,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,std,miou,0.0011,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,0,best_epoch,51,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,1,best_epoch,98,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-dev,2,best_epoch,63,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,0,iou_water,0.9275,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,1,iou_water,0.9237,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,2,iou_water,0.9283,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,mean,iou_water,0.9265,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,std,iou_water,0.0025,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,mean,miou,0.9579,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,std,miou,0.0014,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,0,best_epoch,92,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,1,best_epoch,93,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,2,best_epoch,88,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,0,iou_water,0.9212,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,1,iou_water,0.9225,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,2,iou_water,0.9217,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,mean,iou_water,0.9218,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,std,iou_water,0.0007,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,mean,miou,0.9552,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,std,miou,0.0004,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,0,best_epoch,48,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,1,best_epoch,51,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,2,best_epoch,44,docs/EXPERIMENT_LOG.md 2026-10-13/14 Peru-only 3 seeds,55c5e04|45270f1
+A,reference,MNDWI > 0,fixed threshold (no training),none,peru-dev,single,iou_water,0.4858,docs/phaseD_dev.md dev table (MNDWI > 0),
+A,reference,MNDWI > Otsu,Otsu threshold on unlabelled peru-train images,none,peru-dev,single,iou_water,0.5718,docs/phaseD_dev.md dev table (MNDWI > Otsu threshold on the pool),
+A,reference,MNDWI > 0.28,threshold fitted on peru-train labels,peru-train,peru-dev,single,iou_water,0.9237,docs/METHODS_NOTES.md 2026-10-16 Feature engineering (MNDWI > 0.28; 1/4 of dev pixels),86f49f2
+A,reference,MNDWI > 0.27 (oracle),threshold tuned on peru-dev labels,peru-dev,peru-dev,single,iou_water,0.9251,docs/phaseD_dev.md dev table (MNDWI > +0.27 oracle),
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-test,mean,iou_water,0.8280,docs/phaseD_test.md peru-test table (Peru-trained U-Net),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-test,std,iou_water,0.0023,docs/phaseD_test.md peru-test table (Peru-trained U-Net),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-test,ci_low,iou_water,0.732,docs/phaseD_test.md peru-test table (Peru-trained U-Net),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-test,ci_high,iou_water,0.895,docs/phaseD_test.md peru-test table (Peru-trained U-Net),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-test,mean,iou_tolerant,0.861,docs/phaseD_test.md peru-test table (Peru-trained U-Net),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-test,mean,precision,0.966,docs/phaseD_test.md peru-test table (Peru-trained U-Net),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-test,mean,recall,0.853,docs/phaseD_test.md peru-test table (Peru-trained U-Net),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-test,mean,iou_water,0.8149,docs/phaseD_test.md peru-test table (Peru-trained TerraMind),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-test,std,iou_water,0.0023,docs/phaseD_test.md peru-test table (Peru-trained TerraMind),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-test,ci_low,iou_water,0.718,docs/phaseD_test.md peru-test table (Peru-trained TerraMind),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-test,ci_high,iou_water,0.885,docs/phaseD_test.md peru-test table (Peru-trained TerraMind),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-test,mean,iou_tolerant,0.852,docs/phaseD_test.md peru-test table (Peru-trained TerraMind),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-test,mean,precision,0.960,docs/phaseD_test.md peru-test table (Peru-trained TerraMind),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-test,mean,recall,0.843,docs/phaseD_test.md peru-test table (Peru-trained TerraMind),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-test,mean,iou_water,0.8244,docs/phaseD_test.md peru-test table (Peru-trained Prithvi),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-test,std,iou_water,0.0066,docs/phaseD_test.md peru-test table (Peru-trained Prithvi),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-test,ci_low,iou_water,0.731,docs/phaseD_test.md peru-test table (Peru-trained Prithvi),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-test,ci_high,iou_water,0.890,docs/phaseD_test.md peru-test table (Peru-trained Prithvi),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-test,mean,iou_tolerant,0.866,docs/phaseD_test.md peru-test table (Peru-trained Prithvi),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-test,mean,precision,0.966,docs/phaseD_test.md peru-test table (Peru-trained Prithvi),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-test,mean,recall,0.850,docs/phaseD_test.md peru-test table (Peru-trained Prithvi),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-2017-test,mean,iou_water_101,0.878,docs/phaseD_test.md peru-2017-test table (Peru-trained row; 101 chips not touching 2023 train),f1f61d6
+A,baseline,U-Net (ResNet-34),supervised,peru-train,peru-2017-test,mean,iou_water_204,0.916,docs/phaseD_test.md peru-2017-test table (Peru-trained row; all 204 chips),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-2017-test,mean,iou_water_101,0.892,docs/phaseD_test.md peru-2017-test table (Peru-trained row; 101 chips not touching 2023 train),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-2017-test,mean,iou_water_204,0.919,docs/phaseD_test.md peru-2017-test table (Peru-trained row; all 204 chips),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-2017-test,mean,iou_water_101,0.878,docs/phaseD_test.md peru-2017-test table (Peru-trained row; 101 chips not touching 2023 train),f1f61d6
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-2017-test,mean,iou_water_204,0.912,docs/phaseD_test.md peru-2017-test table (Peru-trained row; all 204 chips),f1f61d6
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,mean,unet_minus_model_plain_pts,1.50,docs/METHODS_NOTES.md 2026-10-14 Edge-tolerant IoU (Peru-only; U-Net minus model; IoU points),
+A,variant 1,TerraMind v1-B,supervised,peru-train,peru-dev,mean,unet_minus_model_excl1px_pts,0.40,docs/METHODS_NOTES.md 2026-10-14 Edge-tolerant IoU (Peru-only; label edge <= 1 px excluded),
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,mean,unet_minus_model_plain_pts,1.97,docs/METHODS_NOTES.md 2026-10-14 Edge-tolerant IoU (Peru-only; U-Net minus model; IoU points),
+A,variant 2,Prithvi-EO-2.0 300M,supervised,peru-train,peru-dev,mean,unet_minus_model_excl1px_pts,0.28,docs/METHODS_NOTES.md 2026-10-14 Edge-tolerant IoU (Peru-only; label edge <= 1 px excluded),
+A,variant 1,TerraMind v1-B,supervised (max_epochs 200 check),peru-train,peru-dev,0,iou_water_cap200,0.9270,docs/EXPERIMENT_LOG.md 2026-10-14 TerraMind Peru-only 200-epoch cap,0c3ee97
+A,variant 1,TerraMind v1-B,supervised (max_epochs 200 check),peru-train,peru-dev,0,best_epoch_cap200,77,docs/EXPERIMENT_LOG.md 2026-10-14 TerraMind Peru-only 200-epoch cap,0c3ee97

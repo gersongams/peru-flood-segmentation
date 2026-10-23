@@ -1,0 +1,4 @@
+model,"IoU, 101 recortes (principal)","IoU, 204 recortes"
+U-Net (ResNet-34),0.878,0.916
+TerraMind v1-B,0.892,0.919
+Prithvi-EO-2.0 300M,0.878,0.912

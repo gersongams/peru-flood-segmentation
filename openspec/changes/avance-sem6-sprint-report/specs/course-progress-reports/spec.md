@@ -27,7 +27,7 @@ the one-time evaluation on record.
 - **THEN** it builds every table and figure from the tracked results table and reads no file under `data/` that belongs to a test split
 
 #### Scenario: Notebook runs with outputs
-- **WHEN** `outputs/runs_cloud/summary_peru_dev.csv` or `outputs/phaseD/dev_table_runs.csv` exists
+- **WHEN** `outputs/phaseD/dev_table_runs.csv` exists
 - **THEN** the notebook compares the per-seed dev values of the tracked table with those files and reports any difference larger than 1e-4
 
 ### Requirement: Every reported number has a source

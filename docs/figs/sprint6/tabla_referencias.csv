@@ -1,0 +1,5 @@
+regla,cómo se fija el umbral,etiquetas usadas,IoU de agua,fuente
+MNDWI > 0,"fijo, sin datos",ninguna,0.4858,docs/phaseD_dev.md dev table (MNDWI > 0)
+MNDWI > Otsu,"Otsu sobre imágenes de peru-train, sin etiquetas",ninguna,0.5718,docs/phaseD_dev.md dev table (MNDWI > Otsu threshold on the pool)
+MNDWI > 0.28,ajustado con etiquetas de peru-train,peru-train,0.9237,docs/METHODS_NOTES.md 2026-10-16 Feature engineering (MNDWI > 0.28; 1/4 of dev pixels)
+MNDWI > 0.27 (oracle),ajustado con etiquetas de peru-dev (oráculo),peru-dev,0.9251,docs/phaseD_dev.md dev table (MNDWI > +0.27 oracle)

@@ -93,9 +93,10 @@ GPUs. Notes on MPS speed and pitfalls are in [`docs/feasibility.md`](docs/feasib
 ## Course deliverables
 
 Weekly progress reports for the master's course are kept on their own branches and are also
-in `main`. Both notebooks are in Spanish and saved with their outputs:
+in `main`. The notebooks are in Spanish and saved with their outputs:
 
-| Week | Branch | Notebook |
-|---|---|---|
-| 4: exploratory data analysis (EDA) | `avance-sem4-eda` | [`notebooks/eda.ipynb`](notebooks/eda.ipynb) |
-| 5: feature engineering | `avance-sem5-feature-engineering` | [`notebooks/feature_engineering.ipynb`](notebooks/feature_engineering.ipynb) |
+| Week | Branch | Notebook | Report |
+|---|---|---|---|
+| 4: exploratory data analysis (EDA) | `avance-sem4-eda` | [`notebooks/eda.ipynb`](notebooks/eda.ipynb) | — |
+| 5: feature engineering | `avance-sem5-feature-engineering` | [`notebooks/feature_engineering.ipynb`](notebooks/feature_engineering.ipynb) | [`docs/feature_engineering.md`](docs/feature_engineering.md) |
+| 6: sprint report (EDA + feature engineering + baseline U-Net vs TerraMind and Prithvi) | `avance-sem6-sprint` | [`notebooks/baseline_variantes.ipynb`](notebooks/baseline_variantes.ipynb) | [`docs/informe_sprint_sem6.md`](docs/informe_sprint_sem6.md) |

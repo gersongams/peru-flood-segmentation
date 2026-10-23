@@ -22,7 +22,7 @@ together. The report starts as Markdown and will later be converted to LaTeX.
     `peru-test` and `peru-2017-test` scores already on record.
   - The label-free adaptation results (phase D) are out of scope for this deliverable (authors'
     decision, 2026-10-23).
-- New tracked results table `notebooks/data/sprint6_results.csv`, with one row per value and its
+- New tracked results table `notebooks/results/sprint6_results.csv`, with one row per value and its
   source (log entry, write-up table, commit). The notebook reads it. When `outputs/` is
   present, the notebook also checks the table against the run summaries.
 - New sprint report `docs/informe_sprint_sem6.md` (Spanish), written so it converts easily to
