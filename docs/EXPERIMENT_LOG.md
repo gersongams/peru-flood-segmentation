@@ -644,3 +644,17 @@ notebook". Commit: see this entry's commit.
   via Open-Meteo, retrieved 2026-10-21. GloFAS 2017 peak 2 569 m³/s vs INDECI 3 800 m³/s (27 Mar 2017,
   Compendio 2017 p. 28): the model is low; shown as a model, not a measurement.
 
+
+## 2026-10-28 — Storage: unfrozen checkpoints moved to S3
+
+To free disk, 400 files (44.47 GB) were moved to a private S3 bucket (name in `.env` as
+`ARCHIVE_BUCKET`; us-east-1, storage class GLACIER_IR, same relative paths as keys). List:
+`docs/s3_archive_manifest.txt`. Every file was checked in S3 by byte size before the local copy was
+deleted. Moved:
+- `.ckpt` files of runs not in `configs/frozen.yaml` (`runs/`, `runs_peru/`, `s1f11_lr*`,
+  `s1f11_src_terramind`, `s1f11_trhm_prithvi_eo_v2_300`, `s1f11_trfda_unet`, `runs_cloud_tm200`,
+  `s1f11_src_unet_repeat`); their metrics, logs and configs stay local.
+- Self-training checkpoints `outputs/phaseD/self_train/**/*.pt` (dev only; none frozen).
+- `outputs/preds_valid/` (superseded) and `data/system/frames_cache/` (raw Process API responses).
+The 36 frozen checkpoints and all logits stay local. Run directories above that cite a checkpoint now
+need `aws s3 cp s3://$ARCHIVE_BUCKET/<path> <path>` before re-use.
