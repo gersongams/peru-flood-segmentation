@@ -1,0 +1,105 @@
+% Matriz de consistencia simplificada (entregable semana 7): problema, objetivos, hipótesis,
+% variables por hipótesis e indicadores. Versión completa: matriz_consistencia.tex.
+% Compilar: latexmk -xelatex matriz_consistencia_simplificada.tex
+\documentclass[10pt]{article}
+\usepackage[a4paper,landscape,margin=1.5cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Arial}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage{array}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\ingles}[1]{\textit{#1}}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.25}
+\pagestyle{empty}
+
+\begin{document}
+
+{\centering
+{\large\textbf{MATRIZ DE CONSISTENCIA}}\par\smallskip
+Sistema de análisis satelital de inundaciones basado en modelos de segmentación profunda para el
+mapeo de áreas inundadas en el Perú\par}
+\bigskip
+
+{\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{|L{3.6cm}|L{4.6cm}|L{5.2cm}|L{5.6cm}|L{5.6cm}|}
+\hline
+\textbf{Problema} & \textbf{Objetivos} & \textbf{Hipótesis} &
+\textbf{Variables (independientes y dependientes)} & \textbf{Indicadores} \\ \hline
+¿De qué manera se puede desarrollar un sistema de análisis satelital de inundaciones para el
+Perú, basado en modelos de segmentación profunda, que genere mapas de la extensión del agua y de
+su incertidumbre a partir de imágenes Sentinel-2, aun cuando no se dispone de datos etiquetados
+del Perú para entrenar los modelos?
+&
+\textbf{Objetivo general.} Desarrollar un sistema de análisis satelital de inundaciones para el
+Perú, basado en modelos de segmentación profunda, que genere mapas de la extensión del agua y de
+su incertidumbre a partir de imágenes Sentinel-2.
+&
+\textbf{Hipótesis general.} Los modelos fundacionales geoespaciales pierden menos desempeño que la
+U-Net al pasar de Sen1Floods11 al Perú; la adaptación de dominio y la calibración mejoran en parte
+la confiabilidad de los mapas, y el sistema cumple sus requisitos en un tiempo adecuado para la
+respuesta después de un evento.
+&
+\textbf{Var. indep.:} modelo de segmentación, estrategia de entrenamiento o adaptación y
+configuración del sistema.\newline
+\textbf{Var. dep.:} calidad del mapeo de inundaciones.
+&
+IoU de agua; caída de IoU de Sen1Floods11 al Perú; ECE; AUROC; requisitos cumplidos (\%);
+tiempo por escena (min).
+\\ \cline{2-5}
+&
+\textbf{OE1.} Comparar el IoU de agua de TerraMind v1-B, Prithvi-EO-2.0 300M y U-Net en
+Sen1Floods11 y en los eventos peruanos de 2023 y 2017, con tres esquemas de entrenamiento, para
+seleccionar el modelo del sistema.
+&
+\textbf{HE1.} En Sen1Floods11 no se detecta una diferencia significativa de IoU de agua entre los
+modelos fundacionales y la U-Net. En el Perú, la caída de IoU de los modelos fundacionales es
+menor que la de la U-Net.
+&
+\textbf{Var. indep.:} arquitectura (TerraMind, Prithvi, U-Net) y esquema de entrenamiento
+(Sen1Floods11; Perú; Sen1Floods11 y ajuste fino en el Perú).\newline
+\textbf{Var. dep.:} exactitud de la segmentación y generalización al Perú.
+&
+IoU de agua; diferencia pareada de IoU con IC 95~\%; caída de IoU de Sen1Floods11 al Perú.
+\\ \cline{2-5}
+&
+\textbf{OE2.} Determinar en qué medida la adaptación de dominio no supervisada y la calibración de
+la incertidumbre mejoran la confiabilidad de los mapas en el Perú, e identificar las condiciones
+en las que se concentran los errores.
+&
+\textbf{HE2.} Los errores se concentran en pocas condiciones (bordes de nubes, vegetación
+inundada, terreno desértico o costero). La adaptación aumenta el IoU de agua sin llegar al modelo
+entrenado en el Perú. El escalado de temperatura y los ensambles reducen el ECE, y la
+incertidumbre permite detectar errores.
+&
+\textbf{Var. indep.:} método de adaptación (ninguno, igualación de histogramas, FDA, AdaBN) y
+tratamiento de la incertidumbre (sin calibrar, escalado de temperatura, ensamble).\newline
+\textbf{Var. dep.:} generalización al Perú, calibración y detección de errores.
+&
+Diferencia de IoU entre el modelo adaptado y el sin adaptar (IC 95~\%); proporción de errores
+por condición; ECE (\%); AUROC de detección de errores ($>$ 0.5).
+\\ \cline{2-5}
+&
+\textbf{OE3.} Implementar el sistema como una aplicación web y evaluar si cumple los requisitos
+funcionales y el tiempo de procesamiento por escena Sentinel-2.
+&
+\textbf{HE3.} El sistema cumple el 100~\% de los requisitos funcionales RF1 a RF7 y procesa una
+escena Sentinel-2 completa en 15 minutos o menos, incluida la descarga.
+&
+\textbf{Var. indep.:} configuración del sistema (modelo seleccionado, flujo de obtención y
+procesamiento de imágenes).\newline
+\textbf{Var. dep.:} desempeño del sistema.
+&
+Requisitos funcionales cumplidos (\%); tiempo de procesamiento por escena (min).
+\\ \hline
+\end{tabular}}
+
+\medskip
+{\footnotesize\raggedright
+\textit{Nota.} IoU: intersección sobre unión; ECE: error de calibración esperado; AUROC: área bajo
+la curva ROC; IC: intervalo de confianza. La versión completa, con diseño metodológico y
+trazabilidad, está en \texttt{matriz\_consistencia.pdf}.\par\smallskip
+Autores: Gerson Andre Garrido Mansilla, Renzo Elvis Cerron Tome. Elaboración: propia.}
+
+\end{document}

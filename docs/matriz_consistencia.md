@@ -4,6 +4,10 @@ PDF: [`entregables/matriz_consistencia/matriz_consistencia.pdf`](../entregables/
 · fuente LaTeX: `entregables/matriz_consistencia/matriz_consistencia.tex`
 (`latexmk -xelatex matriz_consistencia.tex`).
 
+Versión simplificada para la entrega de la semana 7 (problema, objetivos, hipótesis, variables
+por hipótesis e indicadores, una página):
+[`entregables/matriz_consistencia/matriz_consistencia_simplificada.pdf`](../entregables/matriz_consistencia/matriz_consistencia_simplificada.pdf).
+
 ## 1. Contenido
 
 - **Tabla A. Matriz de consistencia.** Plantilla de la Guía N°2 EPG-UNI (p. 27): problema de
