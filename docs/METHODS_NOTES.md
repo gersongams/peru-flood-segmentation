@@ -2846,3 +2846,27 @@ decision as the 2023 sea question).
 
 **Feeds:** thesis §3.1.9 (system), only as a description of the interface; no numbers from it.
 
+
+## 2026-10-28: Consistency matrix and traceability matrix (course deliverable)
+
+**What and why.** The course teacher asked for the matriz de consistencia. Anexo 1 of the thesis
+already had it (Guía N°2 template). The deliverable (`entregables/matriz_consistencia/`, notes in
+`docs/matriz_consistencia.md`, branch `avance-matriz-consistencia`) adds Table B, a traceability
+matrix with one row per testable claim (1a–3): dimension, indicator, contrast criterion, script,
+result file and status. It targets rubric criterion 3 ("trazabilidad completa", S2 p. 4).
+
+**Method.** Table A takes its content from Chapter I §1.2–1.4. It is reworded in the usual
+Peruvian thesis matrix formulas, because the teacher found the earlier wording unnatural and not
+Peruvian. Table B states the verdicts of Chapter III §3.3 (Tabla de contrastación). Every number
+was checked against its source file on 2026-10-28 (list in `docs/matriz_consistencia.md` §2).
+HE3 is marked pending; the preliminary RF1, RF3 and RF5 checks are listed as preliminary only.
+
+**Alternatives.** Dr. Zela's Session 2 layout (with "Resultados esperados") was rejected by the
+authors in favour of the Guía N°2 template plus Table B (authors' decision, 2026-10-28).
+
+**Open (authors).** The Table A wording is a draft; the authors give each cell its final wording.
+The term changes in `docs/matriz_consistencia.md` §4 ("régimen" → "esquema",
+"sin etiquetas peruanas de entrenamiento" → "sin datos etiquetados del Perú", and others) are not
+yet applied to Chapter I or Anexos 1–2; if accepted, apply them there so the texts match.
+
+**Feeds:** thesis Anexo 1; course deliverable.

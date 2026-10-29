@@ -1,0 +1,232 @@
+% Matriz de consistencia (Guía N°2 EPG-UNI, p. 27) y matriz de trazabilidad.
+% Compilar: latexmk -xelatex matriz_consistencia.tex
+% Fuente del contenido: tesis, Capítulo I (§1.2–1.4) y Capítulo III (§3.3, Tabla de contrastación).
+% Las celdas de la Tabla A marcadas "AUTORES" deben revisarse y redactarse con palabras propias
+% antes de la entrega (docs/matriz_consistencia.md, sección 3).
+\documentclass[10pt]{article}
+\usepackage[a4paper,landscape,margin=1.5cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Arial}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage{array,longtable,multirow}
+\usepackage[table]{xcolor}
+\usepackage{url}
+\def\UrlBreaks{\do/\do_\do.}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\ingles}[1]{\textit{#1}}
+\newcommand{\sub}[1]{\textbf{#1}\par}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.15}
+\pagestyle{plain}
+
+\newcommand{\titulo}{Sistema de análisis satelital de inundaciones basado en modelos de
+segmentación profunda para el mapeo de áreas inundadas en el Perú}
+\newcommand{\autores}{Gerson Andre Garrido Mansilla, Renzo Elvis Cerron Tome}
+
+\begin{document}
+
+{\centering
+{\large\textbf{MATRIZ DE CONSISTENCIA}}\par\smallskip
+Maestría en Ciencias con mención en Inteligencia Artificial, Universidad Nacional de Ingeniería\par}
+\bigskip
+
+% ============================================================================
+\textbf{Tabla A.} Matriz de consistencia
+\smallskip
+
+{\scriptsize\setlength{\tabcolsep}{3.5pt}
+\begin{longtable}{|L{2.9cm}|L{4.0cm}|L{4.0cm}|L{4.6cm}|L{3.9cm}|L{5.0cm}|}
+\hline
+\multicolumn{6}{|L{25.75cm}|}{\textbf{Título:} \titulo} \\ \hline
+\textbf{Problema de estudio} & \textbf{Problemas} & \textbf{Objetivos} & \textbf{Hipótesis} &
+\textbf{Variables y dimensiones} & \textbf{Diseño metodológico} \\ \hline
+\endhead
+% AUTORES: todas las celdas de esta tabla.
+En el Perú no se cuenta con un sistema que produzca de forma automática mapas confiables de la
+extensión de las inundaciones con imágenes Sentinel-2.
+
+Los modelos entrenados con datos de otros países pierden desempeño cuando se aplican en la costa
+norte peruana, y no se sabe qué tan confiable es la incertidumbre que reportan.
+
+Para entrenar un modelo propio se necesitan etiquetas locales, que no suelen estar disponibles
+después de un evento.
+&
+\sub{Problema general}
+¿De qué manera se puede desarrollar un sistema de análisis satelital de inundaciones para el Perú,
+basado en modelos de segmentación profunda, que genere mapas de la extensión del agua y de su
+incertidumbre a partir de imágenes Sentinel-2, aun cuando no se dispone de datos etiquetados del
+Perú para entrenar los modelos?
+&
+\sub{Objetivo general}
+Desarrollar un sistema de análisis satelital de inundaciones para el Perú, basado en modelos de
+segmentación profunda, que genere mapas de la extensión del agua y de su incertidumbre a partir de
+imágenes Sentinel-2.
+&
+\sub{Hipótesis general}
+Los modelos fundacionales geoespaciales pierden menos desempeño que la U-Net al pasar de
+Sen1Floods11 al Perú.
+
+La adaptación de dominio sin datos etiquetados del Perú y la calibración de la incertidumbre
+mejoran en parte la confiabilidad de los mapas.
+
+El sistema que integra estos modelos cumple sus requisitos funcionales y procesa una escena en un
+tiempo adecuado para la respuesta después de un evento.
+&
+\sub{Variable independiente (X)}
+Modelo de segmentación, estrategia de entrenamiento o adaptación y configuración del sistema.
+
+\textbf{Dimensiones:}
+X1. Arquitectura.\newline
+X2. Esquema de entrenamiento.\newline
+X3. Adaptación de dominio sin datos etiquetados del Perú.\newline
+X4. Tratamiento de la incertidumbre.\newline
+X5. Configuración del sistema.
+&
+\textbf{Tipo:} aplicada (desarrollo tecnológico).\newline
+\textbf{Enfoque:} cuantitativo.\newline
+\textbf{Nivel:} explicativo.\newline
+\textbf{Método:} hipotético-deductivo; desarrollo iterativo e incremental para el sistema.\newline
+\textbf{Diseño:} experimental (experimentos computacionales controlados) para los objetivos
+específicos 1 y 2; evaluación técnica frente a requisitos fijados de antemano para el objetivo
+específico 3.
+\\ \hline
+&
+\sub{Problemas específicos}
+PE1. ¿Qué modelo de segmentación (TerraMind, Prithvi o U-Net) y qué esquema de entrenamiento
+logran el mejor desempeño en Sen1Floods11 y en el Perú?
+
+PE2. ¿En qué medida la adaptación de dominio sin datos etiquetados del Perú reduce la pérdida de
+desempeño de los modelos en el Perú, y qué tan bien calibrada está su incertidumbre?
+
+PE3. ¿En qué medida el sistema implementado cumple los requisitos funcionales y el tiempo de
+procesamiento necesarios para usarlo después de una inundación?
+&
+\sub{Objetivos específicos}
+OE1. Comparar el IoU de agua de TerraMind v1-B, Prithvi-EO-2.0 300M y U-Net en Sen1Floods11 y en
+los eventos peruanos de 2023 y 2017, con tres esquemas de entrenamiento, para seleccionar el
+modelo del sistema.
+
+OE2. Determinar en qué medida la adaptación de dominio no supervisada y la calibración de la
+incertidumbre mejoran la confiabilidad de los mapas en el Perú, e identificar las condiciones en
+las que se concentran los errores.
+
+OE3. Implementar el sistema como una aplicación web y evaluar si cumple los requisitos funcionales
+y el tiempo de procesamiento por escena Sentinel-2.
+&
+\sub{Hipótesis específicas}
+HE1. En Sen1Floods11 no se detecta una diferencia significativa de IoU de agua entre los modelos
+fundacionales y la U-Net (IC 95~\%). En el Perú, la caída de IoU de los modelos fundacionales es
+menor que la de la U-Net.
+
+HE2. Los errores en el Perú se concentran en pocas condiciones: bordes de nubes, vegetación
+inundada y terreno desértico o costero. La adaptación aumenta el IoU de agua respecto del modelo
+sin adaptar (IC 95~\% mayor que cero), sin llegar al modelo entrenado en el Perú. Sin calibrar, los
+modelos son sobreconfiados; el escalado de temperatura y los ensambles reducen el ECE, y la
+incertidumbre permite detectar errores (AUROC mayor que 0.5).
+
+HE3. El sistema cumple el 100~\% de los requisitos funcionales RF1 a RF7 y procesa una escena
+Sentinel-2 completa en 15 minutos o menos, incluida la descarga.
+&
+\sub{Variable dependiente (Y)}
+Calidad del mapeo de inundaciones.
+
+\textbf{Dimensiones:}
+Y1. Exactitud de la segmentación.\newline
+Y2. Generalización al Perú.\newline
+Y3. Calibración.\newline
+Y4. Detección de errores.\newline
+Y5. Desempeño del sistema.
+
+\sub{Variables intervinientes}
+Evento (2023 o 2017), calidad de las etiquetas y cobertura de nubes.
+&
+\textbf{Población:} imágenes Sentinel-2 L1C de eventos de inundación.\newline
+\textbf{Muestra (no probabilística):} Sen1Floods11, particiones oficiales (252 de entrenamiento,
+89 de validación y 90 de prueba); Perú 2023, 1\,291 recortes por bloques espaciales (753, 174 y
+172, más 192 de separación sin uso); Perú 2017, 204 recortes solo de prueba (101 en la evaluación
+principal); escenas completas para el sistema.\newline
+\textbf{Técnicas e instrumentos de recolección de datos:} descarga desde Copernicus Data Space;
+etiquetas generadas por reglas a partir de los mapas de UNOSAT (2023) y Copernicus EMS (2017),
+sin etiquetado manual; programas del repositorio versionados con \ingles{git}; registros de
+pruebas y de tiempos del sistema.\newline
+\textbf{Técnicas e instrumentos de análisis y procesamiento:} IoU de agua, precisión,
+\ingles{recall} y mIoU; ECE; AUROC; diferencias pareadas con IC 95~\% por remuestreo
+\ingles{bootstrap} (2\,000 réplicas); media y desviación estándar de tres semillas; lista de
+verificación de RF1 a RF7; tiempo por escena.
+\\ \hline
+\end{longtable}}
+
+Autores: \autores.\\
+Elaboración: propia, a partir de los Capítulos I y III de la tesis.
+
+\newpage
+% ============================================================================
+\textbf{Tabla B.} Matriz de trazabilidad: de cada hipótesis específica a su indicador, instrumento,
+evidencia y estado
+\smallskip
+
+{\scriptsize\setlength{\tabcolsep}{3.5pt}
+\begin{longtable}{|L{0.8cm}|L{1.3cm}|L{2.2cm}|L{4.1cm}|L{3.2cm}|L{3.8cm}|L{4.0cm}|L{5.0cm}|}
+\hline
+\textbf{Afirm.} & \textbf{PE / OE / HE} & \textbf{Dimensión} & \textbf{Indicador} &
+\textbf{Criterio de contrastación} & \textbf{Instrumento} & \textbf{Evidencia} & \textbf{Estado} \\
+\hline
+\endhead
+1a & PE1 / OE1 / HE1 & Y1. Exactitud de la segmentación &
+Diferencia pareada de IoU de agua entre la U-Net y cada modelo fundacional, prueba de Sen1Floods11 &
+El IC 95~\% incluye el cero &
+\path{scripts/evaluate_frozen.py}, \path{scripts/bootstrap_frozen.py} &
+\path{outputs/phaseD/test/bootstrap_diffs.csv}; Cap.~III, §3.3 &
+Coherente: no se detectó una diferencia. U-Net $-$ Prithvi: +0.013 [$-$0.022; 0.062]; U-Net $-$
+TerraMind: +0.015 [$-$0.018; 0.051]. \\ \hline
+1b & PE1 / OE1 / HE1 & Y2. Generalización al Perú &
+Diferencia de caídas $D$ = caída de la U-Net $-$ caída del modelo fundacional (Sen1Floods11 $\to$
+prueba Perú 2023) &
+IC 95~\% de $D$ por encima de cero &
+\path{scripts/bootstrap_drop_diff.py} (análisis \ingles{post hoc}) &
+\path{outputs/phaseD/test/bootstrap_drop_diff.csv} &
+Se confirma parcialmente. Prithvi: $D$ = 0.177 [0.102; 0.253]. TerraMind: $D$ = 0.064 [0.001;
+0.120], con semillas solapadas con la U-Net. \\ \hline
+2a & PE2 / OE2 / HE2 & Y1. Exactitud de la segmentación &
+Razón de concentración por estrato (proporción de errores / proporción de píxeles), validación
+peruana &
+Razón $\geq$ 2 en los estratos nombrados (criterio fijado después de ver los resultados) &
+\path{scripts/error_shares_dev.py} &
+\path{outputs/phaseD/analysis/error_shares.csv} &
+Respaldo exploratorio parcial: solo la vegetación inundada cumple el criterio (U-Net y Prithvi);
+la mayor concentración está en el borde del agua. \\ \hline
+2b & PE2 / OE2 / HE2 & Y2. Generalización al Perú &
+Diferencia pareada de IoU de agua: adaptado $-$ origen y adaptado $-$ entrenado en el Perú &
+IC 95~\% de la primera $>$ 0 y del modelo adaptado por debajo del entrenado en el Perú &
+\path{scripts/evaluate_frozen.py}, \path{scripts/bootstrap_frozen.py} &
+\path{outputs/phaseD/test/bootstrap_diffs.csv} &
+Se confirma en 2023: U-Net +0.222 [0.132; 0.309]; TerraMind +0.082 [0.016; 0.156]. Se refuta frente
+a la referencia de 2017: U-Net $-$0.063; TerraMind $-$0.103. Prithvi sin configuración
+adaptada. \\ \hline
+2c & PE2 / OE2 / HE2 & Y3. Calibración; Y4. Detección de errores &
+Temperatura ajustada $T$; ECE (\%); AUROC de la incertidumbre &
+$T > 1$; ECE menor con temperatura y con ensamble; AUROC $>$ 0.5 &
+\path{scripts/phaseD_analysis.py}, \path{scripts/calibration_frozen.py} &
+\path{outputs/phaseD/analysis/temperatures.json}; \path{outputs/phaseD/test/calibration.md} &
+Se confirma en las configuraciones congeladas: AUROC de 0.598 a 0.783. Excepción fuera de ellas:
+Prithvi entrenado en el Perú (0.439). \\ \hline
+3 & PE3 / OE3 / HE3 & Y5. Desempeño del sistema &
+Requisitos funcionales cumplidos (\%); tiempo por escena (min), 6 teselas $\times$ 3 repeticiones &
+100~\% de RF1 a RF7; mediana $\leq$ 15 min en cada tesela &
+\path{scripts/system_rf*_check.py}, \path{scripts/system_timing.py};
+\path{docs/system_evaluation_protocol.md} &
+\path{outputs/system_eval/} &
+Pendiente de la medición formal. Verificaciones preliminares superadas: RF1, RF3 y RF5. \\ \hline
+\end{longtable}}
+
+\textit{Nota.} Los intervalos son IC 95~\% por remuestreo \ingles{bootstrap} pareado de recortes
+(2\,000 réplicas) sobre el IoU medio de tres semillas. Las cifras de 2017 corresponden a los 101
+recortes que no se superponen con el entrenamiento de 2023. Las etiquetas de 2017 conservan solo
+los píxeles en que EMS y el índice MNDWI concuerdan, por lo que miden sobre todo la exhaustividad.
+El detalle de cada veredicto está en el Capítulo III, §3.3.
+
+Autores: \autores.\\
+Elaboración: propia.
+
+\end{document}
