@@ -2870,3 +2870,29 @@ The term changes in `docs/matriz_consistencia.md` §4 ("régimen" → "esquema",
 yet applied to Chapter I or Anexos 1–2; if accepted, apply them there so the texts match.
 
 **Feeds:** thesis Anexo 1; course deliverable.
+
+## 2026-10-30: Variable importance (course deliverable, week 7)
+
+**What and why.** The course asked for variable importance. Two levels, dev only: (1) the
+thesis's independent variables, by a balanced two-factor variance decomposition (η² = factor sum
+of squares / total) of the phase-D dev IoU runs; (2) the input bands of the Peru-trained U-Net,
+by permutation importance.
+
+**Method.** Band permutation for an image model: band b of each `peru-dev` chip is replaced by
+band b of the chip given by a random permutation of the 174 chips (seed 0), on raw DN before the
+official normalization; it keeps the band's values and texture and breaks its link with the
+other bands and the label. Importance = drop in pooled water IoU (p > 0.5), mean of 2
+permutations. Groups (visible, red edge, NIR, SWIR, atmospheric) are also permuted together,
+because correlated bands share importance. Rejected: mean-replacement ablation (out-of-
+distribution inputs) and within-chip pixel shuffling (destroys spatial texture the CNN uses).
+
+**Results.** EXPERIMENT_LOG 2026-10-30. The training scheme is the largest factor (η² 0.53);
+without test-time FDA the adaptation effect depends on the architecture (interaction 0.50). The
+U-Net depends mainly on B11 (drop 0.88), then B8A and B05; B12 alone barely matters (0.015).
+
+**Caveats.** One seed, two permutations, U-Net only (TerraMind and Prithvi pending; the run was
+stopped for time). Permutation importance measures dependence of the model, not causation.
+Importances are not additive (the NIR group drop 0.23 is below B8A alone, 0.37).
+
+**Feeds:** course deliverable; possibly thesis §3 discussion of why SWIR matters on the desert
+coast.

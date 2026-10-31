@@ -658,3 +658,17 @@ deleted. Moved:
 - `outputs/preds_valid/` (superseded) and `data/system/frames_cache/` (raw Process API responses).
 The 36 frozen checkpoints and all logits stay local. Run directories above that cite a checkpoint now
 need `aws s3 cp s3://$ARCHIVE_BUCKET/<path> <path>` before re-use.
+
+## 2026-10-30 — Variable importance on peru-dev (course deliverable, week 7)
+
+`uv run python scripts/variable_importance_dev.py` (commit `eb0583e` + uncommitted script), peru-dev
+only. Band permutation importance (chip-swap permutation, 2 permutations, seed 0) of the frozen
+`peru/unet`: base IoU 0.9397 (matches dev table 0.93966). Drops: B11 0.8815, B8A 0.3676, B05 0.3342;
+groups SWIR 0.8795, red edge 0.3702, NIR 0.2264, visible 0.1029, atmospheric 0.0141. Run stopped
+after the U-Net for time; TerraMind and Prithvi pending. Results rebuilt from the run log
+(`outputs/variable_importance/run.log`) into `importance.csv`. Notebook
+`entregables/matriz_consistencia/importancia_variables.ipynb` (builder
+`notebooks/build_importancia_variables_nb.py`) adds a two-factor variance decomposition of the
+phase-D dev runs (`outputs/phaseD/dev_table_runs.csv`): architecture × training scheme η² 0.177 /
+0.526 / interaction 0.169 / seeds 0.128; architecture × adaptation (U-Net, TerraMind) method 0.923
+with test-time FDA, interaction 0.496 without it.
