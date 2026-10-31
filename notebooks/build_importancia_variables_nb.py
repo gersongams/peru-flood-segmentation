@@ -39,7 +39,8 @@ Las particiones de prueba no se leen. Los resultados son exploratorios y no camb
 comparación final de la tesis.
 
 Código: `scripts/variable_importance_dev.py` (permutación) y este cuaderno."""),
-    nbf.v4.new_code_cell("""import importlib.util, json, sys
+    nbf.v4.new_code_cell("""import importlib.util, json, sys, warnings
+warnings.filterwarnings("ignore")
 from pathlib import Path
 import numpy as np, pandas as pd, matplotlib.pyplot as plt, rasterio
 
@@ -182,7 +183,8 @@ Se toma el recorte de `peru-dev` con más agua etiquetada. Se muestra la predicc
 entrenada en el Perú (semilla 0) con la entrada original y con las bandas SWIR o las visibles
 tomadas del recorte que les asigna la primera permutación. En la etiqueta, el gris es
 «sin etiqueta» (nubes o desacuerdo)."""),
-    nbf.v4.new_code_cell("""import torch, yaml
+    nbf.v4.new_code_cell("""import os, torch, yaml
+os.environ["TQDM_DISABLE"] = "1"
 from terratorch.tasks import SemanticSegmentationTask
 from floodseg.normalization import S2_L1C_BANDS
 from floodseg.target_pool import model_input_spec, normalize
@@ -213,14 +215,15 @@ def rgb(img, bands, k=2.5):
     a = np.stack([img[S2_L1C_BANDS.index(b)] for b in bands], -1) / 10000 * k
     return np.clip(a, 0, 1)
 casos = {"Original": x, "SWIR permutado": permutar(["SWIR_1", "SWIR_2"]), "Visible permutado": permutar(["COASTAL_AEROSOL", "BLUE", "GREEN", "RED"])}
-fig, axs = plt.subplots(1, 6, figsize=(20, 3.8))
+fig, axs = plt.subplots(3, 2, figsize=(12, 18)); axs = axs.ravel()
 axs[0].imshow(rgb(x, ["RED", "GREEN", "BLUE"])); axs[0].set_title("Color natural (B04, B03, B02)")
 axs[1].imshow(rgb(x, ["SWIR_2", "NIR_NARROW", "RED"], 2.0)); axs[1].set_title("Falso color (B12, B8A, B04)")
 axs[2].imshow(np.where(y == -1, 0.5, y == 1), cmap="Blues", vmin=0, vmax=1); axs[2].set_title("Etiqueta (agua en azul)")
 for ax, (t, img) in zip(axs[3:], casos.items()):
     p = predecir(img); ax.imshow(p, cmap="Blues", vmin=0, vmax=1); ax.set_title(f"{t}\\nIoU {iou(p):.3f}")
 for ax in axs: ax.axis("off")
-fig.suptitle(f"peru-dev: {stems[i]} (agua etiquetada: {agua[i]:.0%} del recorte)", y=1.06); plt.tight_layout(); plt.show()"""),
+for ax in axs: ax.title.set_fontsize(13)
+fig.suptitle(f"peru-dev: {stems[i]} (agua etiquetada: {agua[i]:.0%} del recorte)", fontsize=14, y=1.0); plt.tight_layout(rect=(0, 0, 1, 0.98)); plt.show()"""),
     nbf.v4.new_markdown_cell("""## 4. Comparación con el clasificador por píxel (semana 5)
 
 En el avance de la semana 5 se midió la importancia por permutación de un clasificador
