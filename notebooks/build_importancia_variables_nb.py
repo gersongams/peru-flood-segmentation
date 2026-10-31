@@ -120,21 +120,21 @@ d2b = d2[d2.regime != "fda"]
 e2b = eta2(d2b, "arquitectura", "método")
 display(pd.DataFrame({"con FDA en prueba": e2.values, "sin FDA en prueba": e2b.values},
                      index=["arquitectura", "método", "interacción", "residual (semillas)"]).round(3))"""),
-    nbf.v4.new_code_cell("""fig, axs = plt.subplots(1, 3, figsize=(19, 4.6), gridspec_kw={"width_ratios": [1, 1.5, 1]})
+    nbf.v4.new_code_cell("""fig, axs = plt.subplots(3, 1, figsize=(12, 17), gridspec_kw={"height_ratios": [1, 1.2, 0.8]})
 m1 = d1.groupby(["arquitectura", "esquema"]).iou.agg(["mean", "std"]).unstack()
-m1["mean"][["Sen1Floods11", "Perú"]].plot.bar(ax=axs[0], yerr=m1["std"][["Sen1Floods11", "Perú"]], rot=0, capsize=3)
-axs[0].set_ylim(0.6, 1); axs[0].set_ylabel("IoU de agua (peru-dev)"); axs[0].set_title("Arquitectura × esquema")
-axs[0].set_xticklabels(["Prithvi", "TerraMind", "U-Net"]); axs[0].set_xlabel(""); axs[0].legend(title="esquema", loc="lower right", fontsize=8)
+m1["mean"][["Sen1Floods11", "Perú"]].plot.bar(ax=axs[0], yerr=m1["std"][["Sen1Floods11", "Perú"]], rot=0, capsize=4, width=0.7)
+axs[0].set_ylim(0.6, 1); axs[0].set_ylabel("IoU de agua (peru-dev)"); axs[0].set_title("2.1 Arquitectura × esquema de entrenamiento", fontsize=13)
+axs[0].set_xticklabels(["Prithvi", "TerraMind", "U-Net"]); axs[0].set_xlabel(""); axs[0].legend(title="esquema", loc="upper left")
 m2 = d2.groupby(["método", "arquitectura"]).iou.agg(["mean", "std"]).unstack().reindex(list(MET.values()))
-m2["mean"].plot.barh(ax=axs[1], xerr=m2["std"], capsize=3)
+m2["mean"].plot.barh(ax=axs[1], xerr=m2["std"], capsize=4, width=0.7)
 axs[1].set_xlim(0.6, 1); axs[1].set_xlabel("IoU de agua (peru-dev; FDA en prueba ≈ 0.01, fuera de escala)"); axs[1].set_ylabel("")
-axs[1].set_title("Arquitectura × método de adaptación"); axs[1].legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=8)
+axs[1].set_title("2.2 Arquitectura × método de adaptación", fontsize=13); axs[1].legend(loc="lower right")
 pd.DataFrame({"2.1 arquitectura × esquema": e1.values, "2.2 arquitectura × método": e2.values,
               "2.2 sin FDA en prueba": e2b.values},
              index=["arquitectura", "esquema / método", "interacción", "residual (semillas)"]).T.plot.barh(
-    ax=axs[2], stacked=True, colormap="tab20c")
-axs[2].set_xlim(0, 1); axs[2].set_xlabel("proporción de la varianza (η²)"); axs[2].set_title("Descomposición de la varianza")
-axs[2].legend(fontsize=8, loc="lower center", bbox_to_anchor=(0.5, -0.55), ncol=2)
+    ax=axs[2], stacked=True, colormap="tab20c", width=0.6)
+axs[2].set_xlim(0, 1); axs[2].set_xlabel("proporción de la varianza (η²)"); axs[2].set_title("Descomposición de la varianza", fontsize=13)
+axs[2].legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=4)
 plt.tight_layout(); plt.show()"""),
     nbf.v4.new_markdown_cell("""## 3. Importancia de las bandas de entrada
 
