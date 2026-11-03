@@ -2896,3 +2896,33 @@ Importances are not additive (the NIR group drop 0.23 is below B8A alone, 0.37).
 
 **Feeds:** course deliverable; possibly thesis §3 discussion of why SWIR matters on the desert
 coast.
+
+## 2026-11-03: Hyperparameter optimization summary (course deliverable, sprint progress)
+
+**What and why.** The course asked for the sprint progress up to hyperparameter optimization, as a
+GitHub notebook. No new training: `notebooks/optimizacion_hiperparametros.ipynb` reads the
+`metrics.csv` and `config.yaml` of existing runs and the dev tables. No test split is read.
+
+**Method.** Tuning done: LR grid for the Sen1Floods11 models (seed 0, 100-epoch cap, 10 runs: U-Net
+{3e-5, 1e-4, 3e-4, 1e-3}, TerraMind {1e-5, 2e-5, 5e-5}, Prithvi {3e-5, 1e-4, 3e-4}), selected on
+`valid` water IoU; epoch cap raised to 200 for the finals. LR is read from
+`optimizer.init_args.lr`; `val/IoU_Flood` is taken per epoch after dropping NaN rows. The notebook
+asserts that the recomputed sweep values match `docs/EXPERIMENT_LOG.md`. The self-training α × q grid
+and the MNDWI threshold sweep are shown as sensitivity only (dev labels; not used for selection).
+
+**Results** (source: run folders above; `outputs/phaseD/dev_table_runs.csv`). `valid` water IoU, 3
+seeds: U-Net 0.8315 ± 0.0015 (initial seed 0: 0.8188), TerraMind 0.8349 ± 0.0014 (0.8168), Prithvi
+0.8315 ± 0.0047 (0.8327). The U-Net winner's margin over the runner-up (0.0171) equals the difference
+from repeating one run (0.0170), so 3e-4 is not clearly the best U-Net LR. TerraMind 5e-5 vs 2e-5 on 3
+seeds: 0.8349 vs 0.8141. On `peru-dev`: TerraMind 0.7027 ± 0.0913 vs 0.6921 ± 0.0996; U-Net 0.8364 ±
+0.0224 vs 0.8354 (one seed, Mac). The `valid` gain does not carry over to Peru.
+
+**Alternatives.** Random or Bayesian search was not run; only the LR was searched. A Peru-side LR
+sweep (`peru-train`, selection on `peru-dev`) was not run because the authors had no time for new
+runs; the Peru-trained models keep their config LRs (1e-4, 2e-5, 1e-4). Stated as a limitation.
+
+**Correction.** The 2026-10-15 entry on the source models gives AdamW weight decay 0.05 for U-Net and
+TerraMind. Each run's `config.yaml` shows 0.05 for the U-Net and 0.01 (AdamW default) for TerraMind.
+Chapter III's table (0.05, 0.01, 0.1) is already correct.
+
+**Thesis use.** Chapter III (training setup, hyperparameter selection), results caveats.

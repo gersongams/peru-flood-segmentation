@@ -672,3 +672,14 @@ after the U-Net for time; TerraMind and Prithvi pending. Results rebuilt from th
 phase-D dev runs (`outputs/phaseD/dev_table_runs.csv`): architecture × training scheme η² 0.177 /
 0.526 / interaction 0.169 / seeds 0.128; architecture × adaptation (U-Net, TerraMind) method 0.923
 with test-time FDA, interaction 0.496 without it.
+
+## 2026-11-03 — Hyperparameter optimization notebook (course deliverable; branch `avance-sem8-hiperparametros`)
+
+No new runs. `uv run python notebooks/build_hiperparametros_nb.py` →
+`notebooks/optimizacion_hiperparametros.ipynb` (executed). Reads `outputs/s1f11_lr*`,
+`outputs/s1f11_prithvi_lr*`, `outputs/s1f11_src_*`, `outputs/runs_cloud`, `outputs/runs_cloud_tm200`,
+`outputs/runs/<model>/lightning_logs/version_1`, `outputs/phaseD/dev_table_runs.csv`,
+`outputs/phaseD/oracle_selection.csv` and `outputs/analysis_dev/index_baseline.csv`; no test split.
+Sweep values recomputed from `metrics.csv` match the 2026-10-14/15 and 2026-10-15/16 entries.
+Write-up: METHODS_NOTES 2026-11-03.
+
