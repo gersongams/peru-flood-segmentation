@@ -28,8 +28,11 @@ en el IoU que los demás factores.
 
 **Sensibilidad.**
 
-- En el autoentrenamiento, ninguna combinación de α y q supera al modelo sin adaptar en TerraMind.
-  En la U-Net, las combinaciones quedan entre 0.890 y 0.914 a las 4000 iteraciones.
+- En el autoentrenamiento con AdaBN y semilla 0, ninguna combinación de α y q supera al modelo sin
+  adaptar en TerraMind (0.764). En la U-Net, las combinaciones quedan entre 0.890 y 0.914 a las 4000
+  iteraciones, por encima del modelo sin adaptar (0.843). Este resultado no es estable: con las
+  semillas 1 y 2, la configuración por defecto pierde entre 0.01 y 0.11, y la media de las tres
+  semillas (0.818 ± 0.110) queda por debajo del modelo sin adaptar (0.836 ± 0.022).
 - El umbral de MNDWI es muy sensible: el IoU de agua en `peru-dev` pasa de 0.486 con t = 0 a 0.924
   con t = 0.25. Ese umbral se ajustó con las etiquetas de `peru-dev`, así que es una referencia
   optimista.

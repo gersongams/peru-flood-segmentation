@@ -481,7 +481,7 @@ untuned LR). Runs and costs: `docs/EXPERIMENT_LOG.md` (2026-10-14/15 entry).
 **Method.**
 - Data: official Sen1Floods11 hand-labelled splits, train 252 chips, selection on `valid` (89).
   13 Sentinel-2 L1C bands, each model's official normalization, same Dice loss, AdamW
-  (weight decay 0.05), ReduceLROnPlateau on `val/loss` (factor 0.5, patience 5), batch and
+  (weight decay 0.05; corrected 2026-11-03: U-Net 0.05, TerraMind 0.01), ReduceLROnPlateau on `val/loss` (factor 0.5, patience 5), batch and
   augmentation as in `configs/<model>.yaml`. Early stopping on `val/IoU_Flood` with patience 20;
   the checkpoint with the best `val/IoU_Flood` is kept.
 - LR sweep, seed 0, 100-epoch cap: U-Net {3e-5, 1e-4, 3e-4, 1e-3} (4 values), TerraMind

@@ -276,7 +276,7 @@ muestran cuánto cambia el resultado.
 ### 6.1. Autoentrenamiento: α y q
 
 Parámetros de la malla: α es el coeficiente de la media móvil del modelo profesor y q es la proporción
-final de píxeles con pseudoetiqueta. Se usó la semilla 0, en cuatro puntos de control."""),
+final de píxeles con pseudoetiqueta. Se usó la semilla 0, en cuatro puntos de control, con el modelo profesor evaluado con AdaBN."""),
     nbf.v4.new_code_cell("""or_ = pd.read_csv(OUT / "phaseD" / "oracle_selection.csv")
 or_ = or_[or_.tag.str.startswith("st")]
 fig, axs = plt.subplots(2, 1, figsize=(12, 10))
@@ -290,7 +290,7 @@ for ax, m in zip(axs, ["unet", "terramind_v1_base"]):
         for j in range(p.shape[1]):
             v = p.values[i, j]
             ax.text(j, i, f"{v:.3f}", ha="center", va="center", color="white" if v > 0.75 else "#0b0b0b")
-    ax.set_title(f"{NOMBRES[m]}: IoU de agua en peru-dev")
+    ax.set_title(f"{NOMBRES[m]}: IoU de agua en peru-dev (semilla 0, con AdaBN)")
     ax.set_xlabel("Iteración")
 fig.tight_layout()
 plt.show()
@@ -326,8 +326,8 @@ for m, nombre in NOMBRES.items():
     a, b = finales[finales.modelo == m], peru[peru.modelo == m]
     s = dev[(dev.regime == "s1f11_src") & (dev.model == m)].iou
     filas.append({"Modelo": nombre, "Sen1Floods11: tasa": f"{a.lr.iloc[0]:.0e}", "IoU valid": f"{a.iou.mean():.4f} ± {a.iou.std():.4f}",
-                  "IoU peru-dev": f"{s.mean():.4f} ± {s.std():.4f}",
-                  "Perú: tasa (sin barrido)": f"{b.lr.iloc[0]:.0e}", "IoU peru-dev ": f"{b.iou.mean():.4f} ± {b.iou.std():.4f}"})
+                  "IoU peru-dev (sin adaptar)": f"{s.mean():.4f} ± {s.std():.4f}",
+                  "Perú: tasa (sin barrido)": f"{b.lr.iloc[0]:.0e}", "IoU peru-dev (entrenado en el Perú)": f"{b.iou.mean():.4f} ± {b.iou.std():.4f}"})
 display(pd.DataFrame(filas).style.hide(axis="index"))"""),
     nbf.v4.new_markdown_cell(CONCLUSIONS),
 ]
