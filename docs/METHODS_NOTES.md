@@ -3144,4 +3144,16 @@ model (per-seed points, mean ± std) from `outputs/phaseD/dev_table_runs.csv`; t
 whose script (`entregables/informe_parcial/figuras.py`) is not in the repo and which showed 0.942
 for the Peru U-Net (0.941 from the per-seed values). The co-author's Figura 6 is the same content
 as `fig_brecha`, already in the report.
+**Framing change, 2026-11-12 (teacher's input, relayed by the authors).** The teacher said the
+point of the project is not the model comparison itself: the comparison is the first step, and
+its result is used to build a working application for detection. The objectives and hypotheses
+already say this (OG: develop the system; OE1: "para seleccionar el modelo del sistema"), so
+nothing approved changes. In the informe parcial the emphasis was moved accordingly: a sentence
+in Cap. II and §4.3 states the sequence compare → select → build; §8 opens with it; §8.1
+describes the application and shows a screenshot (`docs/images/incident_view_3d.jpg`); §8.5 gets
+a "Selección del modelo del sistema" paragraph taken from the 2026-10-18 decision (default
+Peru-trained U-Net, trHM as optional layer, Prithvi source-only rejected, choice made with test
+results known); §9.1 is reordered around model chosen → label-free alternative → uncertainty →
+working application. HE3 stays pending. The same emphasis should be carried into the thesis
+Introducción, §3.2 and Chapter IV when they are written.
 
