@@ -1,0 +1,4 @@
+,diferencia,IC 95 % inf.,IC 95 % sup.
+"Var1 − baseline, peru-2017-test",-0.064,-0.083,-0.046
+"Var1 − baseline, peru-test",0.222,0.132,0.309
+"Var1 − U-Net con etiquetas de Perú, peru-test",-0.03,-0.048,-0.013

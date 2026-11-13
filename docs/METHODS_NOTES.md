@@ -2847,6 +2847,159 @@ decision as the 2023 sea question).
 **Feeds:** thesis §3.1.9 (system), only as a description of the interface; no numbers from it.
 
 
+## 2026-10-23 — Baseline-and-variants notebook and sprint report (course progress, week 6; no new runs)
+
+*Revised the same day: the main experiment is now a data A/B test and the model comparison below is the annex. See the next entry.*
+
+**What and why.** The course's week-6 deliverable is a sprint report: EDA, feature engineering,
+and an experiment with a baseline and one or two variants. The experiment already existed (phase
+C, Peru-trained models, 3 seeds, one-time test pass), but no notebook presented it.
+`notebooks/baseline_variantes.ipynb` (Spanish, executed; built by `notebooks/build_baseline_nb.py`)
+presents it, and `docs/informe_sprint_sem6.md` ties weeks 4–6 together. Branch
+`avance-sem6-sprint`; plan in OpenSpec change `avance-sem6-sprint-report`.
+
+**Method.**
+- **Experiment.** Baseline U-Net (ResNet-34, ImageNet, 13 L1C bands); variant 1 TerraMind v1-B
+  (13 L1C bands); variant 2 Prithvi-EO-2.0 300M (6 HLS bands). All three are trained on
+  `peru-train` with the configs at commit `45270f1`, unchanged since (`git log 45270f1..HEAD --
+  configs/` is empty for these files). Shared settings: Dice loss with ignore −1, AdamW,
+  ReduceLROnPlateau, D4 augmentation, max 100 epochs, early stopping on dev water IoU
+  (patience 20). Each model keeps its official LR and batch size: U-Net 1e-4 / 8, TerraMind
+  2e-5 / 8, Prithvi 1e-4 / 4. MNDWI threshold rows are non-learned references, not variants.
+- **Numbers.** Transcribed into `notebooks/results/sprint6_results.csv` (67 values; each row names
+  its log entry or write-up and, where recorded, the run commit):
+  - dev per seed and mean ± std: EXPERIMENT_LOG 2026-10-13/14;
+  - MNDWI rows: `docs/phaseD_dev.md`, plus the week-5 train-fitted threshold;
+  - edge-tolerant differences: entry 2026-10-14;
+  - TerraMind 200-epoch check: EXPERIMENT_LOG 2026-10-14;
+  - `peru-test` and `peru-2017-test` aggregates: `docs/phaseD_test.md`.
+- **Why a transcribed table.** `outputs/` is not on this machine. The notebook runs on any
+  clone. If `outputs/phaseD/dev_table_runs.csv` (regime `peru`) exists, it checks the per-seed
+  dev IoU against it, with a tolerance of 1e-4.
+- **Guards.** The builder refuses a row without a source (tested with a copy that had one source
+  removed: it stops and names the row). The notebook reads no file under `data/`.
+- **Figures and tables.** PNG and PDF figures and CSV tables are written to `docs/figs/sprint6/`
+  for the report and the later LaTeX version.
+
+**Checks.**
+- Dev mean ± sample std recomputed from the 3 seeds equals the logged values to 4 decimals for
+  all three models.
+- Inconsistency found between documents: Prithvi's dev std is 0.00066. EXPERIMENT_LOG rounds it
+  to 0.0007, while `docs/phaseD_dev.md` writes 0.0006 (truncated). The notebook uses 0.0007.
+- While drafting, three claims were corrected against their sources:
+  - The 200-epoch check shows the 100-epoch cap did **not** limit TerraMind (best 0.9270 at
+    epoch 77 vs 0.9275 at epoch 92, seed 0), so "possibly under-trained" was dropped.
+  - Prithvi (0.9218) is **below** the train-fitted MNDWI threshold (0.9237), not above it.
+    TerraMind is +0.003 and U-Net +0.018. The threshold was scored on 1/4 of the dev pixels,
+    so the comparison is approximate.
+  - The share of the U-Net's lead that lies in the 1-px label-edge band is 73 % (vs TerraMind)
+    and 86 % (vs Prithvi) for Peru-only runs. The earlier "75–100 %" also covered the
+    Sen1Floods11 → Peru runs.
+
+**Results** (no new numbers; sources above).
+- Dev water IoU: U-Net 0.9415 ± 0.0019, TerraMind 0.9265 ± 0.0025, Prithvi 0.9218 ± 0.0007.
+- `peru-test`: 0.828 / 0.815 / 0.824. The CIs overlap, and no paired differences were computed
+  between these rows, so no test ranking is claimed.
+- `peru-2017-test` (101 chips): 0.878 / 0.892 / 0.878.
+
+**Alternatives rejected.**
+- A new variant (U-Net + MNDWI input channel): 6–12 h of training, and its test score could not
+  be reported because the test pass is closed.
+- Including the label-free phase-D experiment: the authors kept the deliverable to one
+  experiment (2026-10-23).
+
+**Caveats.**
+- Test values are aggregates only (per-seed test values are not in the tracked documents).
+- Single spatial split.
+- Hyperparameters are each model's official ones, not tuned for Peru.
+
+**Thesis use.** Chapter III results (model comparison with Peru labels). Course deliverable:
+branch `avance-sem6-sprint`.
+
+## 2026-10-23 — Week-6 revision: data A/B experiment as the main result, model comparison as annex (no new runs)
+
+**What and why.** The course slides on A/B experiments (Proyecto de Investigación 2, Glen
+Rodríguez: "Experimentos A/B, validación reforzada y reporte comparativo") ask for a baseline and at
+most two variants. Each variant must make **one change** with the same splits, seeds and data. The
+report needs a standard table (central metric, secondary metrics, cost/latency, one-line note, log
+path), one chart, a validation section ("divide primero, transforma después"), an adopt/discard
+decision, reproducibility (commands, data snapshot, library versions), risks and next steps, and a
+demo draft. The authors asked for the variants to be **variants of the data**. The model comparison
+of the first version (entry above) changes the model, so it is kept only as an annex. Plan: OpenSpec
+change `avance-sem6-sprint-report`, task group 7.
+
+**Design.**
+- **Fixed for all rows.** U-Net with a ResNet-34 encoder (ImageNet), 13 L1C bands. Trained on
+  Sen1Floods11 `train`, selected on `valid` (early stopping, patience 20, max 200 epochs), LR 3e-4,
+  batch 8, Dice, D4, seeds 0–2, RTX 4090 16-mixed. `configs/unet.yaml` is unchanged between the
+  baseline's commit `8a8fee4` and the variants' commit `e8001a4` (`git log 8a8fee4..e8001a4 --
+  configs/unet.yaml` is empty).
+- **Baseline `UNet_s1f11_raw`.** Raw images.
+- **Var1 `UNet_s1f11_trHM`.** Per-band histogram matching of the training and `valid` images to the
+  unlabelled `peru-train` pool (1,001 quantiles).
+- **Var2 `UNet_s1f11_trFDA_b0.01`.** The low-frequency Fourier amplitude (β = 0.01) taken from a
+  random pool image.
+- **The models are applied to unchanged Peru images**, so inference costs the same for all rows.
+- **Decision.** It follows the pre-registered HM-vs-FDA rule (seed-0 dev IoU 0.9148 vs 0.7251,
+  entry 2026-10-15), so only Var1 was frozen and tested.
+- **Reference rows** (they change more than one setting):
+  - the Peru-trained U-Net (upper bound);
+  - MNDWI > 0.15 fitted on Sen1Floods11 (week 5);
+  - MNDWI > Otsu on the pool.
+
+**Rejected design.** The first data-variant proposal (same day) was: baseline Peru-trained U-Net, Var1
+Sen1Floods11 → Peru fine-tuning, Var2 trHM. That Var2 changes four settings against that baseline:
+training data, transform, LR (3e-4 vs 1e-4) and selection set (`valid` vs `peru-dev`). It breaks the
+one-change rule. Test-time HM was also rejected as Var2: it changes inference rather than training
+and has no U-Net test row.
+
+**Numbers.** `notebooks/results/sprint6_results.csv` now has 133 values. The new experiment `AB`
+rows each name their source:
+- per-seed dev IoU: EXPERIMENT_LOG 2026-10-15 and 2026-10-16;
+- dev precision/recall: METHODS_NOTES 2026-10-16 "Pod session 2 results";
+- test values and paired differences: `docs/phaseD_test.md` and METHODS_NOTES 2026-10-16;
+- cost: EXPERIMENT_LOG 2026-10-14/15 and 2026-10-15/16.
+
+The old rows were renamed to experiment `annex`. New columns: `exp_id`, `change`, `run_dir`,
+`config`.
+
+**Checks.**
+- Dev mean ± sample std recomputed from the seeds equals the logged values to 4 decimals for all
+  three rows: 0.8364 ± 0.0224, 0.9118 ± 0.0026, 0.6151 ± 0.1122. The Var1 − baseline differences per
+  seed (0.0715 / 0.0553 / 0.0994) equal the logged +0.072 / +0.055 / +0.100.
+- The notebook builds with no error outputs. The source guard is still in place, and no file under
+  `data/` is read.
+- Corrections made while writing:
+  - The dev difference Var1 − baseline is +0.075, not +0.076.
+  - The doubtful-chip sensitivity is taken from the corrected `docs/phaseD_test.md` (2026-10-17):
+    +0.005 to +0.016, with one ordering change between two TerraMind rows. The older METHODS_NOTES
+    text ("+0.004 to +0.016, no ordering changes") is out of date.
+
+**Results** (no new numbers).
+
+| Row | Dev IoU | Dev precision / recall | `peru-test` |
+|---|---|---|---|
+| Baseline | 0.836 ± 0.022 | 0.848 / 0.985 | 0.576 |
+| Var1 (adopted) | 0.912 ± 0.003 | 0.962 / 0.946 | 0.798 |
+| Var2 (discarded) | 0.615 ± 0.112 | not on record | not evaluated |
+
+Paired test differences:
+- Var1 − baseline: +0.222 [0.132, 0.309] on `peru-test`, and −0.064 [−0.083, −0.046] on 2017;
+- Var1 − Peru-trained U-Net: −0.030 [−0.048, −0.013].
+
+**Caveats.**
+- Var1/Var2 used 8 DataLoader workers and the baseline 4. This changes the augmentation order, not
+  the data. An identical rerun of the baseline differs by 0.017 on `valid`, far below the effects.
+- Var2's dev precision/recall and the per-run wall clock of the variants are not in tracked
+  documents, so the table says "not on record".
+- No PR curve, because it needs logits that are not on this machine.
+- No K-fold: re-splitting Sen1Floods11 is forbidden, and K retrainings per row would need rented
+  GPUs.
+
+**Thesis use.** Chapter III/V (label-free adaptation, phase D) and the course deliverable: notebook
+`notebooks/baseline_variantes.ipynb`, report `docs/informe_sprint_sem6.md`, figures
+`docs/figs/sprint6/fig_ab_datos.*`.
+
 ## 2026-10-28: Consistency matrix and traceability matrix (course deliverable)
 
 **What and why.** The course teacher asked for the matriz de consistencia. Anexo 1 of the thesis

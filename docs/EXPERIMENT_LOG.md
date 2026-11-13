@@ -645,6 +645,47 @@ notebook". Commit: see this entry's commit.
   Compendio 2017 p. 28): the model is low; shown as a model, not a measurement.
 
 
+## 2026-10-23 — Data rebuilt on a second machine; Peru v1 verified
+
+On a fresh clone without `data/`:
+- `scripts/download_sen1floods11.py`: 1,338 files, 1,022 MB. `scripts/verify_sen1floods11.py`:
+  train 252 / valid 89 / test 90 chips, all ok.
+- UNOSAT shapefiles from HDX (`FL0230321PER_SHP.zip`, `EQ20230321PER_SHP.zip`) into
+  `data/unosat2023/raw/`.
+- EMSR199 vectors for the 5 AOIs from the Copernicus EMS S3 bucket
+  (`cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EMSR199/<product>_vector.zip`;
+  the old `emergency.copernicus.eu` paths return 404) into `data/emsr199/raw/<product>/`.
+- `scripts/build_peru_unosat.py`: CDSE credentials in `.env`. A 502 from the Process API stopped
+  the build at location 411 of 668; it was resumed from `manifest.csv`.
+- `scripts/split_peru_unosat.py`.
+- `scripts/build_peru_emsr2017.py`: one 502, then a full re-run.
+
+Check: `scripts/freeze_peru.py --check` reports that all 2,990 chip files match their manifests,
+and the manifests and split lists match `docs/peru_v1_checksums.txt`, so the rebuild is
+bit-identical to Peru v1. No training.
+
+## 2026-10-23 — Baseline-and-variants notebook (course progress, week 6; no new runs)
+
+*Revised the same day (data A/B as the main experiment): see the entry below.*
+
+`uv run python notebooks/build_baseline_nb.py` → `notebooks/baseline_variantes.ipynb` (executed),
+figures and tables in `docs/figs/sprint6/`. Reads only `notebooks/results/sprint6_results.csv`
+(values transcribed from the entries of 2026-10-13/14 and 2026-10-14 above and from
+`docs/phaseD_dev.md` / `docs/phaseD_test.md`); no training, no evaluation, no file under `data/`.
+Results: METHODS_NOTES 2026-10-23 "Baseline-and-variants notebook". Commit: see this entry's commit.
+
+## 2026-10-23 — Week-6 notebook revised: data A/B experiment (course progress, week 6; no new runs)
+
+`uv run python notebooks/build_baseline_nb.py` → `notebooks/baseline_variantes.ipynb` (executed).
+Figures and tables in `docs/figs/sprint6/`: `fig_ab_datos`, `fig_anexo_modelos`, `tabla_ab*.csv`,
+`tabla_anexo_modelos.csv`. The old figures and tables were removed.
+- The three rows are existing runs: `outputs/s1f11_src_unet` (commit `8a8fee4`), and
+  `outputs/s1f11_trhm_unet` and `outputs/s1f11_trfda_unet` (commit `e8001a4`). Their values were
+  transcribed into `notebooks/results/sprint6_results.csv`.
+- No training, no evaluation, and no file under `data/` read.
+
+Results: METHODS_NOTES 2026-10-23 "Week-6 revision". Commit: see this entry's commit.
+
 ## 2026-10-28 — Storage: unfrozen checkpoints moved to S3
 
 To free disk, 400 files (44.47 GB) were moved to a private S3 bucket (name in `.env` as
@@ -682,4 +723,3 @@ No new runs. `uv run python notebooks/build_hiperparametros_nb.py` →
 `outputs/phaseD/oracle_selection.csv` and `outputs/analysis_dev/index_baseline.csv`; no test split.
 Sweep values recomputed from `metrics.csv` match the 2026-10-14/15 and 2026-10-15/16 entries.
 Write-up: METHODS_NOTES 2026-11-03.
-

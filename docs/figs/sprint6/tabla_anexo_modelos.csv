@@ -1,0 +1,4 @@
+,modelo,IoU dev (media ± de),IoU peru-test [IC 95 %],precisión / recall peru-test,IoU peru-2017-test (101)
+UNet_peru,U-Net (ResNet-34),0.9415 ± 0.0019,"0.828 [0.732, 0.895]",0.966 / 0.853,0.878
+TerraMind_peru,TerraMind v1-B,0.9265 ± 0.0025,"0.815 [0.718, 0.885]",0.960 / 0.843,0.892
+Prithvi_peru,Prithvi-EO-2.0 300M,0.9218 ± 0.0007,"0.824 [0.731, 0.890]",0.966 / 0.850,0.878
