@@ -3121,4 +3121,10 @@ against a source: §3.3 hypotheses and variables; the full one-time test table (
 `openspec/changes/plan-flood-research/design.md`); reverse transfer; dated list of executed steps;
 RF3/RF5 detail. Corrected in ours: `tests/test_target_pool.py` has 12 tests (50 in the repo), not
 13; the "36 frozen checkpoints" figure was dropped because the log gives both 36 and 42.
+Second pass the same day, also re-verified: Sen1Floods11 table with per-seed `valid` values
+(`docs/EXPERIMENT_LOG.md` 2026-10-14/15), leakage table (§6.4), feature-engineering table (§7.5),
+development timings of the system labelled as outside the protocol (163–429 s with download), the
+Otsu baseline row, three more run-registry rows, the cross-device check, and a risk row on the
+unversioned `outputs/`. Not ported: the AI-use statement (authors' decision), the Sen1Floods11
+licence claim and the Peru learning-rate sweep estimate (no source in the repo).
 
