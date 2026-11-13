@@ -3079,3 +3079,34 @@ TerraMind. Each run's `config.yaml` shows 0.05 for the U-Net and 0.01 (AdamW def
 Chapter III's table (0.05, 0.01, 0.1) is already correct.
 
 **Thesis use.** Chapter III (training setup, hyperparameter selection), results caveats.
+
+## 2026-11-12: Informe parcial (course deliverable, week 9: plan de tesis + protocolo)
+
+**What and why.** The course asks for an "Informe parcial" (EP, week 9; syllabus v2) that follows
+the template `Plantilla_Informe_Parcial_PI2_UNI_Profesionalizante`: Part I, plan de tesis
+(chapters I–V); Part II, protocol and experimental progress (sections 6–9); annexes A–E. It is
+written in LaTeX in `parcial/`, a separate git repo whose remote is a new Overleaf project
+(`main.tex`, `preambulo.tex`, `referencias.bib`, `figuras/`; XeLaTeX, 45 pages).
+
+**Method.** No new runs and no new analysis; no test split was read. The text is condensed from
+the thesis (Capítulo 1–3), the week 4–8 deliverables (`docs/informe_sprint_sem6.md`,
+`notebooks/*_conclusiones.md`, `docs/matriz_consistencia.md`) and the logs. Every number has a
+`% fuente:` comment. Wording follows the consistency-matrix forms ("sin datos etiquetados del
+Perú", "esquema de entrenamiento", "confiabilidad", "condiciones"). The 41 bib entries are copied
+from `thesis/3_3_BIBLIOGRAFIA/library.bib`; three figures are copied from `thesis/E_IMAGENES/`.
+The template's headings are kept; its "INDICACIÓN" lines are removed.
+
+**Choices.** Hypotheses have no slot in Part I of the template, so they appear as the contrastable
+claims of §7.1 and in Annex A. §8.2 reports dev IoU per seed (`outputs/phaseD/dev_table_runs.csv`)
+next to the one-time test values. System results are reported only as preliminary checks (RF1, RF3,
+RF5); HE3 stays "pendiente" (WRITING_RULES §11.11).
+
+**Items the authors must confirm.** (1) Course week ↔ date mapping is inferred from the weekly
+deliverable dates (week 9 = 9–13 Nov 2026); the planned weeks 10–16 are a proposal. (2) Teachers'
+names are as in the syllabus v2 header. (3) GPU cost ≈ 32 USD is the sum of six session readings
+(6.2, 4.9, 0.7, 4.56, 6.19, 9.68); the S3 cost is not logged. (4) "Fin estimado: enero de 2027"
+(week 16) is derived from that mapping. (5) Argumentative paragraphs (§1.1, §8.5, §9.1) should be
+rewritten in the authors' voice (WRITING_RULES §9).
+
+**Feeds.** Course grade (EP). No thesis text changed.
+
