@@ -3127,4 +3127,10 @@ development timings of the system labelled as outside the protocol (163–429 s 
 Otsu baseline row, three more run-registry rows, the cross-device check, and a risk row on the
 unversioned `outputs/`. Not ported: the AI-use statement (authors' decision), the Sen1Floods11
 licence claim and the Peru learning-rate sweep estimate (no source in the repo).
+**Correction, 2026-11-12 (GPU cost).** The authors supplied the RunPod billing page (screenshot,
+12 Nov 2026): reloads of $10.00 (13 Oct), $15.00 (14 Oct) and $10.00 (15 Oct), a $5.00 RunPod
+credit (13 Oct), balance $5.89. Spent = 40.00 − 5.89 = $34.11, of which $35.00 was paid by the
+authors. This replaces the "≈ 32 USD" in §5.2 of the informe parcial, which was the sum of the
+per-session readings in `docs/EXPERIMENT_LOG.md` (32.2); the ≈ $1.9 gap is not itemized (the log
+already notes an unreconciled ≈ $0.8 for the self-training session).
 
