@@ -3133,4 +3133,15 @@ credit (13 Oct), balance $5.89. Spent = 40.00 − 5.89 = $34.11, of which $35.00
 authors. This replaces the "≈ 32 USD" in §5.2 of the informe parcial, which was the sum of the
 per-session readings in `docs/EXPERIMENT_LOG.md` (32.2); the ≈ $1.9 gap is not itemized (the log
 already notes an unreconciled ≈ $0.8 for the self-training session).
+**Figures added, 2026-11-12.** Four figures were added to the informe parcial (now 7 figures,
+57 pages). Three are the PNG outputs already embedded in the executed notebooks, extracted
+unchanged: domain shift per band (`notebooks/eda.ipynb`), band permutation importance
+(`entregables/matriz_consistencia/importancia_variables.ipynb`) and the learning-rate sweep
+(`notebooks/optimizacion_hiperparametros.ipynb`). The fourth is new:
+`scripts/figures/fig_adaptacion_dev.py` plots water IoU on `peru-dev` per adaptation method and
+model (per-seed points, mean ± std) from `outputs/phaseD/dev_table_runs.csv`; test-time FDA
+(IoU ≈ 0.01) is outside the axis and named in the caption. It replaces the co-author's Figura 7,
+whose script (`entregables/informe_parcial/figuras.py`) is not in the repo and which showed 0.942
+for the Peru U-Net (0.941 from the per-seed values). The co-author's Figura 6 is the same content
+as `fig_brecha`, already in the report.
 
