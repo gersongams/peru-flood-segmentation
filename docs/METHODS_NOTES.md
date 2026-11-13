@@ -3110,3 +3110,15 @@ rewritten in the authors' voice (WRITING_RULES §9).
 
 **Feeds.** Course grade (EP). No thesis text changed.
 
+**Addition, 2026-11-12 (comparison with the co-author's draft).** The co-author's own draft
+(`parcial/Informe_Parcial_PI2_Garrido_Cerron.docx.pdf`, 53 pages) was checked against the result
+files: its headline numbers match; the slips found were Peru U-Net dev IoU 0.942 (0.941 from the
+per-seed values), Peru Prithvi precision/recall 0.966/0.850 (0.965/0.849), a calibration range
+mixing primary and secondary rows, and a path `entregables/informe_parcial/` that does not exist
+in the repo. Its figures were not checked. Ported from it into `parcial/main.tex`, each re-verified
+against a source: §3.3 hypotheses and variables; the full one-time test table (precision, recall,
+2017); the five-condition error table; the plan's rule for K-fold (< 30 water chips,
+`openspec/changes/plan-flood-research/design.md`); reverse transfer; dated list of executed steps;
+RF3/RF5 detail. Corrected in ours: `tests/test_target_pool.py` has 12 tests (50 in the repo), not
+13; the "36 frozen checkpoints" figure was dropped because the log gives both 36 and 42.
+
